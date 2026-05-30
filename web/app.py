@@ -1,0 +1,205 @@
+"""
+IES 2026 Study App — Dashboard.
+Run: python3 -m streamlit run web/app.py
+"""
+import sys
+from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+import streamlit as st
+
+from db import EXAM_DATE, EXAM_ID, USER_ID, get_conn, get_topics, set_topic_state
+from styles import apply_theme, badge, progress_bar
+
+st.set_page_config(
+    page_title="IES 2026",
+    page_icon="📚",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+apply_theme()
+
+conn = get_conn()
+
+
+def days_left() -> int:
+    return (datetime.strptime(EXAM_DATE, "%Y-%m-%d").date() - datetime.today().date()).days
+
+
+# ── Header metrics ─────────────────────────────────────────────────────────────
+d = days_left()
+total_a = conn.execute("SELECT COUNT(*) FROM model_answers WHERE exam_id=?", (EXAM_ID,)).fetchone()[0]
+total_q = conn.execute("SELECT COUNT(*) FROM pyq_questions WHERE exam_id=?", (EXAM_ID,)).fetchone()[0]
+verified = conn.execute(
+    "SELECT COUNT(*) FROM gap_states WHERE exam_id=? AND user_id=? AND state='VERIFIED'",
+    (EXAM_ID, USER_ID)
+).fetchone()[0]
+total_t = conn.execute(
+    "SELECT COUNT(*) FROM gap_states WHERE exam_id=? AND user_id=?",
+    (EXAM_ID, USER_ID)
+).fetchone()[0]
+
+h1, h2, h3, h4 = st.columns([3, 1, 1, 1])
+with h1:
+    st.markdown("## 📚 IES 2026 Study Dashboard")
+    st.markdown(f'<span style="color:#9AA0A6;font-size:0.85rem;">Exam on 17 June 2026 · GE-01 to GE-04</span>', unsafe_allow_html=True)
+with h2:
+    day_color = "#F28B82" if d <= 14 else "#8AB4F8"
+    st.markdown(f"""<div class="gem-card" style="text-align:center;border-color:{day_color}33">
+        <div style="font-size:2rem;font-weight:700;color:{day_color}">{d}</div>
+        <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Days Left</div>
+    </div>""", unsafe_allow_html=True)
+with h3:
+    pct = int(100 * total_a / total_q) if total_q else 0
+    st.markdown(f"""<div class="gem-card" style="text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:#8AB4F8">{total_a}</div>
+        <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Answers Ready</div>
+        <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px">{pct}% of {total_q} PYQs</div>
+    </div>""", unsafe_allow_html=True)
+with h4:
+    st.markdown(f"""<div class="gem-card" style="text-align:center">
+        <div style="font-size:2rem;font-weight:700;color:#81C995">{verified}</div>
+        <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Topics Verified</div>
+        <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px">of {total_t} topics</div>
+    </div>""", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ── Today's Focus ──────────────────────────────────────────────────────────────
+all_topics = get_topics(conn)
+
+focus_topics = [t for t in all_topics if (t["state"] or "UNVISITED") in ("IN_STUDY", "DECAYING", "FLAGGED")]
+if len(focus_topics) < 3:
+    unvisited = sorted(
+        [t for t in all_topics if (t["state"] or "UNVISITED") == "UNVISITED"],
+        key=lambda x: -(x["base_priority_score"] or 0)
+    )
+    focus_topics = focus_topics + unvisited
+focus_topics = focus_topics[:3]
+
+st.markdown('<div class="section-header">Today\'s Focus</div>', unsafe_allow_html=True)
+fc1, fc2, fc3 = st.columns(3)
+for col, t in zip([fc1, fc2, fc3], focus_topics):
+    state = t["state"] or "UNVISITED"
+    score = t["base_priority_score"] or 0.0
+    ans = t["answers_ready"] or 0
+    total = t["total_q"] or 0
+    name = t["topic_id"].replace("_", " ").title()
+    paper = t["paper_id"].upper().replace("_", "-")
+
+    with col:
+        st.markdown(f"""<div class="focus-card">
+            {badge(state)}
+            <h4>{name}</h4>
+            <div class="meta">{paper} · {t['pyq_count'] or 0} PYQs · score {score:.3f}</div>
+            {progress_bar(ans, total or 1)}
+            <div style="font-size:0.7rem;color:#9AA0A6;margin-top:4px">{ans}/{total} answers ready</div>
+        </div>""", unsafe_allow_html=True)
+        b1, b2 = st.columns(2)
+        with b1:
+            if st.button("▶ Start", key=f"focus_start_{t['topic_id']}", use_container_width=True,
+                         disabled=(state == "VERIFIED")):
+                next_s = {"UNVISITED": "IN_STUDY", "FLAGGED": "IN_STUDY", "DECAYING": "IN_STUDY",
+                          "IN_STUDY": "PARTIAL", "PARTIAL": "VERIFIED"}.get(state, state)
+                set_topic_state(conn, t["topic_id"], next_s, "ui_focus_start")
+                st.rerun()
+        with b2:
+            if st.button("✓ Done", key=f"focus_done_{t['topic_id']}", use_container_width=True,
+                         disabled=(state == "VERIFIED")):
+                set_topic_state(conn, t["topic_id"], "VERIFIED", "ui_focus_done")
+                st.rerun()
+
+st.markdown("<br>", unsafe_allow_html=True)
+st.divider()
+
+# ── Paper tabs ─────────────────────────────────────────────────────────────────
+PAPERS = [
+    ("ge_01", "GE-01 · Micro & Macro"),
+    ("ge_02", "GE-02 · Statistics & Math"),
+    ("ge_03", "GE-03 · Indian Economy"),
+    ("ge_04", "GE-04 · Economic Policy"),
+]
+tabs = st.tabs([p[1] for p in PAPERS])
+
+for tab, (paper_id, _) in zip(tabs, PAPERS):
+    with tab:
+        topics = get_topics(conn, paper_id)
+        for t in topics:
+            state = t["state"] or "UNVISITED"
+            score = t["base_priority_score"] or 0.0
+            ans = t["answers_ready"] or 0
+            total = t["total_q"] or 0
+            name = t["topic_id"].replace("_", " ").title()
+
+            col_a, col_b, col_c, col_d, col_e = st.columns([4, 2, 1.2, 1.2, 1.2])
+            with col_a:
+                st.markdown(
+                    f'{badge(state)} <span style="font-size:0.92rem;font-weight:500;margin-left:6px">{name}</span>',
+                    unsafe_allow_html=True
+                )
+                st.markdown(
+                    progress_bar(ans, total or 1) +
+                    f'<div style="font-size:0.68rem;color:#9AA0A6;margin-top:2px">{ans}/{total} answers ready</div>',
+                    unsafe_allow_html=True
+                )
+            with col_b:
+                st.markdown(
+                    f'<div style="font-size:0.78rem;color:#9AA0A6;padding-top:4px">'
+                    f'{t["pyq_count"] or 0} PYQs · score <strong style="color:#8AB4F8">{score:.3f}</strong></div>',
+                    unsafe_allow_html=True
+                )
+            with col_c:
+                next_states = {
+                    "UNVISITED": ("▶ Start", "IN_STUDY"),
+                    "FLAGGED":   ("▶ Start", "IN_STUDY"),
+                    "DECAYING":  ("↺ Revise", "IN_STUDY"),
+                    "IN_STUDY":  ("◕ Partial", "PARTIAL"),
+                    "PARTIAL":   ("✓ Verify", "VERIFIED"),
+                    "VERIFIED":  ("✓ Done", "VERIFIED"),
+                }
+                btn_label, next_state = next_states.get(state, ("▶", "IN_STUDY"))
+                if st.button(btn_label, key=f"adv_{paper_id}_{t['topic_id']}", use_container_width=True,
+                             disabled=(state == "VERIFIED")):
+                    set_topic_state(conn, t["topic_id"], next_state, "ui_advance")
+                    st.rerun()
+            with col_d:
+                if st.button("✓ Verify", key=f"ver_{paper_id}_{t['topic_id']}", use_container_width=True,
+                             disabled=(state == "VERIFIED")):
+                    set_topic_state(conn, t["topic_id"], "VERIFIED", "ui_verify")
+                    st.rerun()
+            with col_e:
+                if st.button("↺", key=f"rst_{paper_id}_{t['topic_id']}", use_container_width=True,
+                             help="Reset to Unvisited"):
+                    set_topic_state(conn, t["topic_id"], "UNVISITED", "ui_reset")
+                    st.rerun()
+
+# ── Summary ────────────────────────────────────────────────────────────────────
+st.markdown("<br>", unsafe_allow_html=True)
+st.divider()
+st.markdown('<div class="section-header">Overview</div>', unsafe_allow_html=True)
+
+STATE_ORDER = ["UNVISITED", "IN_STUDY", "FLAGGED", "PARTIAL", "VERIFIED", "DECAYING"]
+state_counts = {}
+for t in all_topics:
+    s = t["state"] or "UNVISITED"
+    state_counts[s] = state_counts.get(s, 0) + 1
+
+scols = st.columns(6)
+STATE_COLORS = {
+    "UNVISITED": "#9AA0A6", "IN_STUDY": "#FDD663", "FLAGGED": "#8AB4F8",
+    "PARTIAL": "#81C995", "VERIFIED": "#81C995", "DECAYING": "#F28B82",
+}
+STATE_EMOJI = {"UNVISITED": "○", "IN_STUDY": "◑", "FLAGGED": "⚑",
+               "PARTIAL": "◕", "VERIFIED": "✓", "DECAYING": "↓"}
+for col, s in zip(scols, STATE_ORDER):
+    cnt = state_counts.get(s, 0)
+    color = STATE_COLORS[s]
+    with col:
+        st.markdown(f"""<div class="gem-card" style="text-align:center;border-color:{color}33">
+            <div style="font-size:1.8rem;font-weight:700;color:{color}">{cnt}</div>
+            <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">{STATE_EMOJI[s]} {s.replace('_',' ').title()}</div>
+        </div>""", unsafe_allow_html=True)
+
+conn.close()

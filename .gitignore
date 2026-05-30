@@ -1,0 +1,26 @@
+# Copyrighted PDF source material — never commit
+pdfs/
+
+# Personal study database — contains private progress data
+data/ies.db
+
+# SQLite WAL runtime files
+data/ies.db-shm
+data/ies.db-wal
+
+# API batch job IDs
+exports/answers_batch.txt
+exports/prototype_diagrams.json
+
+# Secrets
+.env
+.streamlit/credentials.toml
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.egg-info/
+dist/
+build/
