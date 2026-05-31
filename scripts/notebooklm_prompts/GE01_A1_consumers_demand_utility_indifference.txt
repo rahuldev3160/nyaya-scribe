@@ -1,0 +1,11 @@
+Focus exclusively on Consumer Demand Theory — Part 1: Utility and Demand Derivation. This is IES General Economics revision for GE-01 (Paper II: Micro and Macro) at DSE/JNU masters level.
+
+Cover these specific sub-concepts: cardinal versus ordinal utility debate; marginal utility and diminishing MU; indifference curve properties and shapes (normal, perfect substitutes, perfect complements, Giffen goods, bads, neutrals); MRS and its interpretation; budget constraint and consumer equilibrium via tangency condition; income and substitution effects using Hicksian and Slutskian decomposition; Slutsky theorem derivation and proof; price-consumption curve and Engel curve derivation; ordinary versus compensated demand; homogeneity of degree zero for demand functions; duality theory — indirect utility function, expenditure function, Roy's identity, Shephard's lemma; revealed preference axioms (WARP and SARP); demand function derivation from Cobb-Douglas and CES utility functions; price elasticity, income elasticity, cross elasticity; consumer surplus and deadweight loss.
+
+DO NOT cover: pricing under market structures (monopoly, oligopoly — that is Theory of Value); production functions or costs (that is Theory of Production); factor pricing or income distribution (that is Theory of Distribution); Nash equilibrium or game theory; welfare economics or social choice; econometric or mathematical methods.
+
+For every mathematical relationship, equation, or formula: explain it in spoken English step by step. Do not read symbols — translate them. Example: "Roy's identity says: take the partial derivative of the indirect utility function with respect to price, divide it by the partial derivative with respect to income, and multiply by negative one — the result is the ordinary demand function."
+
+Structure: Open with 2-3 landmark IES PYQ questions to frame the session — specifically the 2025 MRS question, the 2024 Slutsky theorem question, and the 2023 revealed preference question. Then build concept by concept from utility to demand. End with the 3 most likely IES 2026 question patterns: (1) derive compensated demand from a given utility function, (2) Slutsky decomposition with numbers, (3) revealed preference consistency check.
+
+Use Deep Dive format (two hosts discussing). Target length: 20 minutes.

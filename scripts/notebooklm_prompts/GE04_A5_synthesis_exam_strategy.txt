@@ -1,0 +1,13 @@
+This is a synthesis and exam strategy audio for IES 2026 General Economics Paper IV (GE-04: Indian Economy). This is NOT a first-pass learning audio — it is a pre-exam pattern drill. Assume the listener has studied all GE-04 topics.
+
+INTER-TOPIC LINKAGES: (1) Show how agricultural distress connects to rural-urban migration (Harris-Todaro), which connects to urban informal employment, which connects to poverty measurement — this is one causal chain IES examiners test across questions. (2) Show how fiscal deficit (FRBM) connects to inflation (monetisation risk), which connects to RBI monetary policy (CPI target), which connects to exchange rate pressure — this is the macro-fiscal chain. (3) Show how 1991 reforms (LPG) connect to industrial structure change (deindustrialisation debate), which connects to labour market outcomes (formal-informal segmentation), which connects to social security gaps.
+
+KNOWN EXAM TRAPS IN GE-04: (1) GST is sometimes asked under fiscal federalism (states fiscal autonomy angle) and sometimes under tax reform (revenue buoyancy angle) — distinguish how to structure the answer based on the question keyword. (2) Inflation targeting — do not confuse the RBI's inflation target (4 percent CPI) with the FRBM fiscal deficit target (3 percent of GDP) — examiners have designed questions that blur this. (3) Finance Commission versus NITI Aayog — students conflate their roles; Finance Commission is a constitutional body for devolution; NITI Aayog has no financial powers. (4) WTO Green Box versus Amber Box — India's food security programme (PDS procurement at MSP) has faced WTO challenge as an Amber Box subsidy exceeding the 10 percent de minimis limit — this is a live policy issue.
+
+HIGH-PROBABILITY 2026 QUESTION PREDICTIONS: (1) Federal finance — 15th FC horizontal devolution criteria with equity critique, because the 16th FC is currently deliberating; (2) PLI scheme — manufacturing strategy assessment, because it is the centrepiece of current industrial policy; (3) UPI and digital financial inclusion — recent enough to not have appeared frequently yet; (4) NPA resolution under IBC — outcomes assessment; (5) SDG progress review — India's status on SDG 1 (poverty), SDG 2 (hunger), SDG 8 (employment).
+
+DO NOT re-explain basic concepts from earlier audios. Assume knowledge. Focus on connections, traps, and predictions only.
+
+Structure: Two hosts doing a rapid-fire review — host 1 names a topic connection or trap, host 2 extends it with the exam-angle implication. End with a 5-question rapid prediction drill: for five high-probability topics, explain what a complete 20-mark answer must include.
+
+Use Deep Dive format (two hosts discussing). Target length: 15 minutes.

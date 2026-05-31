@@ -8,7 +8,14 @@ _CSS = """
 body, .main, .block-container { overflow-x: hidden !important; max-width: 100% !important; }
 
 /* ── Layout ──────────────────────────────────────────── */
-.block-container { padding-top: 1.2rem !important; padding-bottom: 2rem !important; }
+/* Main content area — enough top clearance for Streamlit's sticky header */
+.main .block-container,
+[data-testid="stMainBlockContainer"] {
+    padding-top: 3.5rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+}
 [data-testid="stSidebar"] { background-color: #1C1C1E; border-right: 1px solid #3A3A3C; }
 [data-testid="stSidebar"] .block-container { padding-top: 1rem !important; }
 

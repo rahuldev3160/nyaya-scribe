@@ -1,0 +1,369 @@
+{
+  "exam_id": "ies_2026",
+  "papers": [
+    {
+      "paper_id": "ge_01",
+      "paper_name": "General Economics I",
+      "syllabus_weight_default": 1.0,
+      "topics": [
+        {
+          "topic_id": "consumers_demand",
+          "topic_name": "Theory of Consumer's Demand",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "cardinal_utility", "topic_name": "Cardinal Utility Analysis: Marginal Utility and Demand, Consumer's Surplus"},
+            {"topic_id": "indifference_curve", "topic_name": "Indifference Curve Analysis, Utility Function, Price-Income-Substitution Effects"},
+            {"topic_id": "slutsky_theorem", "topic_name": "Slutsky Theorem and Derivation of Demand Curve"},
+            {"topic_id": "revealed_preference", "topic_name": "Revealed Preference Theory"},
+            {"topic_id": "duality_indirect_utility", "topic_name": "Duality, Indirect Utility Function and Expenditure Function"},
+            {"topic_id": "choice_under_risk", "topic_name": "Choice under Risk and Uncertainty"},
+            {"topic_id": "nash_equilibrium", "topic_name": "Simple Games of Complete Information, Concept of Nash Equilibrium"}
+          ]
+        },
+        {
+          "topic_id": "theory_of_production",
+          "topic_name": "Theory of Production",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "production_function_forms", "topic_name": "Forms of Production Functions: Cobb-Douglas, CES, Fixed Coefficient, Translog"},
+            {"topic_id": "laws_of_return", "topic_name": "Laws of Return, Returns to Scale and Return to Factors of Production"},
+            {"topic_id": "duality_cost_function", "topic_name": "Duality and Cost Function"},
+            {"topic_id": "productive_efficiency", "topic_name": "Measures of Productive Efficiency: Technical and Allocative Efficiency"},
+            {"topic_id": "partial_general_equilibrium", "topic_name": "Partial Equilibrium versus General Equilibrium Approach"}
+          ]
+        },
+        {
+          "topic_id": "theory_of_value",
+          "topic_name": "Theory of Value",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "pricing_market_structures", "topic_name": "Pricing under Different Market Structures: Perfect Competition, Monopoly, Oligopoly, Monopolistic Competition"},
+            {"topic_id": "public_sector_pricing", "topic_name": "Public Sector Pricing: Marginal Cost, Peak Load, Cross-Subsidy Free, Average Cost Pricing"},
+            {"topic_id": "marshallian_walrasian_stability", "topic_name": "Marshallian and Walrasian Stability Analysis"},
+            {"topic_id": "pricing_incomplete_information", "topic_name": "Pricing with Incomplete Information and Moral Hazard"}
+          ]
+        },
+        {
+          "topic_id": "theory_of_distribution",
+          "topic_name": "Theory of Distribution",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "neoclassical_distribution", "topic_name": "Neo-Classical Distribution Theories: Marginal Productivity Theory"},
+            {"topic_id": "factor_shares_euler", "topic_name": "Factor Shares, Adding Up Problems and Euler's Theorem"},
+            {"topic_id": "factor_pricing_imperfect", "topic_name": "Pricing of Factors under Imperfect Competition, Monopoly and Bilateral Monopoly"},
+            {"topic_id": "macro_distribution_theories", "topic_name": "Macro-Distribution Theories: Ricardo, Marx, Kaldor, Kalecki"}
+          ]
+        },
+        {
+          "topic_id": "welfare_economics",
+          "topic_name": "Welfare Economics",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "interpersonal_comparison", "topic_name": "Inter-personal Comparison and Aggregation Problem"},
+            {"topic_id": "public_goods_externalities", "topic_name": "Public Goods and Externalities, Divergence between Social and Private Welfare"},
+            {"topic_id": "compensation_principle", "topic_name": "Compensation Principle and Pareto Optimality"},
+            {"topic_id": "social_choice", "topic_name": "Social Choice and Recent Schools: Coase and Sen"}
+          ]
+        },
+        {
+          "topic_id": "mathematical_methods",
+          "topic_name": "Mathematical Methods in Economics",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "calculus_economics", "topic_name": "Differentiation and Integration and their Application in Economics"},
+            {"topic_id": "optimisation_techniques", "topic_name": "Optimisation Techniques"},
+            {"topic_id": "sets_matrices_linear_algebra", "topic_name": "Sets, Matrices, Linear Algebra and their Application in Economics"},
+            {"topic_id": "linear_programming", "topic_name": "Linear Programming in Economics"},
+            {"topic_id": "input_output_model", "topic_name": "Input-Output Model of Leontief"}
+          ]
+        },
+        {
+          "topic_id": "statistical_econometric_methods",
+          "topic_name": "Statistical and Econometric Methods",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "central_tendency_dispersion", "topic_name": "Measures of Central Tendency and Dispersions, Correlation and Regression"},
+            {"topic_id": "time_series_index_numbers", "topic_name": "Time Series and Index Numbers"},
+            {"topic_id": "multivariate_analysis", "topic_name": "Multivariate Analysis: ANOVA, Factor Analysis, PCA, Discriminant Analysis"},
+            {"topic_id": "income_inequality_lorenz", "topic_name": "Income Distribution: Pareto Law, Lognormal Distribution, Lorenz Curve, Gini Coefficient"},
+            {"topic_id": "regression_problems_remedies", "topic_name": "Univariate and Multivariate Regression: Heteroscedasticity, Autocorrelation, Multicollinearity"}
+          ]
+        }
+      ]
+    },
+    {
+      "paper_id": "ge_02",
+      "paper_name": "General Economics II",
+      "syllabus_weight_default": 0.9,
+      "topics": [
+        {
+          "topic_id": "economic_thought",
+          "topic_name": "Economic Thought",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "mercantilism_physiocrats_classical", "topic_name": "Mercantilism, Physiocrats and Classical School"},
+            {"topic_id": "marxist_neoclassical_school", "topic_name": "Marxist and Neo-Classical Schools of Thought"},
+            {"topic_id": "keynesian_monetarist_school", "topic_name": "Keynesian and Monetarist Schools of Thought"}
+          ]
+        },
+        {
+          "topic_id": "national_income_accounting",
+          "topic_name": "National Income and Social Accounting",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "measurement_national_income", "topic_name": "Measurement of National Income"},
+            {"topic_id": "three_measures_interrelation", "topic_name": "Inter-relationship between Three Measures with Government and International Transactions"},
+            {"topic_id": "green_national_income", "topic_name": "Environmental Considerations and Green National Income"}
+          ]
+        },
+        {
+          "topic_id": "employment_output_inflation_money",
+          "topic_name": "Theory of Employment, Output, Inflation, Money and Finance",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "classical_neoclassical_employment", "topic_name": "Classical and Neo-Classical Theory of Employment and Output"},
+            {"topic_id": "keynesian_employment_output", "topic_name": "Keynesian Theory of Employment and Output, Post-Keynesian Developments"},
+            {"topic_id": "inflation_phillips_curve", "topic_name": "Inflationary Gap, Demand-Pull vs Cost-Push Inflation, Phillips Curve"},
+            {"topic_id": "quantity_theory_money", "topic_name": "Classical and Friedman's Quantity Theory of Money, Neutrality of Money"},
+            {"topic_id": "loanable_funds_keynes_money", "topic_name": "Loanable Funds, Keynes' Theory of Demand for Money"},
+            {"topic_id": "islm_adas_model", "topic_name": "IS-LM Model and AD-AS Model in Keynesian Theory"}
+          ]
+        },
+        {
+          "topic_id": "financial_capital_market",
+          "topic_name": "Financial and Capital Market",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "financial_markets_overview", "topic_name": "Finance and Economic Development, Stock Market, Gilt Market, Banking and Insurance"},
+            {"topic_id": "equity_market_efficiency", "topic_name": "Equity Markets, Primary and Secondary Markets, Market Efficiency"},
+            {"topic_id": "derivatives_futures_options", "topic_name": "Derivatives Markets: Futures and Options"}
+          ]
+        },
+        {
+          "topic_id": "economic_growth_development",
+          "topic_name": "Economic Growth and Development",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "growth_development_measurement", "topic_name": "Concepts and Measurement of Growth and Development, LDC Characteristics"},
+            {"topic_id": "classical_growth_theories", "topic_name": "Classical Growth: Adam Smith, Marx, Schumpeter"},
+            {"topic_id": "neoclassical_growth_solow", "topic_name": "Neo-Classical Growth: Robinson, Solow, Kaldor, Harrod-Domar"},
+            {"topic_id": "development_theories", "topic_name": "Development Theories: Rostow, Rosenstein-Rodan, Nurkse, Hirschman, Leibenstein, Lewis, Dependency School"},
+            {"topic_id": "sen_capability_hdi", "topic_name": "Sen's Capability Approach, HDI, PQLI and Human Poverty Index"},
+            {"topic_id": "endogenous_growth", "topic_name": "Basics of Endogenous Growth Theory"}
+          ]
+        },
+        {
+          "topic_id": "international_economics",
+          "topic_name": "International Economics",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "gains_from_trade_tot", "topic_name": "Gains from International Trade, Terms of Trade and Trade Policy"},
+            {"topic_id": "theories_of_trade", "topic_name": "Theories of Trade: Ricardo, Haberler, Heckscher-Ohlin, Stolper-Samuelson"},
+            {"topic_id": "theory_of_tariffs", "topic_name": "Theory of Tariffs and Regional Trade Arrangements"},
+            {"topic_id": "financial_crises", "topic_name": "Asian Financial Crisis 1997, Global Financial Crisis 2008, Eurozone Crisis"}
+          ]
+        },
+        {
+          "topic_id": "balance_of_payments",
+          "topic_name": "Balance of Payments",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "bop_disequilibrium_adjustment", "topic_name": "Disequilibrium in BOP, Mechanism of Adjustments, Foreign Trade Multiplier"},
+            {"topic_id": "exchange_rates_controls", "topic_name": "Exchange Rates, Import and Exchange Controls, Multiple Exchange Rates"},
+            {"topic_id": "mundell_fleming_model", "topic_name": "IS-LM and Mundell-Fleming Model of Balance of Payments"}
+          ]
+        },
+        {
+          "topic_id": "global_institutions",
+          "topic_name": "Global Institutions",
+          "syllabus_weight": 0.8,
+          "subtopics": [
+            {"topic_id": "un_agencies_economic", "topic_name": "UN Agencies dealing with Economic Aspects"},
+            {"topic_id": "world_bank_imf_wto", "topic_name": "World Bank, IMF, WTO and Multilateral Development Bodies"},
+            {"topic_id": "mncs_g20", "topic_name": "Multinational Corporations and G-20"}
+          ]
+        }
+      ]
+    },
+    {
+      "paper_id": "ge_03",
+      "paper_name": "General Economics III",
+      "syllabus_weight_default": 0.85,
+      "topics": [
+        {
+          "topic_id": "public_finance",
+          "topic_name": "Public Finance",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "theories_of_taxation", "topic_name": "Theories of Taxation: Optimal Taxes, Tax Reforms, Incidence of Taxation"},
+            {"topic_id": "public_expenditure_theory", "topic_name": "Theories of Public Expenditure: Objectives, Effects and Policy"},
+            {"topic_id": "social_cost_benefit_analysis", "topic_name": "Social Cost-Benefit Analysis, Criteria for Public Investment, Shadow Prices"},
+            {"topic_id": "budgetary_deficits", "topic_name": "Budgetary Deficits"},
+            {"topic_id": "public_debt_management", "topic_name": "Theory of Public Debt Management"}
+          ]
+        },
+        {
+          "topic_id": "environmental_economics",
+          "topic_name": "Environmental Economics",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "sustainable_development_rio", "topic_name": "Environmentally Sustainable Development, Rio Process 1992-2012, Green GDP"},
+            {"topic_id": "environmental_values_valuation", "topic_name": "Environmental Values: Users and Non-Users Values, Option Value, Valuation Methods"},
+            {"topic_id": "environmental_policy_instruments", "topic_name": "Environmental Policy Instruments: Pollution Taxes, Permits, Collective Action"},
+            {"topic_id": "exhaustible_renewable_resources", "topic_name": "Theories of Exhaustible and Renewable Resources"},
+            {"topic_id": "climate_change_agreements", "topic_name": "Climate Change: Kyoto Protocol, UNFCCC, Bali Action Plan, Paris Agreement"},
+            {"topic_id": "carbon_markets_finance", "topic_name": "Carbon Markets, Tradable Permits, Carbon Taxes, Climate Finance, Green Climate Fund"}
+          ]
+        },
+        {
+          "topic_id": "industrial_economics",
+          "topic_name": "Industrial Economics",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "market_structure_conduct_performance", "topic_name": "Market Structure, Conduct and Performance of Firms, Product Differentiation"},
+            {"topic_id": "oligopolistic_monopolistic_pricing", "topic_name": "Monopolistic Price Theory, Oligopolistic Interdependence and Pricing"},
+            {"topic_id": "entry_preventing_pricing", "topic_name": "Entry Preventing Pricing and Micro-level Investment Decisions"},
+            {"topic_id": "rd_innovation_market", "topic_name": "Research and Development, Innovation and Market Structure and Profitability"},
+            {"topic_id": "public_policy_firms", "topic_name": "Public Policy and Development of Firms"}
+          ]
+        },
+        {
+          "topic_id": "state_market_planning",
+          "topic_name": "State, Market and Planning",
+          "syllabus_weight": 0.8,
+          "subtopics": [
+            {"topic_id": "planning_developing_economy", "topic_name": "Planning in a Developing Economy"},
+            {"topic_id": "planning_regulation_market", "topic_name": "Planning, Regulation and Market"},
+            {"topic_id": "indicative_decentralised_planning", "topic_name": "Indicative Planning and Decentralised Planning"}
+          ]
+        }
+      ]
+    },
+    {
+      "paper_id": "ge_04",
+      "paper_name": "Indian Economics",
+      "syllabus_weight_default": 0.9,
+      "topics": [
+        {
+          "topic_id": "development_planning_history",
+          "topic_name": "History of Development and Planning",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "import_substitution_strategy", "topic_name": "Import Substitution, Self-Reliance and Protection Strategy"},
+            {"topic_id": "post_1991_globalisation", "topic_name": "Post-1991 Globalisation Strategy: Stabilisation and Structural Adjustment"},
+            {"topic_id": "fiscal_financial_trade_reforms", "topic_name": "Fiscal Reforms, Financial Sector Reforms and Trade Reforms"}
+          ]
+        },
+        {
+          "topic_id": "federal_finance",
+          "topic_name": "Federal Finance",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "constitutional_fiscal_powers", "topic_name": "Constitutional Provisions on Fiscal and Financial Powers of States"},
+            {"topic_id": "finance_commissions", "topic_name": "Finance Commissions and their Formulae for Sharing Taxes"},
+            {"topic_id": "sarkaria_73rd_74th_amendments", "topic_name": "Sarkaria Commission, 73rd and 74th Constitutional Amendments"}
+          ]
+        },
+        {
+          "topic_id": "budgeting_fiscal_policy_india",
+          "topic_name": "Budgeting and Fiscal Policy",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "tax_expenditure_reforms_india", "topic_name": "Tax, Expenditure, Budgetary Deficits, Pension and Fiscal Reforms"},
+            {"topic_id": "public_debt_management_india", "topic_name": "Public Debt Management and Reforms"},
+            {"topic_id": "frbm_act", "topic_name": "Fiscal Responsibility and Budget Management (FRBM) Act"},
+            {"topic_id": "black_money_parallel_economy", "topic_name": "Black Money and Parallel Economy: Definition, Estimates, Genesis, Consequences, Remedies"}
+          ]
+        },
+        {
+          "topic_id": "poverty_unemployment_hd",
+          "topic_name": "Poverty, Unemployment and Human Development",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "poverty_inequality_measures_india", "topic_name": "Estimates of Inequality and Poverty Measures for India"},
+            {"topic_id": "government_poverty_measures", "topic_name": "Appraisal of Government Measures for Poverty Alleviation"},
+            {"topic_id": "human_development_india", "topic_name": "India's Human Development Record in Global Perspective"},
+            {"topic_id": "population_policy", "topic_name": "India's Population Policy and Development"},
+            {"topic_id": "skilling_ecosystem", "topic_name": "Development related to the Skilling Ecosystem in India"}
+          ]
+        },
+        {
+          "topic_id": "agriculture_rural_development",
+          "topic_name": "Agriculture and Rural Development Strategies",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "land_relations_reforms", "topic_name": "Technologies and Institutions, Land Relations and Land Reforms"},
+            {"topic_id": "rural_credit_farm_inputs", "topic_name": "Rural Credit, Modern Farm Inputs and Marketing"},
+            {"topic_id": "price_policy_subsidies", "topic_name": "Price Policy and Subsidies, Commercialisation and Diversification"},
+            {"topic_id": "rural_employment_programmes", "topic_name": "Rural Development Programmes: Poverty Alleviation, Infrastructure, Employment (MGNREGA etc.)"}
+          ]
+        },
+        {
+          "topic_id": "urbanisation_migration",
+          "topic_name": "Urbanisation and Migration",
+          "syllabus_weight": 0.75,
+          "subtopics": [
+            {"topic_id": "migration_flows_impact", "topic_name": "Types of Migratory Flows and their Impact on Origin and Destination Economies"},
+            {"topic_id": "urban_growth_development_strategies", "topic_name": "Process of Urban Settlement Growth and Urban Development Strategies"}
+          ]
+        },
+        {
+          "topic_id": "industry_india",
+          "topic_name": "Industry",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "industrial_policy_reform", "topic_name": "Strategy of Industrial Development, Industrial Policy Reform"},
+            {"topic_id": "small_scale_competition_policy", "topic_name": "Reservation Policy for Small Scale Industries and Competition Policy"},
+            {"topic_id": "industrial_finance_sources", "topic_name": "Sources of Industrial Finance: Banks, Share Market, Insurance, NBFCs"},
+            {"topic_id": "fdi_foreign_capital", "topic_name": "Role of Foreign Capital: FDI and Portfolio Investment"},
+            {"topic_id": "public_sector_privatisation", "topic_name": "Public Sector Reform, Privatisation and Disinvestment"}
+          ]
+        },
+        {
+          "topic_id": "labour_india",
+          "topic_name": "Labour",
+          "syllabus_weight": 0.85,
+          "subtopics": [
+            {"topic_id": "employment_unemployment_india", "topic_name": "Employment, Unemployment and Underemployment"},
+            {"topic_id": "industrial_relations_welfare", "topic_name": "Industrial Relations and Labour Welfare"},
+            {"topic_id": "urban_labour_informal_sector", "topic_name": "Urban Labour Market and Informal Sector Employment"},
+            {"topic_id": "labour_law_reforms", "topic_name": "Labour Law Reforms, Child and Bonded Labour, International Labour Standards"}
+          ]
+        },
+        {
+          "topic_id": "foreign_trade_india",
+          "topic_name": "Foreign Trade",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "india_trade_composition_direction", "topic_name": "Salient Features of India's Foreign Trade: Composition, Direction, Organisation"},
+            {"topic_id": "tariff_policy_exchange_rate_india", "topic_name": "Tariff Policy and Exchange Rate Policy"},
+            {"topic_id": "india_wto_bilateral_agreements", "topic_name": "India and WTO, Bilateral Trade and Investment Agreements"}
+          ]
+        },
+        {
+          "topic_id": "money_banking_india",
+          "topic_name": "Money and Banking",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "financial_sector_reforms_india", "topic_name": "Financial Sector Reforms and Organisation of India's Money Market"},
+            {"topic_id": "rbi_roles_monetary_policy", "topic_name": "Changing Roles of RBI and Monetary Policy Transmission"},
+            {"topic_id": "commercial_banks_nbfcs", "topic_name": "Commercial Banks, Development Finance Institutions, NBFCs, Foreign Banks"},
+            {"topic_id": "capital_market_sebi", "topic_name": "Indian Capital Market and SEBI"},
+            {"topic_id": "global_financial_market_india", "topic_name": "Global Financial Market and its Relationship with Indian Financial Sector"},
+            {"topic_id": "commodity_market_india", "topic_name": "Commodity Market in India: Spot and Futures Market"}
+          ]
+        },
+        {
+          "topic_id": "inflation_india",
+          "topic_name": "Inflation",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "inflation_definition_trends_india", "topic_name": "Definition, Trends and Estimates of Inflation in India"},
+            {"topic_id": "wpi_cpi_india", "topic_name": "Wholesale Price Index and Consumer Price Index: Components and Trends"},
+            {"topic_id": "inflation_consequences_remedies", "topic_name": "Consequences of Inflation and Remedies (Control)"}
+          ]
+        }
+      ]
+    }
+  ]
+}

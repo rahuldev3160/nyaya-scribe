@@ -3,6 +3,7 @@ IES 2026 Study App — Dashboard.
 Run: python3 -m streamlit run web/app.py
 """
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -10,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
 
-from db import EXAM_DATE, EXAM_ID, USER_ID, get_conn, get_topics, set_topic_state
+from db import EXAM_DATE, EXAM_ID, get_conn, get_user_id, init_user, get_topics, get_true_readiness, get_paper_coverage, set_topic_state
 from styles import apply_theme, badge, progress_bar
 
 st.set_page_config(
@@ -21,7 +22,12 @@ st.set_page_config(
 )
 apply_theme()
 
+# ── Session identity (must be set before any DB call) ─────────────────────────
+if "user_id" not in st.session_state:
+    st.session_state.user_id = str(uuid.uuid4())
+
 conn = get_conn()
+init_user(conn, st.session_state.user_id)
 
 
 def days_left() -> int:
@@ -34,14 +40,15 @@ total_a = conn.execute("SELECT COUNT(*) FROM model_answers WHERE exam_id=?", (EX
 total_q = conn.execute("SELECT COUNT(*) FROM pyq_questions WHERE exam_id=?", (EXAM_ID,)).fetchone()[0]
 verified = conn.execute(
     "SELECT COUNT(*) FROM gap_states WHERE exam_id=? AND user_id=? AND state='VERIFIED'",
-    (EXAM_ID, USER_ID)
+    (EXAM_ID, get_user_id())
 ).fetchone()[0]
 total_t = conn.execute(
     "SELECT COUNT(*) FROM gap_states WHERE exam_id=? AND user_id=?",
-    (EXAM_ID, USER_ID)
+    (EXAM_ID, get_user_id())
 ).fetchone()[0]
+readiness = get_true_readiness(conn)
 
-h1, h2, h3, h4 = st.columns([3, 1, 1, 1])
+h1, h2, h3, h4, h5, h6 = st.columns([3, 1, 1, 1, 1, 1])
 with h1:
     st.markdown("## 📚 IES 2026 Study Dashboard")
     st.markdown(f'<span style="color:#9AA0A6;font-size:0.85rem;">Exam on 17 June 2026 · GE-01 to GE-04</span>', unsafe_allow_html=True)
@@ -63,6 +70,21 @@ with h4:
         <div style="font-size:2rem;font-weight:700;color:#81C995">{verified}</div>
         <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Topics Verified</div>
         <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px">of {total_t} topics</div>
+    </div>""", unsafe_allow_html=True)
+with h5:
+    formula_pct = readiness["formula_pct"]
+    r_color = "#F28B82" if formula_pct < 20 else "#FDD663" if formula_pct < 50 else "#81C995"
+    st.markdown(f"""<div class="gem-card" style="text-align:center;border-color:{r_color}33">
+        <div style="font-size:2rem;font-weight:700;color:{r_color}">{formula_pct:.0f}%</div>
+        <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Readiness Now</div>
+        <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px">{readiness["covered_count"]}/{readiness["topic_count"]} topics ≥50%</div>
+    </div>""", unsafe_allow_html=True)
+with h6:
+    proj_pct = readiness["projected_pct"]
+    st.markdown(f"""<div class="gem-card" style="text-align:center;border-color:#8AB4F833">
+        <div style="font-size:2rem;font-weight:700;color:#8AB4F8">{proj_pct:.0f}%</div>
+        <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">If Top 10 Done</div>
+        <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px">projected if top gaps filled</div>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -88,14 +110,15 @@ for col, t in zip([fc1, fc2, fc3], focus_topics):
     total = t["total_q"] or 0
     name = t["topic_id"].replace("_", " ").title()
     paper = t["paper_id"].upper().replace("_", "-")
+    mastery_pct = round((t.get("mastery_level") or 0) * 100)
 
     with col:
         st.markdown(f"""<div class="focus-card">
             {badge(state)}
             <h4>{name}</h4>
-            <div class="meta">{paper} · {t['pyq_count'] or 0} PYQs · score {score:.3f}</div>
-            {progress_bar(ans, total or 1)}
-            <div style="font-size:0.7rem;color:#9AA0A6;margin-top:4px">{ans}/{total} answers ready</div>
+            <div class="meta">{paper} · {t['pyq_count'] or 0} PYQs · priority {score:.3f}</div>
+            {progress_bar(mastery_pct, 100)}
+            <div style="font-size:0.7rem;color:#9AA0A6;margin-top:4px">{mastery_pct}% mastered · {ans}/{total} answers ready</div>
         </div>""", unsafe_allow_html=True)
         b1, b2 = st.columns(2)
         with b1:
@@ -122,10 +145,23 @@ PAPERS = [
     ("ge_04", "GE-04 · Economic Policy"),
 ]
 tabs = st.tabs([p[1] for p in PAPERS])
+paper_cov = {p["paper_id"]: p for p in get_paper_coverage(conn)}
 
 for tab, (paper_id, _) in zip(tabs, PAPERS):
     with tab:
         topics = get_topics(conn, paper_id)
+        pc = paper_cov.get(paper_id, {})
+        cov_pct = pc.get("coverage_pct", 0.0)
+        cov_done = pc.get("covered_count", 0)
+        cov_total = pc.get("topic_count", len(topics))
+        cov_color = "#F28B82" if cov_pct < 20 else "#FDD663" if cov_pct < 50 else "#81C995"
+        st.markdown(
+            progress_bar(cov_pct, 100) +
+            f'<div style="font-size:0.72rem;color:#9AA0A6;margin-bottom:10px">'
+            f'<span style="color:{cov_color};font-weight:600">{cov_pct:.0f}%</span>'
+            f' mastered · {cov_done}/{cov_total} topics at ≥50%</div>',
+            unsafe_allow_html=True
+        )
         for t in topics:
             state = t["state"] or "UNVISITED"
             score = t["base_priority_score"] or 0.0

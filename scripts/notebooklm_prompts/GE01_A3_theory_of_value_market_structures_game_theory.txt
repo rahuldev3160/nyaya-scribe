@@ -1,0 +1,11 @@
+Focus exclusively on Theory of Value — Market Structures, Pricing, and Game Theory. This is IES General Economics revision for GE-01 (Paper II) at DSE/JNU masters level.
+
+Cover these specific sub-concepts: perfect competition — short-run and long-run equilibrium, firm versus industry supply, no supply curve under monopoly; monopoly pricing — profit maximisation, deadweight loss, price discrimination (first, second, third degree); monopolistic competition — Chamberlin's model, excess capacity theorem; oligopoly models — Cournot duopoly, Bertrand paradox, Stackelberg leadership, kinked demand curve, conjectural variations; collusion, cartels, and the prisoner's dilemma applied to duopoly; limit pricing and entry deterrence; Nash equilibrium concept — definition, derivation in simple 2x2 games; public sector pricing — marginal cost pricing, peak-load pricing, second-best pricing, rate-of-return regulation; mergers — horizontal, vertical, conglomerate and their objectives; asymmetric information in product markets; regulation of natural monopoly.
+
+DO NOT cover: consumer demand derivation, utility functions, indifference curves, Slutsky theorem, revealed preference (all in Audio 1 of this notebook); adverse selection, moral hazard, VNM theorem, principal-agent theory (all in Audio 2); production functions and cost functions (Theory of Production audio); factor pricing or distribution (Theory of Distribution audio); welfare economics or externalities.
+
+For every pricing formula: translate into spoken English. "Monopoly prices where marginal revenue equals marginal cost — marginal revenue is less than price by an amount that depends on the elasticity of demand. Specifically, price times the quantity one minus one over the absolute elasticity equals marginal cost."
+
+Structure: Open with the 2025 IES question on conjectural variations and the 2025 question on Nash equilibrium stability. Proceed through market structures sequentially. Dedicate significant time to oligopoly models since IES asks numerical duopoly questions every year. End with 3 most likely IES 2026 patterns: (1) Cournot or Stackelberg numerical equilibrium, (2) peak-load pricing with efficiency argument, (3) Nash equilibrium in a prisoner's dilemma context.
+
+Use Deep Dive format (two hosts discussing). Target length: 20 minutes.

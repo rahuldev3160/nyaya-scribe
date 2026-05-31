@@ -23,6 +23,7 @@ from sentence_transformers import SentenceTransformer
 
 DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
 BATCH_ID_FILE = Path(__file__).parent.parent / "data" / "answers_batch.txt"
+CACHE_DIR = Path(__file__).parent.parent / "cache" / "answer_batch_results"
 EXAM_ID = "ies_2026"
 CHROMA_PATH = Path.home() / "Desktop" / "Claude Projects" / "Devthorium" / "vector_store"
 
@@ -207,28 +208,65 @@ def word_count(text: str) -> int:
     return len(text.split()) if text else 0
 
 
+def _fetch_and_cache_results(client: anthropic.Anthropic, batch_id: str) -> list[dict]:
+    """Stream batch results from the API and save to a local JSONL file.
+    On subsequent calls for the same batch_id, reads from local file instead."""
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_file = CACHE_DIR / f"{batch_id}.jsonl"
+
+    if cache_file.exists():
+        print(f"  Reading from local cache: {cache_file.name}")
+        return [json.loads(line) for line in cache_file.read_text().splitlines() if line.strip()]
+
+    print(f"  Fetching results from API and caching to {cache_file.name}...")
+    records = []
+    try:
+        with cache_file.open("w") as f:
+            for result in client.messages.batches.results(batch_id):
+                if result.result.type in ("succeeded", "errored"):
+                    rec = {
+                        "custom_id": result.custom_id,
+                        "type": result.result.type,
+                    }
+                    if result.result.type == "succeeded":
+                        msg = result.result.message
+                        rec["stop_reason"] = msg.stop_reason
+                        rec["text"] = msg.content[0].text if msg.content else ""
+                    else:
+                        rec["error"] = str(result.result.error)
+                else:
+                    rec = {"custom_id": result.custom_id, "type": result.result.type, "error": "non-succeeded"}
+                f.write(json.dumps(rec) + "\n")
+                records.append(rec)
+    except Exception:
+        # Delete partial file so next run re-fetches from scratch
+        cache_file.unlink(missing_ok=True)
+        raise
+    print(f"  Cached {len(records)} results locally.")
+    return records
+
+
 def insert_answers(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_id: str) -> tuple[int, int]:
     inserted = 0
     errors = 0
 
-    for result in client.messages.batches.results(batch_id):
-        qid = result.custom_id
+    for rec in _fetch_and_cache_results(client, batch_id):
+        qid = rec["custom_id"]
 
-        if result.result.type == "error":
-            print(f"  API ERROR {qid}: {result.result.error}")
+        if rec["type"] != "succeeded":
+            print(f"  API ERROR {qid}: {rec.get('error', rec['type'])}")
             errors += 1
             continue
 
-        if result.result.message.stop_reason == "max_tokens":
+        if rec.get("stop_reason") == "max_tokens":
             print(f"  TRUNCATED {qid}")
             errors += 1
             continue
 
-        raw = result.result.message.content[0].text
-        ans = parse_answer(raw)
+        ans = parse_answer(rec.get("text", ""))
 
         if ans is None:
-            print(f"  PARSE ERROR {qid}: {repr(raw[:80])}")
+            print(f"  PARSE ERROR {qid}: {repr(rec.get('text', '')[:80])}")
             errors += 1
             continue
 

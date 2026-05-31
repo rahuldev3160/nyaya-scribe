@@ -23,6 +23,18 @@ USER_ID = os.environ.get("IES_USER_ID", "rahul")
 EXAM_DATE = "2026-06-17"
 
 
+def get_user_id() -> str:
+    """Return the current session's user ID. Falls back to USER_ID for scripts."""
+    try:
+        import streamlit as st
+        uid = st.session_state.get("user_id")
+        if uid:
+            return uid
+    except Exception:
+        pass
+    return USER_ID
+
+
 def get_conn() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
@@ -30,15 +42,44 @@ def get_conn() -> sqlite3.Connection:
     return conn
 
 
+def init_user(conn, user_id: str) -> None:
+    """Seed default rows for a new session user. Safe to call on every load (OR IGNORE)."""
+    topics = conn.execute(
+        "SELECT topic_id, paper_id FROM topics WHERE exam_id=? AND topic_level='topic'",
+        (EXAM_ID,)
+    ).fetchall()
+    for t in topics:
+        conn.execute(
+            "INSERT OR IGNORE INTO gap_states (user_id, topic_id, exam_id, paper_id, state) VALUES (?,?,?,?,?)",
+            (user_id, t["topic_id"], EXAM_ID, t["paper_id"], "UNVISITED")
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO user_mastery (user_id, topic_id, exam_id) VALUES (?,?,?)",
+            (user_id, t["topic_id"], EXAM_ID)
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO topic_attempt_summary (user_id, topic_id, exam_id) VALUES (?,?,?)",
+            (user_id, t["topic_id"], EXAM_ID)
+        )
+    for paper_id in ["ge_01", "ge_02", "ge_03", "ge_04"]:
+        conn.execute(
+            "INSERT OR IGNORE INTO user_paper_preferences (user_id, exam_id, paper_id) VALUES (?,?,?)",
+            (user_id, EXAM_ID, paper_id)
+        )
+    conn.commit()
+
+
 def load_api_key() -> str:
     key = os.environ.get("ANTHROPIC_API_KEY")
     if key:
         return key
+    # Local dev fallback — never present on a deployed server
     env_path = Path.home() / "Desktop" / "Claude Projects" / "Devthorium" / ".env"
-    for line in env_path.read_text().splitlines():
-        if line.startswith("ANTHROPIC_API_KEY="):
-            return line.split("=", 1)[1].strip()
-    raise ValueError("Set ANTHROPIC_API_KEY env var or place key in Devthorium/.env")
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            if line.startswith("ANTHROPIC_API_KEY="):
+                return line.split("=", 1)[1].strip()
+    raise ValueError("Set the ANTHROPIC_API_KEY environment variable to enable quiz evaluation.")
 
 
 def get_papers(conn) -> list[str]:
@@ -51,18 +92,17 @@ def get_papers(conn) -> list[str]:
 
 def get_topics(conn, paper_id=None) -> list[dict]:
     paper_clause = "AND t.paper_id=?" if paper_id else ""
-    params = [EXAM_ID, EXAM_ID, EXAM_ID, USER_ID, EXAM_ID]
-    if paper_id:
-        params.insert(1, paper_id)
-
+    uid = get_user_id()
     rows = conn.execute(f"""
         SELECT t.topic_id, t.topic_name, t.paper_id,
                gs.state,
                bs.base_priority_score, bs.pyq_count, bs.distinct_years,
                COUNT(DISTINCT ma.answer_id) AS answers_ready,
-               COUNT(DISTINCT q.question_id) AS total_q
+               COUNT(DISTINCT q.question_id) AS total_q,
+               MAX(COALESCE(um.mastery_level, 0.0)) AS mastery_level
         FROM topics t
         LEFT JOIN gap_states gs ON t.topic_id=gs.topic_id AND t.exam_id=gs.exam_id AND gs.user_id=?
+        LEFT JOIN user_mastery um ON t.topic_id=um.topic_id AND t.exam_id=um.exam_id AND um.user_id=?
         LEFT JOIN topic_base_scores bs ON t.topic_id=bs.topic_id AND t.exam_id=bs.exam_id
         LEFT JOIN pyq_questions q ON t.topic_id=q.topic_id AND t.exam_id=q.exam_id
         LEFT JOIN model_answers ma ON q.question_id=ma.question_id AND q.exam_id=ma.exam_id
@@ -73,25 +113,26 @@ def get_topics(conn, paper_id=None) -> list[dict]:
                      WHEN 'PARTIAL' THEN 2 WHEN 'DECAYING' THEN 3
                      WHEN 'UNVISITED' THEN 4 WHEN 'VERIFIED' THEN 5 ELSE 6 END,
                  bs.base_priority_score DESC
-    """, (USER_ID, EXAM_ID) + ((paper_id,) if paper_id else ())).fetchall()
+    """, (uid, uid, EXAM_ID) + ((paper_id,) if paper_id else ())).fetchall()
     return [dict(r) for r in rows]
 
 
 def set_topic_state(conn, topic_id: str, new_state: str, trigger: str):
+    uid = get_user_id()
     current = conn.execute(
         "SELECT state FROM gap_states WHERE user_id=? AND topic_id=? AND exam_id=?",
-        (USER_ID, topic_id, EXAM_ID)
+        (uid, topic_id, EXAM_ID)
     ).fetchone()
     if not current:
         return
     from_state = current["state"]
     conn.execute(
         "UPDATE gap_states SET state=?, last_active_at=datetime('now') WHERE user_id=? AND topic_id=? AND exam_id=?",
-        (new_state, USER_ID, topic_id, EXAM_ID)
+        (new_state, uid, topic_id, EXAM_ID)
     )
     conn.execute(
         "INSERT INTO gap_state_events (user_id,topic_id,exam_id,from_state,to_state,trigger,created_at) VALUES (?,?,?,?,?,?,datetime('now'))",
-        (USER_ID, topic_id, EXAM_ID, from_state, new_state, trigger)
+        (uid, topic_id, EXAM_ID, from_state, new_state, trigger)
     )
     conn.commit()
 
@@ -164,7 +205,8 @@ def jl(s) -> list:
     if not s:
         return []
     try:
-        return json.loads(s)
+        result = json.loads(s)
+        return result if result is not None else []
     except Exception:
         return []
 
@@ -234,7 +276,7 @@ def get_study_brief(conn, topic_id: str) -> dict:
 
 def get_attempts(conn, topic_id=None, date_from=None, date_to=None) -> list:
     clauses = ["da.exam_id=?", "da.user_id=?"]
-    params = [EXAM_ID, USER_ID]
+    params = [EXAM_ID, get_user_id()]
     if topic_id:
         clauses.append("q.topic_id=?"); params.append(topic_id)
     if date_from:
@@ -266,12 +308,13 @@ def get_attempts(conn, topic_id=None, date_from=None, date_to=None) -> list:
 
 
 def get_attempt_summary(conn) -> dict:
+    uid = get_user_id()
     row = conn.execute("""
         SELECT COUNT(*) as total,
                AVG(weighted_score) as avg_score,
                MAX(weighted_score) as max_score
         FROM descriptive_attempts WHERE exam_id=? AND user_id=?
-    """, (EXAM_ID, USER_ID)).fetchone()
+    """, (EXAM_ID, uid)).fetchone()
 
     top_topic = conn.execute("""
         SELECT q.topic_id, COUNT(*) as cnt
@@ -279,7 +322,7 @@ def get_attempt_summary(conn) -> dict:
         JOIN pyq_questions q ON da.question_id=q.question_id AND da.exam_id=q.exam_id
         WHERE da.exam_id=? AND da.user_id=?
         GROUP BY q.topic_id ORDER BY cnt DESC LIMIT 1
-    """, (EXAM_ID, USER_ID)).fetchone()
+    """, (EXAM_ID, uid)).fetchone()
 
     return {
         "total": row["total"] or 0,
@@ -287,3 +330,89 @@ def get_attempt_summary(conn) -> dict:
         "max_score": round(row["max_score"] * 10, 1) if row["max_score"] else None,
         "top_topic": top_topic["topic_id"] if top_topic else None,
     }
+
+
+def get_true_readiness(conn, user_id: str = None) -> dict:
+    """Compute weighted readiness % and projected % if top-10 gaps are filled."""
+    uid = user_id or get_user_id()
+    rows = conn.execute("""
+        SELECT um.topic_id,
+               um.mastery_level,
+               bs.base_priority_score
+        FROM user_mastery um
+        JOIN topic_base_scores bs ON um.topic_id = bs.topic_id AND um.exam_id = bs.exam_id
+        JOIN topics t ON um.topic_id = t.topic_id AND um.exam_id = t.exam_id
+        WHERE um.user_id = ? AND um.exam_id = ? AND t.topic_level = 'topic'
+    """, (uid, EXAM_ID)).fetchall()
+
+    if not rows:
+        return {"formula_pct": 0.0, "projected_pct": 0.0, "covered_count": 0, "topic_count": 0}
+
+    data = [{"topic_id": r["topic_id"], "mastery": r["mastery_level"], "priority": r["base_priority_score"]} for r in rows]
+
+    total_priority = sum(d["priority"] for d in data)
+    if total_priority == 0:
+        return {"formula_pct": 0.0, "projected_pct": 0.0, "covered_count": 0, "topic_count": len(data)}
+
+    formula_pct = round(sum(d["mastery"] * d["priority"] for d in data) / total_priority * 100, 1)
+    covered_count = sum(1 for d in data if d["mastery"] >= 0.5)
+
+    # Top-10 gap topics: mastery < 0.5, sorted by priority × (1 - mastery) DESC
+    gaps = sorted(
+        [d for d in data if d["mastery"] < 0.5],
+        key=lambda d: d["priority"] * (1 - d["mastery"]),
+        reverse=True,
+    )[:10]
+    gap_ids = {d["topic_id"] for d in gaps}
+
+    projected_pct = round(
+        sum((1.0 if d["topic_id"] in gap_ids else d["mastery"]) * d["priority"] for d in data) / total_priority * 100,
+        1,
+    )
+
+    return {
+        "formula_pct": formula_pct,
+        "projected_pct": projected_pct,
+        "covered_count": covered_count,
+        "topic_count": len(data),
+    }
+
+
+def get_paper_coverage(conn, user_id: str = None) -> list[dict]:
+    """Return per-paper weighted coverage stats for all top-level topics."""
+    from collections import defaultdict
+
+    uid = user_id or get_user_id()
+    rows = conn.execute("""
+        SELECT t.paper_id,
+               um.mastery_level,
+               bs.base_priority_score
+        FROM user_mastery um
+        JOIN topic_base_scores bs ON um.topic_id = bs.topic_id AND um.exam_id = bs.exam_id
+        JOIN topics t ON um.topic_id = t.topic_id AND um.exam_id = t.exam_id
+        WHERE um.user_id = ? AND um.exam_id = ? AND t.topic_level = 'topic'
+    """, (uid, EXAM_ID)).fetchall()
+
+    if not rows:
+        return []
+
+    papers = defaultdict(lambda: {"weighted_sum": 0.0, "priority_sum": 0.0, "covered": 0, "total": 0})
+    for r in rows:
+        p = papers[r["paper_id"]]
+        p["weighted_sum"] += r["mastery_level"] * r["base_priority_score"]
+        p["priority_sum"] += r["base_priority_score"]
+        p["total"] += 1
+        if r["mastery_level"] >= 0.5:
+            p["covered"] += 1
+
+    result = []
+    for paper_id in sorted(papers):
+        p = papers[paper_id]
+        coverage_pct = round(p["weighted_sum"] / p["priority_sum"] * 100, 1) if p["priority_sum"] else 0.0
+        result.append({
+            "paper_id": paper_id,
+            "coverage_pct": coverage_pct,
+            "covered_count": p["covered"],
+            "topic_count": p["total"],
+        })
+    return result

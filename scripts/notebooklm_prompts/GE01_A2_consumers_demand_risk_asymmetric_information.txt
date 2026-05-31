@@ -1,0 +1,11 @@
+Focus exclusively on Consumer Demand Theory — Part 2: Risk, Uncertainty, and Asymmetric Information. This is IES General Economics revision for GE-01 (Paper II) at DSE/JNU masters level.
+
+Cover these specific sub-concepts: expected utility hypothesis; von Neumann-Morgenstern utility theorem — axioms, derivation, and proof; risk aversion, risk neutrality, risk preference; Arrow-Pratt absolute and relative risk aversion measures; certainty equivalent and risk premium; stochastic dominance; adverse selection — Akerlof's market for lemons mechanism, how information asymmetry unravels markets; moral hazard — hidden action versus hidden information; principal-agent problem and incentive contracts; market signalling — Spence's education model; separating equilibrium versus pooling equilibrium; screening mechanisms.
+
+DO NOT cover: standard indifference curve analysis or Slutsky theorem (covered in Audio 1 of this notebook); pricing under market structures like monopoly or oligopoly (that is Theory of Value); externalities or public goods (that is Welfare Economics); factor markets or distribution theory.
+
+For every mathematical relationship: translate all notation into spoken English. When explaining the VNM theorem, say "the expected utility of a lottery equals the probability of the good outcome times the utility of the good outcome plus the probability of the bad outcome times the utility of the bad outcome" — not symbolic notation.
+
+Structure: Open with the 2025 IES question on the VNM theorem and the 2023 question on adverse selection versus moral hazard. Build from risk preferences through information economics. End with the 3 most likely IES 2026 patterns: (1) prove or state the VNM theorem and compute expected utilities, (2) explain market failure under adverse selection with an example, (3) distinguish separating from pooling equilibrium.
+
+Use Deep Dive format (two hosts discussing). Target length: 20 minutes.

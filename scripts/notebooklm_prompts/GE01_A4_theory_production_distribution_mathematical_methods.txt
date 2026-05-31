@@ -1,0 +1,15 @@
+Focus on three integrated topics: Theory of Production, Theory of Distribution, and Mathematical Methods in Economics. This is IES General Economics revision for GE-01 (Paper II) at DSE/JNU masters level.
+
+THEORY OF PRODUCTION — cover: production function properties; Cobb-Douglas, CES, fixed-coefficient (Leontief), and translog production functions — their parameters, elasticities of substitution, and empirical relevance; returns to scale (CRS, IRS, DRS); homogeneous and homothetic functions; isoquants and MRTS; short-run versus long-run production; laws of returns to a factor; cost minimisation using Lagrangian — expansion path; short-run and long-run cost curves (U-shape explanation); duality between production and cost; productive efficiency — technical efficiency (Farrell) and allocative efficiency; input-output model of Leontief — structure and applications.
+
+THEORY OF DISTRIBUTION — cover: marginal productivity theory of factor pricing; derived demand for factors; wage determination under competitive and monopsony labour markets; Euler's theorem and product exhaustion problem; Ricardo's theory of rent and quasi-rent; macro distribution theories — Kaldor's model (saving propensities), Kalecki (degree of monopoly), Marx (surplus value, exploitation), Ricardo (corn model); bilateral monopoly in factor markets; Lorenz curve and Gini coefficient for income inequality.
+
+MATHEMATICAL METHODS — cover: sets, matrices, determinants, and their use in solving economic systems; linear algebra applications — inverse of a matrix, Cramer's rule; calculus — differentiation, integration, and optimisation; constrained optimisation using Lagrange multipliers; concavity and convexity; linear programming — primal, dual, and economic interpretation; input-output analysis (Leontief intersectoral model); calculus-based derivations of production and cost functions.
+
+BOUNDARY RULE: Production function appears in BOTH theory of production and theory of distribution — the split is: in production, you derive cost curves and efficiency. In distribution, you use the marginal product to price factors. Do not explain consumer demand or utility (Audio 1 of this notebook). Do not explain market structures or pricing (Audio 3). Do not cover econometric regression or time series (Audio 5).
+
+For every formula: translate into spoken English completely. "The Cobb-Douglas production function says output equals a constant A times labour raised to alpha times capital raised to beta. If alpha plus beta equals one, we have constant returns to scale — doubling both inputs exactly doubles output."
+
+Structure: Open with the 2025 IES Cobb-Douglas question and the 2024 Euler's theorem question. Build production theory first, then distribution, then tie mathematical methods to both. End with 3 most likely IES 2026 patterns: (1) derive cost function from a given production function, (2) prove Euler's theorem and product exhaustion, (3) Kaldor versus Ricardo distribution comparison.
+
+Use Deep Dive format (two hosts discussing). Target length: 20 minutes.

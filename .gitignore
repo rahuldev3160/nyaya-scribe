@@ -1,10 +1,7 @@
 # Copyrighted PDF source material — never commit
 pdfs/
 
-# Personal study database — contains private progress data
-data/ies.db
-
-# SQLite WAL runtime files
+# SQLite WAL runtime files (generated at runtime, not committed)
 data/ies.db-shm
 data/ies.db-wal
 
@@ -24,3 +21,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# YouTube API credentials
+config/youtube_client_secret.json
+config/youtube_token.json
