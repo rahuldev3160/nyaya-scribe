@@ -1,7 +1,7 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-03
+2026-06-03 (Session 2)
 
 ---
 
@@ -11,7 +11,42 @@
 Backend: 1219 PYQs + rubrics + model answers + 150 MCQs. Web app live on :8501.
 No pending tasks for IES.
 
-### UPSC Economics Optional — IN PROGRESS
+### UPSC Economics Optional — DATA PIPELINE COMPLETE ✅ | Web app pending
+
+---
+
+## UPSC Session Summary (2026-06-03, Session 2)
+
+### What was completed this session
+
+**Full data pipeline — 908/908 PYQs with rubrics + model answers.**
+
+| Step | Script | Result |
+|---|---|---|
+| Source doc indexing | 05 | 111 docs (63 indexed, 48 needs_ocr) |
+| Note chunking | 06 | 1,044 chunks, 42 docs, avg 558w |
+| Topic base scores | 10 | 16 topics scored; top: growth_development |
+| Rubrics (Haiku batch) | 08 | 908/908 (100%) — 3 retried via direct API |
+| Model answers (Sonnet batch) | 09 | 908/908 (100%) — 10 fixed via fix_parse_errors.py |
+
+**Bugs fixed:**
+- Script 08: 3 rubrics failed JSON parse (markdown fence edge case) → retried synchronously
+- Script 09: 10 answers failed JSON parse (LaTeX backslash escapes: `\alpha`, `\cdot` invalid in JSON) → `fix_parse_errors.py` created with regex fallback extractor
+- Script 09 was originally run with `| head -5` pipe, which killed it after 5 lines; answer batch itself completed successfully; re-ran from local cache (no API cost)
+
+**New file created:**
+- `scripts/upsc/fix_parse_errors.py` — two-stage fixer: (1) backslash escape regex, (2) per-field regex fallback for malformed JSON
+
+**Final DB state:**
+```
+pyq_questions:     908
+question_rubrics:  908 (100%)
+model_answers:     908 (100%)
+  upsc_p1:         477/477
+  upsc_p2:         431/431
+document_chunks:  1,044
+topic_base_scores:  16
+```
 
 ---
 
@@ -54,6 +89,11 @@ No pending tasks for IES.
 ---
 
 ## Exact Next Steps (in order)
+
+### Step 0 — ALL DATA PIPELINE STEPS DONE ✅
+Scripts 05, 06, 10, 08, 09 all complete. 908/908 rubrics + answers in upsc.db.
+
+### Step 1 — Build web app (UPSC Mains tab)
 
 ### Step 1 — Verify script 05 completed
 ```bash
