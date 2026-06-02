@@ -1,0 +1,197 @@
+{
+  "exam_id": "upsc_eco_opt",
+  "papers": [
+    {
+      "paper_id": "upsc_p1",
+      "paper_name": "Economics Optional Paper I",
+      "syllabus_weight_default": 1.0,
+      "topics": [
+        {
+          "topic_id": "advanced_micro",
+          "topic_name": "Advanced Micro Economics",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "adv_micro_consumer",    "topic_name": "Consumer Theory, Utility & Demand"},
+            {"topic_id": "adv_micro_markets",     "topic_name": "Market Structures (Monopoly, Oligopoly, Monopolistic)"},
+            {"topic_id": "adv_micro_production",  "topic_name": "Production, Cost & Factor Markets"},
+            {"topic_id": "adv_micro_game",        "topic_name": "Game Theory & Strategic Behaviour"}
+          ]
+        },
+        {
+          "topic_id": "welfare_distribution",
+          "topic_name": "Welfare Economics & Theory of Distribution",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "welfare_pareto",        "topic_name": "Pareto Optimality & General Equilibrium"},
+            {"topic_id": "welfare_swf",           "topic_name": "Social Welfare Functions"},
+            {"topic_id": "welfare_marshallian",   "topic_name": "Marshallian & Hicksian Welfare"},
+            {"topic_id": "welfare_distribution",  "topic_name": "Theories of Distribution (Kalecki, Clark, etc.)"}
+          ]
+        },
+        {
+          "topic_id": "advanced_macro",
+          "topic_name": "Advanced Macro Economics",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "macro_national_income", "topic_name": "National Income & Aggregate Demand"},
+            {"topic_id": "macro_islm",            "topic_name": "IS-LM Model & Monetary-Fiscal Policy Mix"},
+            {"topic_id": "macro_inflation",       "topic_name": "Inflation Theories & Phillips Curve"},
+            {"topic_id": "macro_business_cycle",  "topic_name": "Business Cycle Theories"},
+            {"topic_id": "macro_open_economy",    "topic_name": "Open Economy Macro (Mundell-Fleming)"}
+          ]
+        },
+        {
+          "topic_id": "money_banking_finance",
+          "topic_name": "Money, Banking and Finance",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "money_demand_supply",   "topic_name": "Theories of Money Demand & Supply"},
+            {"topic_id": "money_central_bank",    "topic_name": "Central Banking & Monetary Policy"},
+            {"topic_id": "money_commercial_bank", "topic_name": "Commercial Banking & Credit Creation"},
+            {"topic_id": "money_financial_mkts",  "topic_name": "Financial Markets & Instruments"}
+          ]
+        },
+        {
+          "topic_id": "international_economics",
+          "topic_name": "International Economics",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "intl_trade_theories",   "topic_name": "Trade Theories (Ricardo, HO, New Trade)"},
+            {"topic_id": "intl_trade_policy",     "topic_name": "Trade Policy (Tariffs, Quotas, Subsidies)"},
+            {"topic_id": "intl_bop_exchange",     "topic_name": "Balance of Payments & Exchange Rate"},
+            {"topic_id": "intl_institutions",     "topic_name": "International Institutions (IMF, WTO, World Bank)"}
+          ]
+        },
+        {
+          "topic_id": "growth_development",
+          "topic_name": "Growth and Development",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "growth_classical",      "topic_name": "Classical & Neoclassical Growth (Harrod-Domar, Solow)"},
+            {"topic_id": "growth_endogenous",     "topic_name": "Endogenous Growth Theory (Romer, Lucas)"},
+            {"topic_id": "dev_theories",          "topic_name": "Development Theories (Lewis, Rostow, Myrdal, Hirschman)"},
+            {"topic_id": "dev_measurement",       "topic_name": "Development Measurement (HDI, Sen, Capabilities)"},
+            {"topic_id": "environmental_eco",     "topic_name": "Environmental Economics & Resource Allocation"}
+          ]
+        }
+      ]
+    },
+    {
+      "paper_id": "upsc_p2",
+      "paper_name": "Economics Optional Paper II (Indian Economy)",
+      "syllabus_weight_default": 1.0,
+      "topics": [
+        {
+          "topic_id": "indian_eco_pre1947",
+          "topic_name": "Indian Economy (Pre-Independence Era)",
+          "syllabus_weight": 0.8,
+          "subtopics": [
+            {"topic_id": "pre1947_colonial",      "topic_name": "Colonial Economy Structure & Deindustrialisation"},
+            {"topic_id": "pre1947_drain",         "topic_name": "Drain of Wealth Theory (Naoroji, Dutt)"},
+            {"topic_id": "pre1947_agriculture",   "topic_name": "Commercialisation of Agriculture & Land Settlements"},
+            {"topic_id": "pre1947_railways",      "topic_name": "Role of Railways & Infrastructure"}
+          ]
+        },
+        {
+          "topic_id": "planning_development",
+          "topic_name": "Planning and Economic Development (1947–1991)",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "planning_five_year",    "topic_name": "Five Year Plans — Objectives & Outcomes"},
+            {"topic_id": "planning_industry",     "topic_name": "Industrial Policy & Mixed Economy"},
+            {"topic_id": "planning_theorists",    "topic_name": "Indian Development Economists (Vakil, Gadgil, Rao)"},
+            {"topic_id": "planning_critiques",    "topic_name": "State vs Market Debate & Planning Critiques"}
+          ]
+        },
+        {
+          "topic_id": "growth_composition",
+          "topic_name": "Growth, Composition and Trend (Post-1991)",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "post91_reforms",        "topic_name": "1991 Reforms — LPG & Structural Changes"},
+            {"topic_id": "post91_gdp_structure",  "topic_name": "GDP Growth — Trends, Composition & Cycles"},
+            {"topic_id": "post91_globalisation",  "topic_name": "Globalisation, FDI & Capital Flows"},
+            {"topic_id": "post91_inclusive",      "topic_name": "Inclusive Growth & Regional Disparities"}
+          ]
+        },
+        {
+          "topic_id": "industry_services",
+          "topic_name": "Industry and Services",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "industry_policy",       "topic_name": "Industrial Development & Policy Evolution"},
+            {"topic_id": "industry_ssi",          "topic_name": "Small Scale & Micro Industries"},
+            {"topic_id": "industry_infrastructure","topic_name": "Infrastructure (Energy, Transport, Telecom)"},
+            {"topic_id": "services_sector",       "topic_name": "Service Sector — IT, Financial Services"}
+          ]
+        },
+        {
+          "topic_id": "poverty_unemployment",
+          "topic_name": "Poverty, Unemployment and Inequality",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "poverty_measurement",   "topic_name": "Poverty — Measurement (Tendulkar, Rangarajan, MPCE)"},
+            {"topic_id": "unemployment_types",    "topic_name": "Types & Measurement of Unemployment"},
+            {"topic_id": "inequality_gini",       "topic_name": "Inequality — Gini, Lorenz, Kuznets Hypothesis"},
+            {"topic_id": "human_development",     "topic_name": "Human Development (HDI, NFHS, Education, Health)"}
+          ]
+        },
+        {
+          "topic_id": "agriculture",
+          "topic_name": "Agriculture and Rural Development",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "agri_green_revolution", "topic_name": "Green Revolution — Impact & Critique"},
+            {"topic_id": "agri_land_reforms",     "topic_name": "Land Reforms & Tenancy"},
+            {"topic_id": "agri_finance_market",   "topic_name": "Agricultural Finance, Credit & Marketing"},
+            {"topic_id": "agri_food_security",    "topic_name": "Food Security — PDS, NFSA, MSP, Buffer Stocks"}
+          ]
+        },
+        {
+          "topic_id": "external_sector_bop",
+          "topic_name": "External Sector, BOP and Exchange Rate",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "ext_trade_policy",      "topic_name": "India's Trade Policy Evolution"},
+            {"topic_id": "ext_bop_deficit",       "topic_name": "Current Account Deficit & Capital Account"},
+            {"topic_id": "ext_exchange_rate",     "topic_name": "Exchange Rate Regime & Forex Reserves"},
+            {"topic_id": "ext_capital_flows",     "topic_name": "FDI, FII, ECB & Capital Account Management"}
+          ]
+        },
+        {
+          "topic_id": "monetary_banking_india",
+          "topic_name": "Monetary System and Banking (India)",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "rbi_monetary_policy",   "topic_name": "RBI Functions & Monetary Policy Framework"},
+            {"topic_id": "banking_reforms",       "topic_name": "Banking Sector Reforms (NPAs, Recapitalisation)"},
+            {"topic_id": "financial_inclusion",   "topic_name": "Financial Inclusion & Jan Dhan Yojana"},
+            {"topic_id": "digital_payments",      "topic_name": "Digital Payments, UPI & Fintech"}
+          ]
+        },
+        {
+          "topic_id": "public_finance_india",
+          "topic_name": "Public Finance (India)",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "fiscal_policy_india",   "topic_name": "Fiscal Policy — Deficit, FRBM & Consolidation"},
+            {"topic_id": "gst_indirect_tax",      "topic_name": "GST — Structure, Revenue & Impact"},
+            {"topic_id": "fiscal_federalism",     "topic_name": "Fiscal Federalism & Finance Commissions"},
+            {"topic_id": "direct_tax",            "topic_name": "Direct Tax Reform & Black Economy"}
+          ]
+        },
+        {
+          "topic_id": "current_topics",
+          "topic_name": "Current Topics, Programmes and Schemes",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "current_schemes",       "topic_name": "Flagship Schemes (PM-Kisan, MGNREGA, etc.)"},
+            {"topic_id": "current_budget",        "topic_name": "Budget Highlights & Fiscal Priorities"},
+            {"topic_id": "current_rbi",           "topic_name": "RBI Policy, Monetary Committee Decisions"},
+            {"topic_id": "current_global",        "topic_name": "Global Economic Events & India Impact"}
+          ]
+        }
+      ]
+    }
+  ]
+}
