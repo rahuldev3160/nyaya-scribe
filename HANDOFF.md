@@ -1,7 +1,7 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-03 (Session 8)
+2026-06-03 (Session 9)
 
 ---
 
@@ -10,8 +10,8 @@
 | Gotcha | Symptom | Correct action |
 |---|---|---|
 | **Wrong Python runtime** | `TypeError: unsupported operand type(s) for \|` on any page | Do NOT remove the annotation. Run `/opt/homebrew/bin/streamlit --version` to confirm runtime is Python 3.11. Never use `/Library/Python/3.9/bin/streamlit`. |
-| **RBI page hardcoded user** | ALL RBI drill attempts saved as "rahul" — any user gets Rahul's RBI data | `6_RBI_Prep.py:21` has `USER_ID = "rahul"` with no env var. Fix is item #1 in the MVMU list before going public. |
 | **@st.cache_resource is single-user only** | Data corruption / OperationalError under concurrent users | All 5 IES pages now use `@st.cache_resource` — correct for single-user (fixes per-rerun leak), but WRONG for multi-user (shared connection object is not thread-safe). MUST revert to per-request connections before launch. See DECIDE-08. |
+| **ies_seed.db must stay clean** | New users get Rahul's personal data on first boot | `data/ies_seed.db` is the committed clean copy — never run quiz/drill sessions against it. It must only contain question bank rows (zero user_mastery / gap_states / attempts). |
 
 ---
 
@@ -25,6 +25,47 @@ Backend: 1219 PYQs + rubrics + model answers + 150 MCQs. Web app live on :8501.
 
 ### RBI DEPR 2026 — MCQ BANK BUILT ✅ | UI rebuilt ✅
 New `data/rbi.db` with 303 questions. `6_RBI_Prep.py` fully rewritten. See below.
+
+---
+
+## Session 9 Summary (2026-06-03)
+
+### Public launch preparation
+
+**DB foundation (data layer)**
+- `data/ies.db` removed from git tracking — it's the live runtime DB, not source code
+- `data/ies_seed.db` created: clean copy of ies.db with all user rows stripped (12.7 MB committed)
+- Both DBs have `user_events` table + 2 indexes (`idx_ue_user`, `idx_ue_type`)
+- First-boot logic in `app.py`: if `ies.db` missing → copy from `ies_seed.db` (with error handling)
+
+**User isolation fixes**
+- `6_RBI_Prep.py` hardcoded `USER_ID = "rahul"` → `get_user_id()` (6 call sites)
+- `4_My_Progress.py` direct `USER_ID` import → `get_user_id`
+- `get_user_id()` in `db.py` now auto-assigns UUID on first call from ANY page (deep-link safe — no more "rahul" fallback)
+
+**Event logging**
+- `log_event()` added to `web/db.py` — silent no-op on any error
+- `session_id` falls back to `user_id` (since they're the same in pre-auth architecture)
+- Wired: `topic_opened` (Study Brief), `return_quiz_submitted` (Return Quiz), `drill_attempt` (RBI Prep)
+
+**Public-safe API**
+- `2_Quiz.py` gated: if `ANTHROPIC_API_KEY` not set → info banner + st.stop()
+- `load_api_key()` dev machine path removed (hard raise only)
+- `playwright` removed from `requirements.txt` (5 prod deps remain)
+
+**Config / infra**
+- `.gitignore`: `data/ies.db`, `data/rbi.db`, all WAL files for all 3 DBs
+- `DEPLOY.md`: Python 3.11, Hetzner/Railway targets, quiz API key note
+- `scripts/init_db.py`: `user_events` table added to schema
+
+### What's still needed before public launch
+
+1. **Revert `@st.cache_resource` → per-request connections** (DECIDE-08) — all 5 IES pages + 7_UPSC_Mains.py. Single shared connection object is not thread-safe under concurrent users.
+2. **Google OAuth** + `users`/`sessions` tables + auth gate on every page (MVMU steps 3–4)
+3. **Composite indexes** (7 indexes, 15 min — already written in `memory/project_multiuser_plan.md`)
+
+### Layered-coverage gap noted (future work)
+The dashboard shows topic-level gap states but does not surface subtopic-level gaps. A topic at "20% mastered" can hide 5 completely untouched subtopics. The `at_risk_children` concept from the layered-coverage framework should be added to the dashboard after auth is complete.
 
 ---
 

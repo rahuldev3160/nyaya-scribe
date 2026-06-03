@@ -30,12 +30,15 @@ def is_crunch_mode() -> bool:
 
 
 def get_user_id() -> str:
-    """Return the current session's user ID. Falls back to USER_ID for scripts."""
+    """Return the current session's user ID. Auto-assigns UUID on first call from any page."""
     try:
         import streamlit as st
+        import uuid as _uuid
         uid = st.session_state.get("user_id")
-        if uid:
-            return uid
+        if not uid:
+            uid = str(_uuid.uuid4())
+            st.session_state.user_id = uid
+        return uid
     except Exception:
         pass
     return USER_ID
@@ -75,16 +78,33 @@ def init_user(conn, user_id: str) -> None:
     conn.commit()
 
 
+def log_event(conn, event_type: str, entity_type: str | None = None,
+              entity_id: str | None = None, exam_id: str | None = None,
+              payload: dict | None = None) -> None:
+    """Append one row to user_events. Silent no-op if table doesn't exist yet."""
+    try:
+        import streamlit as st
+        session_id = st.session_state.get("session_id") or st.session_state.get("user_id", "unknown")
+    except Exception:
+        session_id = "script"
+    try:
+        import json
+        conn.execute(
+            """INSERT INTO user_events
+               (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload)
+               VALUES (?,?,?,?,?,?,?)""",
+            (get_user_id(), session_id, event_type, entity_type, entity_id, exam_id,
+             json.dumps(payload) if payload else None)
+        )
+        conn.commit()
+    except Exception:
+        pass  # Never crash the app over logging
+
+
 def load_api_key() -> str:
     key = os.environ.get("ANTHROPIC_API_KEY")
     if key:
         return key
-    # Local dev fallback — never present on a deployed server
-    env_path = Path.home() / "Desktop" / "Claude Projects" / "Devthorium" / ".env"
-    if env_path.exists():
-        for line in env_path.read_text().splitlines():
-            if line.startswith("ANTHROPIC_API_KEY="):
-                return line.split("=", 1)[1].strip()
     raise ValueError("Set the ANTHROPIC_API_KEY environment variable to enable quiz evaluation.")
 
 

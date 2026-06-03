@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pandas as pd
 import streamlit as st
 
-from db import EXAM_ID, USER_ID, get_attempts, get_attempt_summary, get_conn, get_topics
+from db import EXAM_ID, get_user_id, get_attempts, get_attempt_summary, get_conn, get_topics
 from styles import apply_theme, chip, score_color
 
 st.set_page_config(page_title="My Progress · IES 2026", layout="wide", page_icon="📈")

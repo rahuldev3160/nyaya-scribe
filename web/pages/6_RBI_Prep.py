@@ -11,6 +11,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
+from db import get_user_id, log_event
 from styles import apply_theme
 
 st.set_page_config(page_title="RBI Prep · DEPR 2026", layout="wide", page_icon="🏦")
@@ -18,7 +19,6 @@ apply_theme()
 
 RBI_DATE = "2026-06-14"
 RBI_DB_PATH = Path(__file__).parent.parent.parent / "data" / "rbi.db"
-USER_ID = "rahul"
 
 
 def days_to_rbi() -> int:
@@ -40,14 +40,16 @@ def get_rbi_conn() -> Optional[sqlite3.Connection]:
 # ── DB query helpers ───────────────────────────────────────────────────────────
 
 def _answered_ids(conn: sqlite3.Connection) -> set:
+    user_id = get_user_id()
     rows = conn.execute(
-        "SELECT DISTINCT question_id FROM rbi_attempts WHERE user_id=?", (USER_ID,)
+        "SELECT DISTINCT question_id FROM rbi_attempts WHERE user_id=?", (user_id,)
     ).fetchall()
     return {r[0] for r in rows}
 
 
 def get_smart_questions(conn: sqlite3.Connection, n: int = 10) -> list:
     """Layer 1: highest flag_impact topics → unanswered questions first."""
+    user_id = get_user_id()
     answered = _answered_ids(conn)
     rows = conn.execute("""
         SELECT q.id, q.question, q.option_a, q.option_b, q.option_c, q.option_d,
@@ -59,7 +61,7 @@ def get_smart_questions(conn: sqlite3.Connection, n: int = 10) -> list:
         LEFT JOIN rbi_topic_weights tw ON q.topic = tw.topic
         WHERE q.tier = 1
         ORDER BY topic_priority DESC, q.priority_weight DESC
-    """, (USER_ID,)).fetchall()
+    """, (user_id,)).fetchall()
 
     unanswered = [dict(r) for r in rows if r["id"] not in answered]
     seen_answered = [dict(r) for r in rows if r["id"] in answered]
@@ -101,14 +103,18 @@ def get_filtered_questions(conn: sqlite3.Connection, filters: dict, n: int = 10)
 def save_attempt(conn: sqlite3.Connection, question_id: str, answer_given: str,
                  is_correct: bool, session_id: str, topic: str, subject: str) -> None:
     """Save attempt + update mastery. Uses transaction; toasts on error."""
+    user_id = get_user_id()
     try:
         with conn:
             conn.execute(
                 "INSERT INTO rbi_attempts (user_id, question_id, answer_given, is_correct, session_id) "
                 "VALUES (?,?,?,?,?)",
-                (USER_ID, question_id, answer_given, int(is_correct), session_id),
+                (user_id, question_id, answer_given, int(is_correct), session_id),
             )
             _update_mastery(conn, topic, subject, is_correct)
+        log_event(conn, "drill_attempt", entity_type="rbi_topic", entity_id=topic,
+                  exam_id="rbi_depr_2026",
+                  payload={"is_correct": int(is_correct), "question_id": question_id, "session_id": session_id})
     except Exception as exc:
         logging.exception("rbi_attempts insert failed: %s", exc)
         st.toast(f"Could not save attempt: {exc}", icon="⚠")
@@ -116,9 +122,10 @@ def save_attempt(conn: sqlite3.Connection, question_id: str, answer_given: str,
 
 def _update_mastery(conn: sqlite3.Connection, topic: str, subject: str, is_correct: bool) -> None:
     """INSERT OR REPLACE mastery row — correctly handles both first and subsequent attempts."""
+    user_id = get_user_id()
     existing = conn.execute(
         "SELECT attempts, correct FROM rbi_topic_mastery WHERE user_id=? AND topic=?",
-        (USER_ID, topic),
+        (user_id, topic),
     ).fetchone()
 
     new_attempts = (existing["attempts"] if existing else 0) + 1
@@ -131,7 +138,7 @@ def _update_mastery(conn: sqlite3.Connection, topic: str, subject: str, is_corre
     attempted_q = conn.execute(
         "SELECT COUNT(DISTINCT question_id) FROM rbi_attempts "
         "WHERE user_id=? AND question_id IN (SELECT id FROM rbi_questions WHERE topic=?)",
-        (USER_ID, topic),
+        (user_id, topic),
     ).fetchone()[0]
 
     coverage = attempted_q / total_q
@@ -144,17 +151,18 @@ def _update_mastery(conn: sqlite3.Connection, topic: str, subject: str, is_corre
         INSERT OR REPLACE INTO rbi_topic_mastery
         (user_id, topic, subject, attempts, correct, mastery_score, coverage_pct, flag_impact, gap_state, last_updated)
         VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))
-    """, (USER_ID, topic, subject, new_attempts, new_correct, mastery, coverage, flag_impact, gap_state))
+    """, (user_id, topic, subject, new_attempts, new_correct, mastery, coverage, flag_impact, gap_state))
 
 
 def get_progress_data(conn: sqlite3.Connection) -> dict:
     """Compute formula readiness, true readiness, and top gaps."""
+    user_id = get_user_id()
     weights = {r["topic"]: r["base_weight"]
                for r in conn.execute("SELECT topic, base_weight FROM rbi_topic_weights").fetchall()}
 
     mastery_rows = conn.execute(
         "SELECT topic, subject, attempts, mastery_score, coverage_pct, flag_impact, gap_state "
-        "FROM rbi_topic_mastery WHERE user_id=?", (USER_ID,)
+        "FROM rbi_topic_mastery WHERE user_id=?", (user_id,)
     ).fetchall()
 
     total_weight = sum(weights.values()) or 1.0
@@ -207,7 +215,7 @@ def get_progress_data(conn: sqlite3.Connection) -> dict:
         "gaps": gaps[:10],
         "subject_coverage": subject_coverage,
         "total_attempts": conn.execute(
-            "SELECT COUNT(*) FROM rbi_attempts WHERE user_id=?", (USER_ID,)
+            "SELECT COUNT(*) FROM rbi_attempts WHERE user_id=?", (user_id,)
         ).fetchone()[0],
     }
 
@@ -1086,7 +1094,7 @@ with tab4:
         st.warning("rbi.db not found.", icon="⚠")
     else:
         total_attempts = conn4.execute(
-            "SELECT COUNT(*) FROM rbi_attempts WHERE user_id=?", (USER_ID,)
+            "SELECT COUNT(*) FROM rbi_attempts WHERE user_id=?", (get_user_id(),)
         ).fetchone()[0]
 
         if total_attempts == 0:

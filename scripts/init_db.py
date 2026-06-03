@@ -317,6 +317,23 @@ def create_tables(conn: sqlite3.Connection) -> None:
         PRIMARY KEY (dimension_id, exam_id)
     );
 
+    -- ─────────────────────────────────────────────
+    -- USER EVENTS (append-only audit / ML log)
+    -- ─────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS user_events (
+        event_id    INTEGER PRIMARY KEY,
+        user_id     TEXT NOT NULL,
+        session_id  TEXT NOT NULL,
+        event_type  TEXT NOT NULL,   -- 'topic_opened' | 'return_quiz_submitted' | 'drill_attempt' | 'gap_state_changed'
+        entity_type TEXT,            -- 'topic' | 'question' | 'rbi_topic'
+        entity_id   TEXT,            -- topic_id, question_id, etc.
+        exam_id     TEXT,
+        payload     TEXT,            -- JSON blob for extra context
+        created_at  TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_ue_user ON user_events(user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_ue_type ON user_events(event_type, created_at DESC);
+
     """)
     conn.commit()
 

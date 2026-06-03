@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
-from db import get_conn, get_topics, get_study_brief
+from db import get_conn, get_topics, get_study_brief, log_event, EXAM_ID
 from styles import apply_theme, chip
 
 st.set_page_config(page_title="Study Brief · IES 2026", layout="wide", page_icon="🗂️")
@@ -54,6 +54,9 @@ bs = brief["base_score"]
 score     = bs.get("base_priority_score", 0) or 0
 pyq_count = bs.get("pyq_count", 0) or 0
 years     = bs.get("distinct_years", 0) or 0
+
+log_event(conn, "topic_opened", entity_type="topic", entity_id=topic_choice, exam_id=EXAM_ID,
+          payload={"paper_id": paper_choice, "priority_score": round(score, 4)})
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown(

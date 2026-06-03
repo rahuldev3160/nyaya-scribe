@@ -8,7 +8,7 @@ import streamlit as st
 
 from db import (
     get_conn, get_user_id, init_user, get_topics,
-    get_mcq_questions, submit_return_quiz, get_true_readiness,
+    get_mcq_questions, submit_return_quiz, get_true_readiness, log_event, EXAM_ID,
 )
 from styles import apply_theme, badge, chip, progress_bar
 
@@ -226,6 +226,10 @@ if submitted:
         st.warning(f"Please answer {q_nums} before submitting.")
     else:
         result = submit_return_quiz(conn, topic_id, answers, st.session_state.rq_session_id)
+        if result is not None:
+            log_event(conn, "return_quiz_submitted", entity_type="topic", entity_id=topic_id, exam_id=EXAM_ID,
+                      payload={"score": round(result["score"], 4), "correct": result["correct"],
+                               "total": result["total"], "session_id": st.session_state.rq_session_id})
         st.session_state.rq_last_result = {
             "topic_id": topic_id,
             "result": result,

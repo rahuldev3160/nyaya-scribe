@@ -26,6 +26,25 @@ apply_theme()
 if "user_id" not in st.session_state:
     st.session_state.user_id = str(uuid.uuid4())
 
+# ── First-boot: copy seed DB if live DB doesn't exist ─────────────────────────
+_DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
+_SEED_PATH = Path(__file__).parent.parent / "data" / "ies_seed.db"
+if not _DB_PATH.exists():
+    if _SEED_PATH.exists():
+        import shutil
+        try:
+            shutil.copy(_SEED_PATH, _DB_PATH)
+        except Exception as _e:
+            st.error(f"**Could not initialise database:** {_e}  \nCheck that the `data/` directory is writable.")
+            st.stop()
+    else:
+        st.error(
+            "**Database not found.**  \n"
+            "`data/ies.db` and `data/ies_seed.db` are both missing.  \n"
+            "Run `python3 scripts/setup_all.py` to initialise the database."
+        )
+        st.stop()
+
 conn = get_conn()
 init_user(conn, st.session_state.user_id)
 

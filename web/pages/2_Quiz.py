@@ -18,6 +18,17 @@ from styles import apply_theme, badge, chip, score_card_html
 st.set_page_config(page_title="Quiz · IES 2026", layout="wide", page_icon="✍️")
 apply_theme()
 
+import os
+if not os.environ.get("ANTHROPIC_API_KEY"):
+    st.info(
+        "**Quiz requires a local setup.**  \n"
+        "This feature uses an AI model to evaluate your answers and is only available "
+        "when running the app locally with an API key configured.  \n\n"
+        "All other features — Model Answers, Study Brief, Return Quiz, RBI Prep, UPSC Mains — "
+        "are fully available."
+    )
+    st.stop()
+
 @st.cache_resource
 def _get_conn():
     return get_conn()
