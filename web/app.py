@@ -22,24 +22,32 @@ st.set_page_config(
 )
 apply_theme()
 
-# ── First-boot: copy seed DB if live DB doesn't exist ─────────────────────────
-_DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
-_SEED_PATH = Path(__file__).parent.parent / "data" / "ies_seed.db"
-if not _DB_PATH.exists():
-    if _SEED_PATH.exists():
-        import shutil
-        try:
-            shutil.copy(_SEED_PATH, _DB_PATH)
-        except Exception as _e:
-            st.error(f"**Could not initialise database:** {_e}  \nCheck that the `data/` directory is writable.")
-            st.stop()
-    else:
+# ── First-boot: copy seed DBs if live DBs don't exist ────────────────────────
+import shutil as _shutil
+
+_DATA = Path(__file__).parent.parent / "data"
+
+def _boot_db(name: str) -> None:
+    live = _DATA / f"{name}.db"
+    seed = _DATA / f"{name}_seed.db"
+    if live.exists():
+        return
+    if not seed.exists():
         st.error(
-            "**Database not found.**  \n"
-            "`data/ies.db` and `data/ies_seed.db` are both missing.  \n"
-            "Run `python3 scripts/setup_all.py` to initialise the database."
+            f"**Database not found.**  \n"
+            f"`data/{name}.db` and `data/{name}_seed.db` are both missing.  \n"
+            f"Run `python3 scripts/setup_all.py` to initialise."
         )
         st.stop()
+    try:
+        _shutil.copy(seed, live)
+    except Exception as _e:
+        st.error(f"**Could not initialise {name}.db:** {_e}  \nCheck that `data/` is writable.")
+        st.stop()
+
+_boot_db("ies")
+_boot_db("rbi")
+_boot_db("upsc")
 
 conn = get_conn()
 user_id = require_user(conn)

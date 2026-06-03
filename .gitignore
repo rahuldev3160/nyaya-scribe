@@ -3,21 +3,15 @@ pdfs/
 sources/
 data/audio/
 
-# Large data files not needed for app runtime
-data/upsc.db
+# Live DBs (user data accumulates; seed copies are committed instead)
+data/ies.db
 data/rbi.db
+data/upsc.db
 data/answers_batch.txt
 
-# Live DB — user data accumulates here; not committed (ies_seed.db is the committed clean copy)
-data/ies.db
-
-# SQLite WAL runtime files (generated at runtime, not committed)
-data/ies.db-shm
-data/ies.db-wal
-data/rbi.db-shm
-data/rbi.db-wal
-data/upsc.db-shm
-data/upsc.db-wal
+# SQLite WAL runtime files (generated at runtime, never committed)
+data/*.db-shm
+data/*.db-wal
 
 # API batch job IDs
 exports/answers_batch.txt

@@ -360,6 +360,14 @@ def create_tables(conn: sqlite3.Connection) -> None:
     );
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 
+    -- Composite indexes for multi-user query performance
+    CREATE INDEX IF NOT EXISTS idx_da_user_exam    ON descriptive_attempts(user_id, exam_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_gse_user_topic  ON gap_state_events(user_id, topic_id, exam_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_rqa_user_topic  ON return_quiz_attempts(user_id, topic_id, exam_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_um_user_exam    ON user_mastery(user_id, exam_id);
+    CREATE INDEX IF NOT EXISTS idx_gs_user_exam_st ON gap_states(user_id, exam_id, state);
+    CREATE INDEX IF NOT EXISTS idx_tas_user_exam   ON topic_attempt_summary(user_id, exam_id);
+
     """)
     conn.commit()
 

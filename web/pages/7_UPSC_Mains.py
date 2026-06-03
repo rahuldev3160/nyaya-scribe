@@ -173,6 +173,14 @@ def _render_data_tab(ans: dict) -> None:
 
 # ── Page layout ────────────────────────────────────────────────────────────────
 
+if not _DB_PATH.exists():
+    st.error(
+        "**UPSC database not found.**  \n"
+        "`data/upsc.db` is missing — the app should have copied it from `upsc_seed.db` on startup.  \n"
+        "Please reload the home page first or contact support."
+    )
+    st.stop()
+
 conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
 conn.row_factory = sqlite3.Row
 conn.execute("PRAGMA journal_mode=WAL")

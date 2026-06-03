@@ -94,6 +94,7 @@ def init_db():
     CREATE INDEX IF NOT EXISTS idx_questions_is_recent ON rbi_questions(is_recent_dev);
     CREATE INDEX IF NOT EXISTS idx_attempts_user       ON rbi_attempts(user_id, question_id);
     CREATE INDEX IF NOT EXISTS idx_mastery_user        ON rbi_topic_mastery(user_id);
+    CREATE INDEX IF NOT EXISTS idx_rbi_sess_user       ON rbi_sessions(user_id);
     """)
 
     conn.commit()
