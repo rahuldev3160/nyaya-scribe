@@ -35,27 +35,31 @@ which streamlit                          # must resolve to /opt/homebrew/bin/str
 
 **Rule:** If `TypeError.*unsupported.*|` appears in the traceback, the fix is NEVER "remove the annotation." The fix is confirming the server is running on `/opt/homebrew/bin/streamlit` (Python 3.11). Removing the annotation is a symptom suppression — it masks the root cause and will recur on the next file that uses modern syntax.
 
-## Auth behaviour (Session 9)
+## Auth behaviour (Session 10)
 
-`require_user()` is wired into: `app.py`, `2_Quiz.py`, `3_Study_Brief.py`, `4_My_Progress.py`, `5_Return_Quiz.py`, `6_RBI_Prep.py`.
+`require_user()` is wired into: `app.py`, `2_Quiz.py`, `3_Study_Brief.py`, `4_My_Progress.py`, `5_Return_Quiz.py`, `6_RBI_Prep.py`, `8_My_Setup.py`, `9_Answer_Review.py`.
 **Without OAuth env vars**, these pages redirect to `0_Login.py` which shows a configuration message.
 **For local testing without OAuth**: set `GOOGLE_CLIENT_ID=dummy` to skip the redirect (login page shows config message but pages won't auth-gate). Or test pages individually by setting `st.session_state.session_token` manually in browser dev tools.
 
 Pages intentionally open (no auth): `1_Model_Answers.py`, `7_UPSC_Mains.py`.
+
+**Onboarding redirect (NEW S10):** First-time users who complete OAuth are immediately redirected from `app.py` to `8_My_Setup.py` (onboarding wizard). After completing setup they return to the dashboard. Subsequent logins skip straight to dashboard.
 
 ## Pages & what they do
 
 | Sidebar label | File | Auth required | Key things to test |
 |---|---|---|---|
 | Login | `web/pages/0_Login.py` | No | Sign-in button shows; OAuth callback handles `?code=` |
-| app | `web/app.py` | Yes | Dashboard loads, readiness % shows |
+| app | `web/app.py` | Yes | Dashboard loads; "Your Path" banner shows for onboarded users |
 | Model Answers | `web/pages/1_Model_Answers.py` | No | Question browse, no DB errors |
 | Quiz | `web/pages/2_Quiz.py` | Yes + API key | API key gate shows banner if key absent |
 | Study Brief | `web/pages/3_Study_Brief.py` | Yes | Topic briefs load |
-| My Progress | `web/pages/4_My_Progress.py` | Yes | Attempt history renders |
+| My Progress | `web/pages/4_My_Progress.py` | Yes | Attempt history + Today's Time + Last 7 Days charts |
 | Return Quiz | `web/pages/5_Return_Quiz.py` | Yes | MCQ form loads |
 | RBI Prep | `web/pages/6_RBI_Prep.py` | Yes | 4 tabs: Key Data / Phase 1 Drill / Tier 2 Quiz / My Progress |
 | UPSC Mains | `web/pages/7_UPSC_Mains.py` | No | Paper I/II browse, LaTeX renders |
+| My Setup | `web/pages/8_My_Setup.py` | Yes | Onboarding form (4 questions) → AI plan generated → shown; re-accessible anytime |
+| Answer Review | `web/pages/9_Answer_Review.py` | Yes | Shows locked Pro feature card (subscription_tier='free' for all users now) |
 
 ## RBI Prep tab structure (6_RBI_Prep.py)
 
@@ -149,7 +153,7 @@ sqlite3 data/rbi.db "SELECT tier, COUNT(*) FROM rbi_questions GROUP BY tier;"
 sqlite3 data/ies.db "SELECT COUNT(*) FROM questions;"
 ```
 
-## Bug status (updated Session 9 — 2026-06-03)
+## Bug status (updated Session 10 — 2026-06-04)
 
 ### ALL KNOWN BUGS FIXED ✅
 
@@ -163,7 +167,10 @@ sqlite3 data/ies.db "SELECT COUNT(*) FROM questions;"
 | No transaction in `submit_return_quiz` | ✅ FIXED (S8) | `with conn:` atomic block |
 | `4_My_Progress.py` wrong user import | ✅ FIXED (S9) | `get_user_id()` function |
 | No auth on any page | ✅ FIXED (S9) | Google OAuth + `require_user()` on 6 pages |
+| No seed DBs for rbi/upsc — data loss on deploy | ✅ FIXED (S10) | `rbi_seed.db` + `upsc_seed.db` committed; first-boot copy in `app.py` |
+| Composite indexes missing | ✅ FIXED (S10) | 6 indexes in ies_seed.db + 1 in rbi_seed.db + both init scripts |
 
 ### Open (non-blocking)
-- Composite DB indexes — add at >100 users (SQL in `memory/project_multiuser_plan.md`)
 - Subtopic-level gap surfacing in dashboard — future enhancement
+- Answer Review feature (actual implementation) — behind subscription gate, deferred
+- YouTube playlist URLs in `web/resources.py` — needs Rahul to add specific playlist links

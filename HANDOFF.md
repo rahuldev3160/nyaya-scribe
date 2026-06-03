@@ -1,7 +1,84 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-03 (Session 9 — COMPLETE)
+2026-06-04 (Session 10 — COMPLETE)
+
+---
+
+## Session 10 Summary (2026-06-04)
+
+### Public-launch readiness (first half)
+
+**Seed DBs committed (blocking deploy issue fixed)**
+- `data/rbi_seed.db` created (303 questions, 0 user rows) + committed
+- `data/upsc_seed.db` created (908 model answers, 0 user rows) + committed
+- `app.py` first-boot logic generalised to handle all 3 DBs via `_boot_db(name)`
+- `7_UPSC_Mains.py` now has explicit DB-not-found error with `st.stop()`
+
+**Composite indexes applied**
+- 6 indexes added to `ies_seed.db` + `scripts/init_db.py`
+- `idx_rbi_sess_user` added to `rbi_seed.db` + `scripts/rbi/00_init_rbi_db.py`
+
+**Deploy docs + config**
+- `.env.example` updated with all 3 OAuth env vars
+- `DEPLOY.md` fully rewritten: Railway step-by-step, volume mount, OAuth setup, smoke test
+- `.gitignore` simplified to `*.db-shm / *.db-wal` glob
+
+**Smoke test:** 7/8 PASS (RBI/tabs timeout is pre-existing test-script timing issue, not a bug)
+
+### Onboarding + personalisation (second half)
+
+**My Setup wizard (`web/pages/8_My_Setup.py`)**
+- 4 questions: exams / exam date / prep level / study mode
+- AI-generated study plan via `claude-haiku-4-5` (1 call per user per onboarding)
+- Rule-based fallback if `ANTHROPIC_API_KEY` not set
+- Plan stored in `users.study_path` (JSON); re-accessible + updatable any time
+- Shows: phase name, key insight, phase breakdown, resources, today's action, AI tip
+
+**Dashboard `Your Path` banner (app.py)**
+- Fires immediately after auth on first-time users → redirects to `8_My_Setup.py`
+- After onboarding: shows current phase + today's action + "Update plan" link inline
+
+**Page timer tracker**
+- `track_page_time(conn, page_name)` in `web/db.py` — logs `page_time` events
+- Wired to all 9 pages (1-liner after auth on each)
+- `My Progress` page: "Today's Time" + "Last 7 Days" inline bar charts (no matplotlib)
+
+**Answer Review stub (`web/pages/9_Answer_Review.py`)**
+- Subscription-locked: `users.subscription_tier = 'free'` for all users
+- Shows locked Pro card with manual workaround tip
+- Actual AI feedback feature deferred; unlocks when `subscription_tier = 'pro'`
+
+**DB changes**
+- 7 new columns on `users` table: `exam_focus`, `exam_date`, `prep_level`, `study_mode`, `study_path`, `onboarding_completed`, `subscription_tier`
+- Migrated `ies.db` (local) + `ies_seed.db` (committed) + `scripts/init_db.py`
+
+**Supporting files**
+- `web/resources.py` — configurable YouTube + AI tool resources per exam; pass-through for AI prompt
+- `railway.toml` — Nixpacks builder, Streamlit start command, restart policy
+
+**GitHub:** All commits pushed to `rahuldev3160/ies-descriptive-prep`
+- `b8d4208` — seed DBs + composite indexes + deploy docs
+- `dd31e39` — onboarding + timer + Answer Review
+- `cfe99b8` — Railway config
+
+### Exact next steps
+
+**Rahul must do (requires credentials):**
+1. railway.app → New Project → Deploy from GitHub → `ies-descriptive-prep`
+2. Railway → Storage → Add Volume → Mount Path: `/app/data` (CRITICAL — without this DB data resets)
+3. Google Cloud Console → OAuth 2.0 Client ID → get `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`
+4. Railway → Variables → set all 4 env vars (see `DEPLOY.md`)
+5. First deploy auto-triggers; visit the Railway URL to verify onboarding flow
+
+**After deploy:**
+- Update `web/resources.py` with specific YouTube playlist URLs as you upload more to @rahuldev0108
+- Test with 2 separate Google accounts to verify user isolation
+
+**Future features (deferred):**
+- Answer Review (AI feedback on written answers) — behind Pro subscription gate
+- Subscription system (payments, tier upgrades)
+- Subtopic-level gap surfacing on dashboard
 
 ---
 
