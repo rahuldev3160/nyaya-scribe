@@ -400,12 +400,12 @@ EPISODES = {
                  "RTGS NEFT IMPS", "banking regulation", "RBI exam 2026"],
     },
     "rbi_a6": {
-        "yt_title": "RBI DEPR 2026 | A6: Indian Economy Current Data — Budget & Survey | Audio",
+        "yt_title": "RBI DEPR 2026 | A6: Indian Economy Current Data - Budget and Survey | Audio",
         "topics": [
             "GDP 7.6% FY26E (2nd advance estimate) — sectoral GVA breakdown",
             "CPI inflation declining toward 4% target; WPI divergence from CPI",
-            "Fiscal path: GFD 4.8% FY25 → 4.4% FY26 → 4.3% FY27 — FRBM credibility",
-            "Budget 2026-27: ₹53.47L cr total expenditure, ₹80,000 cr disinvestment",
+            "Fiscal path: GFD 4.8% FY25 to 4.4% FY26 to 4.3% FY27 — FRBM credibility",
+            "Budget 2026-27: Rs 53.47L cr total expenditure, Rs 80,000 cr disinvestment",
             "Forex reserves >11 months import cover; Economic Survey 2025-26 key themes",
         ],
         "tags": ["RBI DEPR", "RBI Grade B", "GDP India 2026", "CPI inflation India",

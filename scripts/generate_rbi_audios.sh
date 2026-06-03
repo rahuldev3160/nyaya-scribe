@@ -106,25 +106,17 @@ echo "======================================"
 echo "STEP 4: Converting mp4 → mp3"
 echo "======================================"
 
-declare -A TITLES=(
-    ["RBI_A1_macro_monetary_mcq"]="RBI - A1 - Macro & Monetary MCQ"
-    ["RBI_A2_growth_development_quant"]="RBI - A2 - Growth Development & Quant"
-    ["RBI_A3_micro_international_pf"]="RBI - A3 - Micro International & Public Finance"
-    ["RBI_A4_rbi_instruments_monetary"]="RBI - A4 - RBI Instruments & Monetary Transmission"
-    ["RBI_A5_banking_regulation_payments"]="RBI - A5 - Banking Regulation & Payment Systems"
-    ["RBI_A6_indian_economy_current"]="RBI - A6 - Indian Economy Current Data"
-)
-
-for stem in "${!TITLES[@]}"; do
-    mp4="$AUDIO_OUT/${stem}.mp4"
-    mp3="$AUDIO_OUT/${TITLES[$stem]}.mp3"
-    if [[ -f "$mp4" ]]; then
-        ffmpeg -y -i "$mp4" -vn -acodec libmp3lame -q:a 2 "$mp3"
-        echo "Converted: ${TITLES[$stem]}.mp3"
-    else
-        echo "WARNING: $mp4 not found — skipping"
-    fi
-done
+# zsh-compatible (no associative arrays)
+convert_ep() {
+    local mp4="$AUDIO_OUT/$1.mp4" mp3="$AUDIO_OUT/$2.mp3"
+    [[ -f "$mp4" ]] && ffmpeg -y -i "$mp4" -vn -acodec libmp3lame -q:a 2 "$mp3" && echo "Converted: $2.mp3" || echo "WARNING: $mp4 not found"
+}
+convert_ep "RBI_A1_macro_monetary_mcq"          "RBI - A1 - Macro & Monetary MCQ"
+convert_ep "RBI_A2_growth_development_quant"     "RBI - A2 - Growth Development & Quant"
+convert_ep "RBI_A3_micro_international_pf"       "RBI - A3 - Micro International & Public Finance"
+convert_ep "RBI_A4_rbi_instruments_monetary"     "RBI - A4 - RBI Instruments & Monetary Transmission"
+convert_ep "RBI_A5_banking_regulation_payments"  "RBI - A5 - Banking Regulation & Payment Systems"
+convert_ep "RBI_A6_indian_economy_current"       "RBI - A6 - Indian Economy Current Data"
 
 # ── Step 5: Thumbnails + upload ───────────────────────────────────────────────
 if [[ "$SKIP_UPLOAD" != "--skip-upload" ]]; then
