@@ -20,8 +20,8 @@
 ### IES 2026 — COMPLETE
 Backend: 1219 PYQs + rubrics + model answers + 150 MCQs. Web app live on :8501.
 
-### UPSC Economics Optional — DATA PIPELINE COMPLETE ✅ | Web app pending
-908/908 PYQs + rubrics + model answers in `data/upsc.db`.
+### UPSC Economics Optional — COMPLETE ✅
+908/908 PYQs + rubrics + model answers in `data/upsc.db`. Web app live: `web/pages/7_UPSC_Mains.py` (Paper I Theory / Paper II Indian Economy, year navigation, LaTeX rendering, rubric + data tabs).
 
 ### RBI DEPR 2026 — MCQ BANK BUILT ✅ | UI rebuilt ✅
 New `data/rbi.db` with 303 questions. `6_RBI_Prep.py` fully rewritten. See below.
@@ -59,6 +59,23 @@ Full plan in `memory/project_multiuser_plan.md`. Key outputs:
 - MVMU = 6 changes, 5–7 focused days, safe to launch after that
 - Discovered RISK-02: `6_RBI_Prep.py:21` `USER_ID = "rahul"` is a live bug even now
 - Discovered DECIDE-08: `@st.cache_resource` is correct for single-user but wrong for multi-user
+
+**5. UPSC Mains model answers page built** (`web/pages/7_UPSC_Mains.py`)
+
+Standalone page querying `data/upsc.db` directly (exam_id=`upsc_eco_opt`). Sidebar: Paper I (31 topics, 477 Qs) / Paper II (50 topics, 431 Qs). Year radio navigation, LaTeX renders via `st.markdown()` KaTeX, rubric + data tabs. `@st.cache_resource` connection (no leak). Verified live: 11/12 PASS.
+
+**6. Python 3.11 upgrade — permanent fix (root cause analysis)**
+
+Root cause: project was split across Python 3.9 (Streamlit, broken pip) and Python 3.11 (Homebrew, already fully installed). `X | Y` union syntax appeared first in batch scripts (no crash), then crashed when it hit a Streamlit page. The `project_ies_exam_prep.md` memory file actively propagated the wrong 3.9 path to every session. Three structural fixes applied:
+
+| Fix | What changed |
+|---|---|
+| Runtime | `streamlit run` now uses `/opt/homebrew/bin/streamlit` (Python 3.11) everywhere |
+| Lock files | `.python-version` (3.11), `requirements.txt` (pillow + playwright added) |
+| Memory | `project_ies_exam_prep.md` corrected 3.9→3.11; `feedback_python_version.md` created |
+| run-app skill | Error triage block added — classify error before touching code |
+| HANDOFF.md | `Watch For` section added at top |
+| dev-workflow skill | L-DEV-29 (pin runtime at day zero), L-DEV-30 (classify before fixing), Error Triage Protocol section |
 
 ---
 
@@ -114,13 +131,14 @@ Smoke test results:
 
 ---
 
-## Exact Next Steps (from Session 8)
+## Exact Next Steps (from Session 8 / Python upgrade session)
 
-### STUDY (before June 14 RBI exam):
-All bugs are fixed. App is 11/11 smoke test passing. **Use the app.**
-- RBI Phase 1 Drill → Smart Serve daily (IS-LM first, highest flag_impact)
+### STUDY (before June 14 RBI exam — 11 days):
+All bugs fixed. App is 12/12 pages working. Python 3.11 canonical. **Use the app.**
+- RBI Phase 1 Drill → Smart Serve daily (IS-LM first, highest flag_impact = 0.20)
+- UPSC Model Answers → review by topic (Paper I theory, Paper II Indian Economy)
 - Return Quiz for IES topic verification
-- Mundell-Fleming top-up still pending: `scripts/rbi/06_topup_questions.py` (only 7 Qs, need ~13 more)
+- Mundell-Fleming top-up: `scripts/rbi/06_topup_questions.py` — only 7 Qs, need ~13 more (not yet built)
 
 ### MVMU — MINIMUM VIABLE MULTI-USER (post-exam, 5–7 days, do in order):
 
