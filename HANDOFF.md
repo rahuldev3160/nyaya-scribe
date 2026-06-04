@@ -1,7 +1,58 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-04 (Session 12 — COMPLETE)
+2026-06-05 (Session 13 — COMPLETE)
+
+---
+
+## Session 13 Summary (2026-06-05)
+
+### Production crash fix + full architectural audit
+
+**Production crash (reported live):**
+- `ies-descriptive-prep-production.up.railway.app` showed "Page not found: pages/Dashboard.py" after Google OAuth
+- Root cause: NAV-001 pattern — `st.switch_page()` to a page not in the current `st.navigation()` registration
+- Fix: replaced with `st.rerun()` in `0_Login.py` (commit `0fec71e`)
+
+**Full architectural audit (3 parallel agents):**
+- Audit scope: auth/navigation flow, multi-user data isolation, quiz submission + DB connections
+- 12 bugs found total: 6 fixed this session, 6 remain open
+
+**Bugs fixed (commit `831479c`):**
+- BUG-002: Logout crash (same NAV-001 pattern, Profile.py:189)
+- BUG-003: `require_user()` nav mismatch + connection leak (auth.py:135)
+- BUG-004: Session state bleed between users (quiz_, rq_, rbi6_ keys not cleared on login)
+- BUG-005: `attempt_count` race condition — replaced Python read-modify-write with SQL `attempt_count+1`
+- BUG-006: Quiz accepted partial answers — `any()` → `all()` for intro/body/conclusion validation
+
+**Bugs still open (see .knowledge/INDEX.md):**
+- BUG-007: Connection leaks from st.stop() (12+ paths) — needs try/finally refactor
+- BUG-008: OAuth CSRF — state param not validated — LOW, pre-public-launch
+- BUG-009: Transaction rollback silently swallows gap_state_events — LOW
+- BUG-010: set_topic_state() uses get_user_id() internally — HIGH, fix before multi-device
+- BUG-011: "rahul" fallback in get_user_id() — MEDIUM
+- BUG-012: 1_Model_Answers.py + 7_UPSC_Mains.py unauthenticated — confirm if intentional
+
+**Knowledge base system bootstrapped (commit `007111f`):**
+- `.knowledge/` directory: 12 bug records, 1 audit record, 1 plan, 1 diagnostic
+- `CLAUDE.md` created with read/write contract
+- Stop hook added to `.claude/settings.json`
+- Global patterns at `~/.claude/knowledge/patterns/`: NAV-001, SESSION-001, DB-001
+- Same system applied to Devthorium project
+
+### Commits this session
+- `0fec71e` — fix(auth): OAuth callback nav crash
+- `831479c` — fix(audit): 5 architectural bugs from S13 audit
+- `007111f` — chore(knowledge): bootstrap .knowledge/ system + CLAUDE.md
+
+### Next steps (post-exam June 21+)
+1. Fix BUG-007 (connection leaks) — try/finally refactor across all pages
+2. Fix BUG-010 (set_topic_state explicit user_id param)
+3. Build payment wallet per `docs/PAYMENT_PLAN.md`
+   - Razorpay KYC must be started NOW (razorpay.com — 1–3 day external wait)
+   - Build order: DB migrations → billing.py → webhook.py → Wallet page → Quiz gate → Answer Review
+
+---
 
 ---
 
