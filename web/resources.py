@@ -4,14 +4,16 @@ Update this file as new content is uploaded to @rahuldev0108.
 """
 
 _CHANNEL = "https://www.youtube.com/@rahuldev0108"
+_IES_PLAYLIST = "https://www.youtube.com/playlist?list=PLG8cSH86vt8YyNB-tJPdFkp59B33ZFoRj"
+_RBI_PLAYLIST = "https://www.youtube.com/playlist?list=PLG8cSH86vt8b8JDlHZMxMS5c0pIuLn-Li"
 
-# YouTube resources per exam. 'url' can be a playlist URL once specific playlists exist.
+# YouTube resources per exam.
 YOUTUBE: dict[str, list[dict]] = {
     "ies": [
         {
             "title": "IES Economics Prep — Audio Series (24 episodes)",
             "channel": "@rahuldev0108",
-            "url": _CHANNEL,
+            "url": _IES_PLAYLIST,
             "note": "Topic-by-topic audio summaries for IES Economics. Best for commute or passive review after reading.",
         },
         {
@@ -31,7 +33,7 @@ YOUTUBE: dict[str, list[dict]] = {
         {
             "title": "RBI Grade B DEPR — Audio Series (6 episodes)",
             "channel": "@rahuldev0108",
-            "url": _CHANNEL,
+            "url": _RBI_PLAYLIST,
             "note": "RBI DEPR-focused audio guides. IS-LM and monetary policy episodes are the priority.",
         },
         {
