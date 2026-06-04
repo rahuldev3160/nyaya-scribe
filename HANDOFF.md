@@ -1,7 +1,83 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-04 (Session 10 — COMPLETE)
+2026-06-04 (Session 11 — COMPLETE)
+
+---
+
+## Session 11 Summary (2026-06-04)
+
+### Railway deploy + UX fixes
+
+**Railway deploy — LIVE ✅**
+- App live at `https://ies-descriptive-prep-production.up.railway.app`
+- Volume mounted at `/app/data` (persistent across redeploys)
+- Google OAuth working (redirect URI fixed: `/Login` not `/0_Login`)
+- All 4 env vars set: `ANTHROPIC_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OAUTH_REDIRECT_URI`
+- Seed DB fix: moved `seeds/` outside `data/` so Railway volume mount doesn't hide them
+
+**Navigation redesign (st.navigation)**
+- `app.py` rewritten as pure router using `st.navigation()` — auth-aware sections
+- Dashboard content moved to `web/pages/Dashboard.py`
+- Logged-out: sidebar shows only "Sign In"
+- Logged-in sidebar: Dashboard + Study (IES PYQs, Study Brief, UPSC Mains) + Practice (Quiz, Return Quiz, RBI Prep) + Progress (My Progress, Answer Review) + Account (My Setup, Profile)
+- "app" and "Login" clutter gone; Login never shows when authenticated
+
+**Single-session enforcement**
+- `auth.py` `create_session()` now deletes ALL prior sessions before creating new one
+- One active login per account at all times
+
+**Profile page (`web/pages/10_Profile.py`)**
+- Avatar, display name, email, member since, subscription tier badge
+- Phone number field (optional, editable)
+- Study snapshot: answers graded, MCQs attempted, exam focus + date
+- Sign Out button (clears all sessions + session state)
+
+**Quiz — Coming Soon gate**
+- Quiz loads fully (question, rubric, answer boxes)
+- Submit button disabled + `🔒 AI grading coming soon · ₹4.50 per answer` pill below it
+- Users see exactly what they're paying for before committing
+
+**Resource URL fix**
+- `8_My_Setup.py` AI plan no longer generates URLs — `_authoritative_resources()` always injects from `resources.py` after generation
+- Prevents hallucinated `/c/MrunalPatel` YouTube URLs and broken internal app links
+
+**IES PYQs rename**
+- `1_Model_Answers.py` page title + heading updated to "IES PYQs — Model Answers"
+
+**Payment plan**
+- Full plan saved to `docs/PAYMENT_PLAN.md`
+- Razorpay wallet, ₹4.50/answer, ₹100–₹2000 top-ups, atomic deduction, 7-day grace
+- ~23h build estimate, post-exam (after June 21)
+- Start Razorpay KYC now (1–3 day external wait)
+
+**Railway CLI installed**
+- `railway` CLI at `/opt/homebrew/bin/railway` v4.66.2
+
+**Commits this session:**
+- `70da9a3` — seeds/ dir fix (volume mount issue)
+- `f89c916` — resource URL fix (AI hallucination prevention)
+- `f823c31` — Coming Soon gate + payment plan doc
+- `1009de5` — locked submit button with teaser
+- `c050ab9` — nav redesign + profile + single-session + rename
+
+### Exact next steps
+
+**Rahul must do:**
+1. **Data migration** — after confirming sign-in on Railway works:
+   ```bash
+   railway link   # select melodious-surprise → production
+   railway run python scripts/migrate_local_data.py
+   ```
+   This links your local RBI mastery data (29 rows) to your Google account UUID.
+
+2. **Start Razorpay KYC** (takes 1–3 days, external) — go to razorpay.com, sign up with PAN + bank account. Build the payment wallet while KYC is processing.
+
+3. **Add YouTube playlist URLs** to `web/resources.py` as you upload more content to @rahuldev0108.
+
+**After exams (June 21+):**
+4. Build payment wallet feature per `docs/PAYMENT_PLAN.md` — 23h, ~9 days at 2–4h/day.
+5. Implement Answer Review actual feature (behind Pro gate).
 
 ---
 

@@ -33,33 +33,51 @@ cat /tmp/streamlit_app.log | grep -A10 "Traceback\|Error"
 which streamlit                          # must resolve to /opt/homebrew/bin/streamlit
 ```
 
-**Rule:** If `TypeError.*unsupported.*|` appears in the traceback, the fix is NEVER "remove the annotation." The fix is confirming the server is running on `/opt/homebrew/bin/streamlit` (Python 3.11). Removing the annotation is a symptom suppression — it masks the root cause and will recur on the next file that uses modern syntax.
+**Rule:** If `TypeError.*unsupported.*|` appears in the traceback, the fix is NEVER "remove the annotation." The fix is confirming the server is running on `/opt/homebrew/bin/streamlit` (Python 3.11).
 
-## Auth behaviour (Session 10)
+## Auth behaviour (Session 11)
 
-`require_user()` is wired into: `app.py`, `2_Quiz.py`, `3_Study_Brief.py`, `4_My_Progress.py`, `5_Return_Quiz.py`, `6_RBI_Prep.py`, `8_My_Setup.py`, `9_Answer_Review.py`.
-**Without OAuth env vars**, these pages redirect to `0_Login.py` which shows a configuration message.
-**For local testing without OAuth**: set `GOOGLE_CLIENT_ID=dummy` to skip the redirect (login page shows config message but pages won't auth-gate). Or test pages individually by setting `st.session_state.session_token` manually in browser dev tools.
+`app.py` is now a **pure router** using `st.navigation()`. Pages are grouped by section.
+
+**When not authenticated:** sidebar shows only "Sign In". All other pages redirect to login.
+**When authenticated:** sidebar shows Dashboard + 4 sections (Study / Practice / Progress / Account).
+
+`require_user()` is wired into: `Dashboard.py`, `2_Quiz.py`, `3_Study_Brief.py`, `4_My_Progress.py`, `5_Return_Quiz.py`, `6_RBI_Prep.py`, `8_My_Setup.py`, `9_Answer_Review.py`, `10_Profile.py`.
 
 Pages intentionally open (no auth): `1_Model_Answers.py`, `7_UPSC_Mains.py`.
 
-**Onboarding redirect (NEW S10):** First-time users who complete OAuth are immediately redirected from `app.py` to `8_My_Setup.py` (onboarding wizard). After completing setup they return to the dashboard. Subsequent logins skip straight to dashboard.
+**Single-session enforcement (NEW S11):** `create_session()` deletes ALL prior sessions for a user before creating the new one. One active login per account at all times.
+
+**Onboarding redirect:** First-time users → redirected from Dashboard.py to `8_My_Setup.py`. After setup → back to Dashboard.
+
+## Navigation structure (NEW S11 — st.navigation)
+
+`app.py` is the router only. Dashboard content lives in `web/pages/Dashboard.py`.
+
+| Section | Pages |
+|---|---|
+| (root) | Dashboard |
+| Study | IES PYQs, Study Brief, UPSC Mains |
+| Practice | Quiz (locked), Return Quiz, RBI Prep |
+| Progress | My Progress, Answer Review (locked) |
+| Account | My Setup, Profile |
 
 ## Pages & what they do
 
 | Sidebar label | File | Auth required | Key things to test |
 |---|---|---|---|
-| Login | `web/pages/0_Login.py` | No | Sign-in button shows; OAuth callback handles `?code=` |
-| app | `web/app.py` | Yes | Dashboard loads; "Your Path" banner shows for onboarded users |
-| Model Answers | `web/pages/1_Model_Answers.py` | No | Question browse, no DB errors |
-| Quiz | `web/pages/2_Quiz.py` | Yes + API key | API key gate shows banner if key absent |
+| Sign In | `web/pages/0_Login.py` | No | Sign-in button; OAuth callback handles `?code=`; redirects to Dashboard on success |
+| Dashboard | `web/pages/Dashboard.py` | Yes | Days left, readiness %, Your Path banner, Today's Focus, paper tabs |
+| IES PYQs | `web/pages/1_Model_Answers.py` | No | Question browse, no DB errors |
+| Quiz | `web/pages/2_Quiz.py` | Yes | Shows full form with locked submit + "Coming Soon · ₹4.50" pill |
 | Study Brief | `web/pages/3_Study_Brief.py` | Yes | Topic briefs load |
 | My Progress | `web/pages/4_My_Progress.py` | Yes | Attempt history + Today's Time + Last 7 Days charts |
 | Return Quiz | `web/pages/5_Return_Quiz.py` | Yes | MCQ form loads |
 | RBI Prep | `web/pages/6_RBI_Prep.py` | Yes | 4 tabs: Key Data / Phase 1 Drill / Tier 2 Quiz / My Progress |
 | UPSC Mains | `web/pages/7_UPSC_Mains.py` | No | Paper I/II browse, LaTeX renders |
-| My Setup | `web/pages/8_My_Setup.py` | Yes | Onboarding form (4 questions) → AI plan generated → shown; re-accessible anytime |
-| Answer Review | `web/pages/9_Answer_Review.py` | Yes | Shows locked Pro feature card (subscription_tier='free' for all users now) |
+| My Setup | `web/pages/8_My_Setup.py` | Yes | Onboarding form → AI plan; resources always from resources.py (never AI-generated URLs) |
+| Answer Review | `web/pages/9_Answer_Review.py` | Yes | Shows locked Pro feature card |
+| Profile | `web/pages/10_Profile.py` | Yes | Avatar, name, email, tier badge, phone field, study snapshot, Sign Out |
 
 ## RBI Prep tab structure (6_RBI_Prep.py)
 
@@ -71,6 +89,7 @@ Pages intentionally open (no auth): `1_Model_Answers.py`, `7_UPSC_Mains.py`.
 ## Playwright interaction patterns
 
 **CRITICAL:** Streamlit widgets are CSS-hidden React components. Use `data-testid` selectors.
+With st.navigation(), page URLs are now: `/Dashboard`, `/IES_PYQs`, `/Quiz`, etc. (title-derived).
 
 ```python
 from playwright.async_api import async_playwright
@@ -83,21 +102,20 @@ async def test_page():
         await page.goto("http://localhost:8501", wait_until="networkidle", timeout=30000)
         await page.wait_for_timeout(3000)
 
-        # Navigate sidebar
+        # Navigate sidebar (labels now match st.navigation titles)
         await page.get_by_text("RBI Prep", exact=True).first.click()
         await page.wait_for_timeout(2000)
 
-        # Switch tab — use get_by_role("tab"), NOT get_by_text (strict-mode ambiguity)
+        # Switch tab — use get_by_role("tab"), NOT get_by_text
         await page.get_by_role("tab", name="Tier 2 Quiz").click()
         await page.wait_for_timeout(2000)
 
-        # Click radio buttons — use [data-testid="stRadio"] groups
+        # Radio buttons — data-testid approach
         groups = page.locator("[data-testid='stRadio']")
         for i in range(await groups.count()):
             try:
                 await groups.nth(i).locator("label").first.click(timeout=5000)
             except:
-                # Scroll main container, retry
                 await page.evaluate(
                     f"document.querySelectorAll('[data-testid=\"stRadio\"]')[{i}]"
                     "?.querySelector('label')?.scrollIntoView()"
@@ -108,35 +126,10 @@ async def test_page():
                 except:
                     pass
 
-        # Submit
-        await page.get_by_role("button", name="Submit →").click()
-        await page.wait_for_timeout(5000)
-
-        # Verify results — look for expanders
-        expanders = page.locator("details")
-        count = await expanders.count()
-        assert count > 0, "No result expanders — submit may have failed"
-
-        # Check for Python errors on page
-        body = await page.content()
-        assert "KeyError" not in body and "Traceback" not in body
-
         await page.screenshot(path="/tmp/test_result.png")
         await browser.close()
 
 asyncio.run(test_page())
-```
-
-## Reusable helpers
-
-Import from `scripts/streamlit_test_utils.py`:
-
-```python
-from scripts.streamlit_test_utils import (
-    start_server, navigate_to_page, click_tab,
-    answer_radio_groups, submit_form, check_for_errors,
-    get_expander_count
-)
 ```
 
 ## Databases
@@ -144,33 +137,38 @@ from scripts.streamlit_test_utils import (
 | DB | Tables to check |
 |---|---|
 | `data/rbi.db` | rbi_questions (267+36), rbi_attempts, rbi_topic_mastery |
-| `data/ies.db` | questions, rubrics, model_answers, attempts |
-| `data/upsc.db` | same schema as ies.db |
+| `data/ies.db` | pyq_questions, model_answers, users, sessions |
+| `data/upsc.db` | pyq_questions, model_answers |
+| `seeds/ies_seed.db` | Same schema, zero user rows — never use for live sessions |
+| `seeds/rbi_seed.db` | Same, zero user rows |
+| `seeds/upsc_seed.db` | Same, zero user rows |
 
 Quick sanity:
 ```bash
 sqlite3 data/rbi.db "SELECT tier, COUNT(*) FROM rbi_questions GROUP BY tier;"
-sqlite3 data/ies.db "SELECT COUNT(*) FROM questions;"
+sqlite3 data/ies.db "SELECT COUNT(*) FROM pyq_questions;"
+sqlite3 data/ies.db "SELECT COUNT(*) FROM users;"
 ```
 
-## Bug status (updated Session 10 — 2026-06-04)
+## Bug status (updated Session 11 — 2026-06-04)
 
 ### ALL KNOWN BUGS FIXED ✅
 
 | Bug | Status | Fix applied |
 |---|---|---|
-| Connection leak — per-rerun `get_conn()` | ✅ FIXED (S8) | `@st.cache_resource` per-page |
-| `@st.cache_resource` shared conn unsafe for multi-user | ✅ FIXED (S9) | Per-request `conn = get_conn()` + `conn.close()` on all 7 pages |
-| `6_RBI_Prep.py` hardcoded `USER_ID = "rahul"` | ✅ FIXED (S9) | `get_user_id()` on all 6 call sites |
-| Silent quiz save failure `2_Quiz.py` | ✅ FIXED (S8) | `st.toast(err)` |
-| Mastery not written on first attempt | ✅ FIXED (S8) | `INSERT OR IGNORE` + `UPDATE` |
-| No transaction in `submit_return_quiz` | ✅ FIXED (S8) | `with conn:` atomic block |
-| `4_My_Progress.py` wrong user import | ✅ FIXED (S9) | `get_user_id()` function |
-| No auth on any page | ✅ FIXED (S9) | Google OAuth + `require_user()` on 6 pages |
-| No seed DBs for rbi/upsc — data loss on deploy | ✅ FIXED (S10) | `rbi_seed.db` + `upsc_seed.db` committed; first-boot copy in `app.py` |
-| Composite indexes missing | ✅ FIXED (S10) | 6 indexes in ies_seed.db + 1 in rbi_seed.db + both init scripts |
+| Connection leak | ✅ FIXED (S8) | Per-request conn + close |
+| Hardcoded USER_ID='rahul' | ✅ FIXED (S9) | get_user_id() everywhere |
+| No auth on pages | ✅ FIXED (S9) | Google OAuth + require_user() |
+| No seed DBs | ✅ FIXED (S10) | seeds/ dir + first-boot copy |
+| Seeds hidden by volume mount | ✅ FIXED (S11) | Moved seeds/ outside data/ |
+| OAuth redirect_uri mismatch | ✅ FIXED (S11) | /Login not /0_Login |
+| AI-hallucinated resource URLs | ✅ FIXED (S11) | _authoritative_resources() always overrides |
+| Multiple simultaneous sessions | ✅ FIXED (S11) | create_session() deletes all prior sessions first |
+| Cluttered sidebar | ✅ FIXED (S11) | st.navigation() with auth-aware sections |
 
 ### Open (non-blocking)
-- Subtopic-level gap surfacing in dashboard — future enhancement
-- Answer Review feature (actual implementation) — behind subscription gate, deferred
+- Data migration: run `railway run python scripts/migrate_local_data.py` to link Rahul's RBI data to his Google account
 - YouTube playlist URLs in `web/resources.py` — needs Rahul to add specific playlist links
+- Payment wallet feature — plan in `docs/PAYMENT_PLAN.md`, ~23h to build (post-exam)
+- Subtopic-level gap surfacing in dashboard — future enhancement
+- Answer Review actual implementation — behind subscription gate, deferred
