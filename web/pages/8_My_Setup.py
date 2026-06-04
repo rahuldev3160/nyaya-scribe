@@ -54,17 +54,11 @@ Return ONLY a valid JSON object with this exact schema — no markdown, no extra
       "daily_action": "specific thing to do each day in this phase"
     }
   ],
-  "resources": [
-    {
-      "title": "resource title",
-      "channel": "channel or source name",
-      "url": "URL",
-      "when_to_use": "brief note"
-    }
-  ],
-  "today_action": "the single most important thing to do today (specific, actionable)",
-  "ai_tip": "one specific tip on how to use Gemini or Claude in their prep"
-}"""
+  "today_action": "the single most important thing to do today (specific, actionable) — refer to app features by name only, do not include URLs or hyperlinks",
+  "ai_tip": "one specific tip on how to use Gemini or Claude in their prep — no URLs"
+}
+
+Important: do NOT include a resources field — resources are injected separately. Do NOT put any URLs or hyperlinks anywhere in the JSON."""
 
 
 def _plan_prompt(exam_focus, days_to_exam, prep_level, study_mode, res_text):
@@ -148,6 +142,23 @@ def _rule_based_plan(exam_focus, days_to_exam, prep_level, study_mode):
     }
 
 
+def _authoritative_resources(exam_focus: list[str]) -> list[dict]:
+    """Always return resources from resources.py — never trust AI-generated URLs."""
+    resources = []
+    seen: set[str] = set()
+    for exam in exam_focus:
+        for r in YOUTUBE.get(exam, []):
+            if r["title"] not in seen:
+                seen.add(r["title"])
+                resources.append({
+                    "title": r["title"],
+                    "channel": r["channel"],
+                    "url": r["url"],
+                    "when_to_use": r["note"],
+                })
+    return resources
+
+
 def generate_plan(exam_focus, days_to_exam, prep_level, study_mode):
     res_text = resources_summary(exam_focus)
     try:
@@ -167,9 +178,12 @@ def generate_plan(exam_focus, days_to_exam, prep_level, study_mode):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
-        return json.loads(raw)
+        plan = json.loads(raw)
     except Exception:
-        return _rule_based_plan(exam_focus, days_to_exam, prep_level, study_mode)
+        plan = _rule_based_plan(exam_focus, days_to_exam, prep_level, study_mode)
+    # Always override resources with authoritative URLs from resources.py
+    plan["resources"] = _authoritative_resources(exam_focus)
+    return plan
 
 
 # ─────────────────────────────────────────────────────────────────────────────
