@@ -1,7 +1,45 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-04 (Session 11 — COMPLETE)
+2026-06-04 (Session 12 — COMPLETE)
+
+---
+
+## Session 12 Summary (2026-06-04)
+
+### YouTube playlists + Railway migration
+
+**YouTube playlist cleanup**
+- IES playlist `PLG8cSH86vt8YyNB-tJPdFkp59B33ZFoRj` — was 23/24. Found missing video GE-03 A2b (`-gp9eYZKN_o`). Now 24/24 ✅
+- RBI DEPR playlist created: `PLG8cSH86vt8b8JDlHZMxMS5c0pIuLn-Li` — all 6 episodes added (A1→A6 order) ✅
+- `web/resources.py` — IES and RBI `url` fields updated from channel root to specific playlist URLs ✅
+
+**Railway data migration — RBI mastery**
+- Designed `scripts/migrate_mastery_to_railway.py`: hardcodes 29 mastery rows + 7 attempt rows from local export
+- Generated SSH key (`~/.ssh/id_ed25519`) and registered with Railway (`railway ssh keys add`)
+- Added Railway host key to `~/.ssh/known_hosts` via `ssh-keyscan ssh.railway.com`
+- Committed + pushed → Railway redeployed (deployment `15db2dda`, SUCCESS)
+- Ran `railway ssh python scripts/migrate_mastery_to_railway.py` — non-interactive SSH command
+- Result: 29 mastery rows + 7 attempts migrated to Railway `rbi.db` under UUID `cb618995-ae85-43eb-91b3-e19474acd1b7` ✅
+
+**Key architectural clarification discovered:**
+- `railway run` = LOCAL command with Railway env vars injected. Does NOT access Railway volume files.
+- `railway ssh [COMMAND]` = runs inside the container. Required for any script that touches `/app/data/*.db`.
+- SSH key must be generated locally + registered via `railway ssh keys add` before first `railway ssh` use.
+
+**Commits this session:**
+- `0f52dd3` — migration script + real playlist URLs in resources.py
+
+### Exact next steps
+
+**Remaining pre-exam (before June 14 RBI / June 19 IES):**
+1. Start Razorpay KYC now (razorpay.com — 1–3 day external wait, no code needed)
+2. Drill on Railway app daily: RBI Phase 1 → IS-LM first (flag_impact 0.20)
+
+**Post-exam (June 21+):**
+3. Build payment wallet per `docs/PAYMENT_PLAN.md` (~23h, 8–9 days at 2–4h/day)
+   - Critical path: Razorpay KYC must be done BEFORE starting Step 3
+   - Build order: DB migrations → billing.py → webhook.py → Wallet page → Quiz gate → Answer Review
 
 ---
 
