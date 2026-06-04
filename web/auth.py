@@ -123,7 +123,7 @@ def validate_session(conn: sqlite3.Connection, token: str) -> str | None:
 
 def require_user(conn: sqlite3.Connection) -> str:
     """
-    Return authenticated user_id. Redirects to login page if not authenticated.
+    Return authenticated user_id. Clears session and reruns to login if not authenticated.
     Call at the top of every page that requires login.
     """
     import streamlit as st
@@ -132,5 +132,7 @@ def require_user(conn: sqlite3.Connection) -> str:
     if user_id:
         st.session_state.user_id = user_id
         return user_id
-    st.switch_page("pages/0_Login.py")
-    st.stop()
+    conn.close()
+    st.session_state.pop("session_token", None)
+    st.session_state.pop("user_id", None)
+    st.rerun()

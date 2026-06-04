@@ -39,6 +39,10 @@ if "code" in params:
                 avatar_url=info.get("picture"),
             )
             session_token = create_session(conn, user_id)
+            _stale = [k for k in st.session_state
+                      if k.startswith(("quiz_", "rq_", "rbi6_", "rbi_drill_"))]
+            for k in _stale:
+                del st.session_state[k]
             st.session_state.session_token = session_token
             st.session_state.user_id = user_id
             st.query_params.clear()

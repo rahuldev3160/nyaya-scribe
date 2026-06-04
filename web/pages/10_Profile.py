@@ -184,8 +184,8 @@ st.markdown("#### Session")
 if st.button("Sign out", type="secondary"):
     conn.execute("DELETE FROM sessions WHERE user_id=?", (user_id,))
     conn.commit()
-    st.session_state.clear()
     conn.close()
-    st.switch_page("pages/0_Login.py")
+    st.session_state.clear()
+    st.rerun()
 
 conn.close()

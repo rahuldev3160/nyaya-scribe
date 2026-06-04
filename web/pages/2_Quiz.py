@@ -469,8 +469,8 @@ with st.form(f"quiz_form_{selected_qid}", clear_on_submit=False):
 
 # ── Evaluation ──────────────────────────────────────────────────────────────────
 if submitted:
-    if not any([intro_text.strip(), body_text.strip(), conc_text.strip()]):
-        st.warning("Please write something before submitting.")
+    if not all([intro_text.strip(), body_text.strip(), conc_text.strip()]):
+        st.warning("Please fill in all three sections (Introduction, Body, Conclusion) before submitting.")
         st.stop()
 
     # Rate limit: 5 submissions per 10-minute window per session

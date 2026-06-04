@@ -516,7 +516,7 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     ).fetchone()
     from_state = gap["state"] if gap else "UNVISITED"
     urgency = gap["urgency_multiplier"] if gap else 1.0
-    attempt_count = (gap["attempt_count"] or 0) + 1
+    attempt_count = (gap["attempt_count"] or 0) + 1  # used locally for stuck logic only
 
     existing = conn.execute(
         "SELECT mastery_level, quiz_attempt_count FROM user_mastery WHERE user_id=? AND topic_id=? AND exam_id=?",
@@ -555,21 +555,21 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
             conn.execute("""
                 UPDATE gap_states SET state=?, last_return_quiz_score=?, urgency_multiplier=?,
                     last_verified_at=datetime('now'), next_review_at=datetime('now','+14 days'),
-                    last_active_at=datetime('now'), attempt_count=?, stuck_flag=0
+                    last_active_at=datetime('now'), attempt_count=attempt_count+1, stuck_flag=0
                 WHERE user_id=? AND topic_id=? AND exam_id=?
-            """, (new_state, score, urgency, attempt_count, uid, topic_id, EXAM_ID))
+            """, (new_state, score, urgency, uid, topic_id, EXAM_ID))
         elif new_state == "PARTIAL":
             conn.execute("""
                 UPDATE gap_states SET state=?, last_return_quiz_score=?,
-                    last_active_at=datetime('now'), attempt_count=?
+                    last_active_at=datetime('now'), attempt_count=attempt_count+1
                 WHERE user_id=? AND topic_id=? AND exam_id=?
-            """, (new_state, score, attempt_count, uid, topic_id, EXAM_ID))
+            """, (new_state, score, uid, topic_id, EXAM_ID))
         else:
             conn.execute("""
                 UPDATE gap_states SET state=?, last_return_quiz_score=?, urgency_multiplier=?,
-                    last_active_at=datetime('now'), attempt_count=?, stuck_flag=?
+                    last_active_at=datetime('now'), attempt_count=attempt_count+1, stuck_flag=?
                 WHERE user_id=? AND topic_id=? AND exam_id=?
-            """, (new_state, score, new_urgency, attempt_count, stuck, uid, topic_id, EXAM_ID))
+            """, (new_state, score, new_urgency, stuck, uid, topic_id, EXAM_ID))
 
         conn.execute("""
             INSERT INTO gap_state_events
