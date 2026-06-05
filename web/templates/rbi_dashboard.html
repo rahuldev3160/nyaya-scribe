@@ -81,7 +81,7 @@
           <div style="width:3px;height:14px;background:{{ sec.color }};border-radius:2px;flex-shrink:0;"></div>
           <span style="font-size:0.78rem;font-weight:600;color:#E8EAED;">{{ sec.label }}</span>
         </div>
-        {% for item in sec.items %}
+        {% for item in sec['items'] %}
         <div class="kd-row">
           <span class="kd-name">
             {{ item.item_name }}
