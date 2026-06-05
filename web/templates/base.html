@@ -32,38 +32,32 @@
 
     <div class="nav-group">
         <div class="nav-group-label">Dashboards</div>
-        <a href="/dashboard"         class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">🏠 IES Dashboard</a>
-        <a href="/rbi"               class="nav-link {% if active_page == 'rbi_dashboard' %}active{% endif %}">🏦 RBI Dashboard</a>
-        <a href="/upsc"              class="nav-link {% if active_page == 'upsc_dashboard' %}active{% endif %}">🎓 UPSC Dashboard</a>
-        <a href="/english/dashboard" class="nav-link {% if active_page == 'english_dashboard' %}active{% endif %}">✏️ English Dashboard</a>
+        <a href="/dashboard"         class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">🏠 IES 2026</a>
+        <a href="/rbi"               class="nav-link {% if active_page == 'rbi_dashboard' %}active{% endif %}">🏦 RBI Grade B</a>
+        <a href="/upsc"              class="nav-link {% if active_page == 'upsc_dashboard' %}active{% endif %}">🎓 UPSC Mains</a>
+        <a href="/english/dashboard" class="nav-link {% if active_page == 'english_dashboard' %}active{% endif %}">✏️ English</a>
     </div>
 
     <div class="nav-group">
-        <div class="nav-group-label">Study</div>
-        <a href="/ies/answers"  class="nav-link {% if active_page == 'model_answers' %}active{% endif %}">📖 IES PYQs</a>
-        <a href="/ies/brief"    class="nav-link {% if active_page == 'study_brief' %}active{% endif %}">📄 Study Brief</a>
-        <a href="/upsc/mains"   class="nav-link {% if active_page == 'upsc_mains' %}active{% endif %}">📚 UPSC Mains</a>
-    </div>
-
-    <div class="nav-group">
-        <div class="nav-group-label">Practice</div>
-        <a href="/ies/quiz"          class="nav-link {% if active_page == 'quiz' %}active{% endif %}">✏️ Quiz</a>
-        <a href="/ies/return-quiz"   class="nav-link {% if active_page == 'return_quiz' %}active{% endif %}">❓ Return Quiz</a>
-        <a href="/rbi/prep"          class="nav-link {% if active_page == 'rbi_prep' %}active{% endif %}">📊 RBI Prep</a>
+        <div class="nav-group-label">Study &amp; Practice</div>
+        <a href="/ies/answers"       class="nav-link {% if active_page == 'model_answers' %}active{% endif %}">📖 IES PYQ Answers</a>
+        <a href="/ies/brief"         class="nav-link {% if active_page == 'study_brief' %}active{% endif %}">📄 Study Brief</a>
+        <a href="/ies/quiz"          class="nav-link {% if active_page == 'quiz' %}active{% endif %}">✏️ IES Quiz</a>
+        <a href="/ies/return-quiz"   class="nav-link {% if active_page == 'return_quiz' %}active{% endif %}">📋 IES Past Papers</a>
+        <a href="/rbi/prep?tab=phase1_drill" class="nav-link {% if active_page == 'rbi_prep' %}active{% endif %}">🧠 RBI Priority 1</a>
+        <a href="/rbi/prep?tab=tier2_quiz"   class="nav-link">❓ RBI Priority 2</a>
+        <a href="/upsc/mains"        class="nav-link {% if active_page == 'upsc_mains' %}active{% endif %}">📚 UPSC Mains Topics</a>
         <a href="/practice/english"  class="nav-link {% if active_page == 'english' %}active{% endif %}">✍️ English Practice</a>
     </div>
 
     <div class="nav-group">
-        <div class="nav-group-label">Progress</div>
+        <div class="nav-group-label">Track &amp; Account</div>
         <a href="/progress"         class="nav-link {% if active_page == 'progress' %}active{% endif %}">📈 My Progress</a>
         <a href="/progress/review"  class="nav-link {% if active_page == 'answer_review' %}active{% endif %}">⭐ Answer Review</a>
-    </div>
-
-    <div class="nav-group">
-        <div class="nav-group-label">Account</div>
-        <a href="/setup"         class="nav-link {% if active_page == 'setup' %}active{% endif %}">⚙️ My Setup</a>
-        <a href="/profile"       class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 Profile</a>
-        <a href="/auth/logout"   class="nav-link">🚪 Sign Out</a>
+        <a href="/feedback"         class="nav-link {% if active_page == 'feedback' %}active{% endif %}">💬 Feedback</a>
+        <a href="/setup"            class="nav-link {% if active_page == 'setup' %}active{% endif %}">⚙️ Setup</a>
+        <a href="/profile"          class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 Profile</a>
+        <a href="/auth/logout"      class="nav-link">🚪 Sign Out</a>
     </div>
 </nav>
 {% endif %}

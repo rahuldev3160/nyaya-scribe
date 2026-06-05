@@ -7,7 +7,7 @@
 <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:28px;">
   <div>
     <h1 style="font-size:1.6rem; font-weight:700; color:#E8EAED; margin-bottom:4px;">🏦 RBI DEPR 2026 Prep</h1>
-    <p style="color:#9AA0A6; font-size:0.88rem;">Key Data · Phase 1 Theory Drill · Tier 2 Current Affairs Quiz · Progress Dashboard</p>
+    <p style="color:#9AA0A6; font-size:0.88rem;">Key Data · Priority 1 MCQs (Core Theory) · Priority 2 (Current Affairs) · My Progress</p>
   </div>
   <div class="gem-card" style="text-align:center; border-color:{{ days_color }}33; min-width:120px; padding:12px 20px;">
     <div style="font-size:2rem; font-weight:700; color:{{ days_color }};">{{ days }}</div>
@@ -24,10 +24,10 @@
           onclick="switchTab('rbi-tabs','key_data')">📊 Key Data</button>
   <button class="tab-btn {% if tab == 'phase1_drill' %}active{% endif %}"
           data-tab="phase1_drill"
-          onclick="switchTab('rbi-tabs','phase1_drill')">🧠 Phase 1 Drill</button>
+          onclick="switchTab('rbi-tabs','phase1_drill')">🧠 Priority 1 MCQs</button>
   <button class="tab-btn {% if tab == 'tier2_quiz' %}active{% endif %}"
           data-tab="tier2_quiz"
-          onclick="switchTab('rbi-tabs','tier2_quiz')">❓ Tier 2 Quiz</button>
+          onclick="switchTab('rbi-tabs','tier2_quiz')">❓ Priority 2</button>
   <button class="tab-btn {% if tab == 'progress' %}active{% endif %}"
           data-tab="progress"
           onclick="switchTab('rbi-tabs','progress')">📈 My Progress</button>
@@ -73,11 +73,16 @@
    ══════════════════════════════════════════════════════════════════════════════ #}
 <div id="rbi-tabs-phase1_drill" class="tab-panel {% if tab == 'phase1_drill' %}active{% endif %}">
 
+  <div class="info-box" style="margin-bottom:16px;">
+    <strong>Priority 1 MCQs</strong> — Core monetary policy, banking regulation &amp; economics questions drawn
+    from the RBI DEPR Phase 1 syllabus. Smart Serve picks your highest-gap topics automatically.
+  </div>
+
   {% if t1_count == 0 %}
-  <div class="info-box">
+  <div class="info-box" style="border-color:#F28B82;color:#F28B82;">
     <strong>⏳ Question bank is being generated.</strong>
-    Run <code>python3 scripts/rbi/02_generate_mcq_bank.py</code> to populate Phase 1 questions.
-    While you wait, the Tier 2 Quiz tab has 54 current-affairs MCQs ready.
+    Run <code>python3 scripts/rbi/02_generate_mcq_bank.py</code> to populate Priority 1 questions.
+    While you wait, the Priority 2 tab has 54 current-affairs MCQs ready.
   </div>
 
   {% else %}
@@ -112,7 +117,7 @@
 
   <div class="score-card" style="border-color:{{ c_col }}33; margin-bottom:20px;">
     <div class="score-num" style="color:{{ c_col }};">{{ correct_count }}/{{ total_r }}</div>
-    <div class="score-label">Phase 1 Drill — {{ (pct * 100) | int }}% correct</div>
+    <div class="score-label">Priority 1 MCQs — {{ (pct * 100) | int }}% correct</div>
   </div>
 
   <h3 style="font-size:1rem; font-weight:600; color:#E8EAED; margin-bottom:12px;">Question-by-question breakdown</h3>
@@ -266,6 +271,11 @@
    TAB 3 — Tier 2 Quiz
    ══════════════════════════════════════════════════════════════════════════════ #}
 <div id="rbi-tabs-tier2_quiz" class="tab-panel {% if tab == 'tier2_quiz' %}active{% endif %}">
+  <div class="info-box" style="margin-bottom:20px;">
+    <strong>Priority 2</strong> — Topic-wise quiz covering current affairs, recent RBI data &amp; specialized
+    banking topics. <strong>9 buckets · 54 questions · instant grading · no AI cost.</strong>
+    Complete all buckets to see your overall Priority 2 readiness score.
+  </div>
   <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
 
     {# ── Left: bucket selector ─────────────────────────────────────────── #}
@@ -364,11 +374,11 @@
       {% set agg_color = '#81C995' if agg_pct >= 0.8 else '#FDD663' if agg_pct >= 0.5 else '#F28B82' %}
 
       <div style="margin-top:20px; padding:16px; background:rgba(129,201,149,0.08); border:1px solid rgba(129,201,149,0.3); border-radius:8px; margin-bottom:16px;">
-        🎉 <strong>All {{ bucket_keys | length }} Tier 2 buckets complete!</strong>
+        🎉 <strong>All {{ bucket_keys | length }} Priority 2 buckets complete!</strong>
       </div>
       <div class="score-card" style="border-color:{{ agg_color }}33; margin-bottom:16px;">
         <div class="score-num" style="color:{{ agg_color }};">{{ total_correct }}/{{ total_qs }}</div>
-        <div class="score-label">Overall Tier 2 — {{ (agg_pct * 100) | int }}% correct</div>
+        <div class="score-label">Overall Priority 2 — {{ (agg_pct * 100) | int }}% correct</div>
       </div>
 
       {# Weakest bucket #}
@@ -444,7 +454,7 @@
       {% endif %}
 
     </div>{# end right col #}
-  </div>{# end flex container #}
+  </div>{# end flex container (key data + quiz columns) #}
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════════════
@@ -454,13 +464,13 @@
 
   {% if not progress or progress.total_attempts == 0 %}
   <div class="info-box" style="margin-bottom:24px;">
-    📊 No Phase 1 drill attempts yet. Complete sessions in the <strong>Phase 1 Drill</strong>
+    📊 No Priority 1 drill attempts yet. Complete sessions in the <strong>Priority 1 MCQs</strong>
     tab to see your coverage and readiness scores here.
   </div>
 
   {# Still show Tier 2 summary if any scores exist #}
   {% if tier2_scores %}
-  <h3 style="font-size:1rem; font-weight:600; color:#E8EAED; margin-bottom:12px;">Tier 2 Quiz Summary</h3>
+  <h3 style="font-size:1rem; font-weight:600; color:#E8EAED; margin-bottom:12px;">Priority 2 Summary</h3>
   {% for bk, s in tier2_scores.items() %}
   {% set p = s.correct / s.total %}
   <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2a2a2a;">

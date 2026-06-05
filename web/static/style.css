@@ -342,6 +342,57 @@ hr { border: none; border-top: 1px solid #3A3A3C; margin: 1.5rem 0; }
 .htmx-indicator { opacity: 0; transition: opacity 0.2s; }
 .htmx-request .htmx-indicator { opacity: 1; }
 
+/* ── Expand sections (details/summary) ──────────────────────── */
+details.expand-section > summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: #8AB4F8;
+    padding: 5px 0 3px;
+    user-select: none;
+    border: none;
+    background: none;
+}
+details.expand-section > summary::-webkit-details-marker { display: none; }
+details.expand-section > summary::marker { display: none; }
+details.expand-section > summary .expand-arrow {
+    display: inline-block;
+    transition: transform 0.15s;
+    font-size: 0.68rem;
+}
+details.expand-section[open] > summary .expand-arrow { transform: rotate(90deg); }
+details.expand-section[open] > summary { color: #C084FC; }
+
+/* ── Dashboard inline panel ──────────────────────────────────── */
+.dash-panel {
+    background: #2C2C2E;
+    border: 1px solid #3A3A3C;
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+.dash-panel-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #6E6E73;
+    margin-bottom: 12px;
+}
+.kd-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #3A3A3C22;
+}
+.kd-row:last-child { border-bottom: none; }
+.kd-name { font-size: 0.8rem; color: #9AA0A6; flex: 1; }
+.kd-value { font-size: 0.82rem; font-weight: 700; text-align: right; flex-shrink: 0; max-width: 55%; }
+
 /* ── Login page ──────────────────────────────────────────────── */
 .login-wrap {
     min-height: 100vh;

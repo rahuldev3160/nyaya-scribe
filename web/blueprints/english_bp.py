@@ -128,7 +128,7 @@ def english_dashboard():
 
     attempts_rows = conn.execute(
         "SELECT ea.attempt_id, ea.question_id, ea.auto_score, ea.self_assess_score, ea.created_at, "
-        "       eq.type_id "
+        "       eq.type_id, eq.prompt_text "
         "FROM english_attempts ea "
         "JOIN english_questions eq ON ea.question_id = eq.question_id "
         "WHERE ea.user_id=? AND ea.exam_id=? "
@@ -163,6 +163,7 @@ def english_dashboard():
         })
 
     recent = attempts[:5]
+    attempt_counts = {tid: d["count"] for tid, d in by_type.items()}
 
     return render_template(
         "english_dashboard.html",
@@ -174,6 +175,7 @@ def english_dashboard():
         avg_self=avg_self,
         type_stats=type_stats,
         recent=recent,
+        attempt_counts=attempt_counts,
     )
 
 

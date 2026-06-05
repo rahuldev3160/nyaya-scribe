@@ -177,6 +177,36 @@ def rbi_dashboard():
     r_color = _score_color(formula_score)
     tr_color = _score_color(true_readiness)
 
+    # Key data: must-know preview + all items grouped by section
+    must_know_data, all_key_sections, total_key_items = [], [], 0
+    try:
+        must_know_rows = conn.execute(
+            "SELECT item_name, item_value, item_note, needs_verify, section, section_color "
+            "FROM rbi_key_data WHERE is_must_know=1 ORDER BY section_sort, sort_order"
+        ).fetchall()
+        must_know_data = [dict(r) for r in must_know_rows]
+
+        all_rows = conn.execute(
+            "SELECT data_id, item_name, item_value, item_note, needs_verify, "
+            "section, section_color, section_sort, sort_order "
+            "FROM rbi_key_data ORDER BY section_sort, sort_order"
+        ).fetchall()
+        total_key_items = len(all_rows)
+
+        from collections import OrderedDict
+        _sec_map: "OrderedDict[str, dict]" = OrderedDict()
+        for row in all_rows:
+            sec = row["section"]
+            if sec not in _sec_map:
+                _sec_map[sec] = {"label": sec, "color": row["section_color"], "items": []}
+            _sec_map[sec]["items"].append(dict(row))
+        all_key_sections = list(_sec_map.values())
+    except Exception:
+        pass
+
+    # Flat subject coverage sorted ascending (for summary: 3 worst first)
+    sc_all = sc_left + sc_right
+
     return render_template(
         "rbi_dashboard.html",
         active_page="rbi_dashboard",
@@ -198,8 +228,12 @@ def rbi_dashboard():
         final_stretch=(d <= 7),
         sc_left=sc_left,
         sc_right=sc_right,
+        sc_all=sc_all,
         subject_labels=SUBJECT_LABELS,
         gaps=gaps,
+        must_know_data=must_know_data,
+        all_key_sections=all_key_sections,
+        total_key_items=total_key_items,
     )
 
 

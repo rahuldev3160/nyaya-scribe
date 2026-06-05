@@ -239,6 +239,7 @@ Deputy Secretary</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:24px;">
       {% for t in all_types %}
       {% set cnt = q_counts.get(t.type_id, 0) %}
+      {% set done = attempt_counts.get(t.type_id, 0) %}
       <a href="/practice/english?type={{ t.type_id }}"
          class="gem-card"
          style="text-decoration:none;border-color:#FDD66322;display:block;padding:16px;transition:border-color .15s;"
@@ -247,6 +248,9 @@ Deputy Secretary</div>
         <div style="color:#9AA0A6;font-size:0.8rem;line-height:1.5;margin-bottom:12px;">{{ t.description[:80] }}{% if t.description|length > 80 %}…{% endif %}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span class="chip">{{ cnt }} question{{ 's' if cnt != 1 }}</span>
+          {% if done > 0 %}
+          <span class="chip chip-green">{{ done }} done</span>
+          {% endif %}
           <span style="color:#8AB4F8;font-size:0.8rem;">Practice →</span>
         </div>
       </a>
@@ -311,10 +315,14 @@ Deputy Secretary</div>
     <div class="section-header" style="margin-bottom:12px;">Recent Attempts</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
       {% for a in recent %}
-      <div class="gem-card-sm" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;align-items:center;">
+      <div class="gem-card-sm" style="display:grid;grid-template-columns:3fr 1fr 1fr 1fr;gap:8px;align-items:center;">
         <div>
-          <span style="font-size:0.82rem;color:#9AA0A6;font-family:monospace;">{{ a.question_id }}</span>
-          <span class="chip chip-purple" style="margin-left:8px;">{{ a.type_id }}</span>
+          <a href="/practice/english?type={{ a.type_id }}&qid={{ a.question_id }}"
+             style="font-size:0.82rem;color:#E8EAED;text-decoration:none;display:block;line-height:1.4;"
+             title="{{ a.prompt_text }}">
+            {{ (a.prompt_text or '')[:60] }}{% if (a.prompt_text or '')|length > 60 %}…{% endif %}
+          </a>
+          <span class="chip chip-purple" style="margin-top:4px;">{{ a.type_id }}</span>
         </div>
         <div style="text-align:right;">
           <span style="font-size:0.8rem;color:#8AB4F8;">Auto {{ (a.auto_score * 10)|round|int if a.auto_score else 0 }}%</span>

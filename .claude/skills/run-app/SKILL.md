@@ -47,7 +47,7 @@ routes = sorted(str(r) for r in app.url_map.iter_rules())
 print(f'{len(routes)} routes:')
 for r in routes: print(r)
 "
-# Expected: 32 routes
+# Expected: 34 routes
 ```
 
 ## Error triage
@@ -101,6 +101,8 @@ print('OK')
 | `POST /setup` | setup_bp | Yes |
 | `GET /profile` | profile_bp | Yes |
 | `POST /profile` | profile_bp | Yes |
+| `GET /feedback` | feedback_bp | Yes |
+| `POST /feedback/submit` | feedback_bp | Yes |
 
 ## Auth behaviour
 

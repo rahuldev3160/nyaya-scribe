@@ -53,6 +53,8 @@ Last updated: 2026-06-06 (Session 18)
 | [PLAN-005](plans/PLAN-005.md) | 2026-06-05 | English Practice Module — taxonomy (7 types), schema (4 tables), keyword scoring, page 11 | COMPLETE |
 | [PLAN-006](plans/PLAN-006.md) | 2026-06-05 | Streamlit→Flask migration — 28 routes, gunicorn, 0% idle CPU | COMPLETE |
 | [PLAN-007](plans/PLAN-007.md) | 2026-06-06 | S18: Railway deploy + 5 UI features + 3 critical bug fixes | COMPLETE |
+| [PLAN-008](plans/PLAN-008.md) | 2026-06-06 | S19: English dashboard UX fixes + Feedback feature | COMPLETE |
+| [PLAN-009](plans/PLAN-009.md) | 2026-06-06 | S19: RBI dashboard redesign + sidebar overhaul + Priority 1/2 rename | COMPLETE |
 
 ---
 

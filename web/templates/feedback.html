@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Feedback · Exam Prep{% endblock %}
+
+{% block content %}
+<div style="max-width:760px;">
+
+<div style="margin-bottom:24px;">
+  <h2 style="margin-bottom:4px;">💬 Feedback</h2>
+  <p style="color:#9AA0A6;font-size:0.88rem;">Report bugs, request features, or flag any issue with the app.</p>
+</div>
+
+<!-- ── Submit form ────────────────────────────────────────────────────────── -->
+<div class="gem-card" style="margin-bottom:28px;">
+  <div class="section-header" style="margin-bottom:16px;">Submit Feedback</div>
+  <form method="POST" action="/feedback/submit">
+
+    <div class="form-group">
+      <label>Category</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+        {% for cat_id, cat_label, cat_color in categories %}
+        <label style="cursor:pointer;display:flex;align-items:center;gap:6px;
+                      padding:6px 12px;border-radius:8px;border:1px solid {{ cat_color }}33;
+                      background:{{ cat_color }}11;font-size:0.85rem;color:{{ cat_color }};">
+          <input type="radio" name="category" value="{{ cat_id }}"
+                 {% if cat_id == 'bug' %}checked{% endif %}
+                 style="accent-color:{{ cat_color }};width:14px;height:14px;">
+          {{ cat_label }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="fb-title">Title <span style="color:#F28B82;">*</span></label>
+      <input id="fb-title" name="title" type="text" placeholder="One-line summary" maxlength="160" required>
+    </div>
+
+    <div class="form-group">
+      <label for="fb-desc">Description <span style="color:#9AA0A6;font-size:0.8rem;">(optional)</span></label>
+      <textarea id="fb-desc" name="description" placeholder="Steps to reproduce, expected vs actual, or more detail…"
+                style="height:100px;resize:vertical;" maxlength="2000"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width:100%;">Submit →</button>
+  </form>
+</div>
+
+<!-- ── Feedback list ──────────────────────────────────────────────────────── -->
+{% if items %}
+<div class="section-header" style="margin-bottom:12px;">All Feedback ({{ items|length }})</div>
+<div style="display:flex;flex-direction:column;gap:10px;">
+  {% for item in items %}
+  {% set cat_color = "#9AA0A6" %}
+  {% if item.category == "bug" %}{% set cat_color = "#F28B82" %}
+  {% elif item.category == "feature" %}{% set cat_color = "#8AB4F8" %}
+  {% elif item.category == "issue" %}{% set cat_color = "#FDD663" %}
+  {% endif %}
+  {% set st_color = status_colors.get(item.status, '#9AA0A6') %}
+  <div class="gem-card-sm" style="border-left:3px solid {{ cat_color }};">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:{{ cat_color }};
+                       letter-spacing:.05em;">{{ item.category }}</span>
+          <span style="font-weight:600;color:#E8EAED;font-size:0.92rem;">{{ item.title }}</span>
+        </div>
+        {% if item.description %}
+        <p style="color:#9AA0A6;font-size:0.82rem;line-height:1.5;margin:0 0 6px;">{{ item.description }}</p>
+        {% endif %}
+        <div style="font-size:0.75rem;color:#6E6E73;">
+          {{ (item.display_name or item.email or 'User') }}
+          · {{ item.created_at[:10] if item.created_at else '—' }}
+        </div>
+      </div>
+      <div style="flex-shrink:0;">
+        <span style="font-size:0.72rem;font-weight:600;color:{{ st_color }};
+                     border:1px solid {{ st_color }}44;border-radius:6px;padding:2px 8px;
+                     background:{{ st_color }}11;text-transform:uppercase;letter-spacing:.04em;">
+          {{ item.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="info-box">No feedback submitted yet. Be the first to report a bug or request a feature.</div>
+{% endif %}
+
+</div>
+{% endblock %}
