@@ -6,7 +6,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
-import extra_streamlit_components as stx
 
 from db import get_conn
 from auth import (
@@ -18,7 +17,7 @@ from styles import apply_theme
 st.set_page_config(page_title="Sign In — Exam Prep", page_icon="🔐", layout="centered")
 apply_theme()
 
-cookie_manager = stx.CookieManager(key="main")
+cookie_manager = st.session_state.get("_cookie_mgr")
 
 conn = get_conn()
 

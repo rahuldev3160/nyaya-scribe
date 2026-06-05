@@ -64,6 +64,7 @@ except Exception:
 # hidden component. get() returns None on the first render pass before cookies
 # load — the None check below handles that gracefully without st.stop().
 _cookie_manager = stx.CookieManager(key="main")
+st.session_state["_cookie_mgr"] = _cookie_manager
 
 if not st.session_state.get("session_token"):
     _cookie_token = _cookie_manager.get("de_session")
@@ -74,6 +75,7 @@ if not st.session_state.get("session_token"):
         if _user_id:
             st.session_state["session_token"] = _cookie_token
             st.session_state["user_id"] = _user_id
+            st.rerun()
 
 # ── Auth-aware navigation ─────────────────────────────────────────────────────
 _authed = bool(st.session_state.get("session_token"))

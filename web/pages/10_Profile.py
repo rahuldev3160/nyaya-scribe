@@ -8,7 +8,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
-import extra_streamlit_components as stx
 
 from auth import require_user
 from db import get_conn, track_page_time
@@ -17,7 +16,7 @@ from styles import apply_theme
 st.set_page_config(page_title="Profile · Exam Prep", page_icon="👤", layout="centered")
 apply_theme()
 
-cookie_manager = stx.CookieManager(key="main")
+cookie_manager = st.session_state.get("_cookie_mgr")
 
 conn = get_conn()
 user_id = require_user(conn)

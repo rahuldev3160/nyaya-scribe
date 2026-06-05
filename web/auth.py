@@ -115,7 +115,10 @@ def validate_session(conn: sqlite3.Connection, token: str) -> str | None:
     ).fetchone()
     if not row:
         return None
-    if datetime.fromisoformat(row["expires_at"]) < datetime.now(timezone.utc):
+    expires = datetime.fromisoformat(row["expires_at"])
+    if expires.tzinfo is None:
+        expires = expires.replace(tzinfo=timezone.utc)
+    if expires < datetime.now(timezone.utc):
         return None
     return row["user_id"]
 
