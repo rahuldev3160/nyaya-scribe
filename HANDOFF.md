@@ -1,7 +1,48 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 20 — COMPLETE)
+2026-06-06 (Session 21 — COMPLETE)
+
+---
+
+## Session 21 Summary (2026-06-06) — NYAYA Brand Confirmed
+
+### Brand decision: NYAYA confirmed as umbrella name
+
+Full naming research done — confirmed brand across all projects:
+- **Nyaya Scribe** = this product (Descriptive Exams)
+- **Nyaya Recall** = Devthorium (MCQ engine)
+- **Nyaya Atlas** = TALE (full SaaS, future)
+- Tagline: *"The logic of getting in."*
+- Target domain: `nyaya.app` (likely free) + `nyayascribe.com`
+
+### Pre-commitment checklist run
+
+- `nyaya.ai` — taken (small legal podcast → Spotify redirect); acquirable
+- `nyaya.in` — taken (Karnataka), expires Nov 2026
+- `nyaya.com` — taken since 2003
+- `nyaya.co` — taken, expires **Aug 2026 → backorder now**
+- `nyaya.app`, `nyayascribe.com`, `nyayarecall.com` — all free → register
+- TM: no competing NYAYA in Classes 9/41/42 → file asap (~₹13,500)
+- YouTube handles @NyayaAI / @Nyaya / @NyayaPrep — all appear unclaimed
+- Competitor identified: **prayas.ai** (UPSC-only answer eval) — direct competitor to Nyaya Scribe
+
+### Files updated this session
+
+- `CLAUDE.md` — Brand section added (Nyaya Scribe, nyaya.app, tagline, competitor)
+- `youtube/skills/brand-setup/SKILL.md` — Status PENDING → CONFIRMED; domain table + manual actions added
+- `youtube/STRATEGY.md` — All product names updated to NYAYA suite throughout
+- `Devthorium/CLAUDE.md` — Brand section added (Nyaya Recall)
+- Memory `project_nyaya_brand.md` — created + MEMORY.md indexed
+
+### Next step (exact)
+
+Rahul to manually complete:
+1. `! cd "/Users/rahulsingh/Desktop/Claude Projects/youtube" && python3.11 manage.py channel update --name "rahuldev" --description "..."` (full command in brand-setup/SKILL.md)
+2. Register `nyaya.app` + `nyayascribe.com` at Namecheap (~₹1,500)
+3. Backorder `nyaya.co` at GoDaddy Auctions (expires Aug 2026)
+4. YouTube Studio → Customization → Basic Info → Handle → `@NyayaAI`
+5. File TM Classes 9/41/42 at ipindia.gov.in (~₹13,500)
 
 ---
 

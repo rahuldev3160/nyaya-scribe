@@ -17,6 +17,12 @@ After any of these task types, write synthesized records to `.knowledge/` before
 **Where:** `.knowledge/bugs/`, `.knowledge/audits/`, `.knowledge/plans/`, `.knowledge/diagnostics/`
 **Always:** Update `.knowledge/INDEX.md` to reflect the new/changed records.
 
+## Brand
+- Umbrella: **NYAYA** (`nyaya.app` — primary domain)
+- This product: **Nyaya Scribe** — the expression faculty (descriptive answer writing + AI scoring)
+- Tagline: *"The logic of getting in."*
+- Competitors: prayas.ai (UPSC-only answer eval), SuperKalam (MCQ-focused)
+
 ## Environment
 - Python: `/opt/homebrew/bin/streamlit` (Python 3.11). Never use `/Library/Python/3.9/`
 - App entry point: `streamlit run web/app.py`
