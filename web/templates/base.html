@@ -12,7 +12,10 @@
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             },
-            svg: { fontCache: 'global' }
+            svg: { fontCache: 'global' },
+            options: {
+                ignoreHtmlClass: 'no-math'
+            }
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
@@ -29,9 +32,10 @@
 
     <div class="nav-group">
         <div class="nav-group-label">Dashboards</div>
-        <a href="/dashboard"    class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">🏠 IES Dashboard</a>
-        <a href="/rbi"          class="nav-link {% if active_page == 'rbi_dashboard' %}active{% endif %}">🏦 RBI Dashboard</a>
-        <a href="/upsc"         class="nav-link {% if active_page == 'upsc_dashboard' %}active{% endif %}">🎓 UPSC Dashboard</a>
+        <a href="/dashboard"         class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">🏠 IES Dashboard</a>
+        <a href="/rbi"               class="nav-link {% if active_page == 'rbi_dashboard' %}active{% endif %}">🏦 RBI Dashboard</a>
+        <a href="/upsc"              class="nav-link {% if active_page == 'upsc_dashboard' %}active{% endif %}">🎓 UPSC Dashboard</a>
+        <a href="/english/dashboard" class="nav-link {% if active_page == 'english_dashboard' %}active{% endif %}">✏️ English Dashboard</a>
     </div>
 
     <div class="nav-group">

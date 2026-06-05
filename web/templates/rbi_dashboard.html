@@ -112,7 +112,7 @@
 {% if gaps %}
 <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
   {% for gap in gaps %}
-  <div class="gem-card-sm" style="border-left:3px solid {{ gap.gcol }};display:grid;grid-template-columns:3fr 2fr 1fr 1fr;gap:8px;align-items:center;">
+  <div class="gem-card-sm" style="border-left:3px solid {{ gap.gcol }};display:grid;grid-template-columns:3fr 2fr 1fr 1fr 1fr;gap:8px;align-items:center;">
     <div>
       <span style="font-size:0.9rem;font-weight:600;color:#E8EAED;">{{ gap.topic_label }}</span>
     </div>
@@ -124,6 +124,11 @@
     </div>
     <div style="text-align:right;">
       <span style="font-size:0.75rem;color:#9AA0A6;">impact {{ "%.3f"|format(gap.impact) }}</span>
+    </div>
+    <div style="text-align:right;">
+      <form method="POST" action="/rbi/topics/{{ gap.topic }}/drill" style="display:inline;">
+        <button type="submit" class="btn btn-sm btn-primary">Begin Drill</button>
+      </form>
     </div>
   </div>
   {% endfor %}

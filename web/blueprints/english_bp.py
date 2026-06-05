@@ -87,6 +87,96 @@ def _save_attempt(conn, user_id, question_id, intro, body, conclusion, auto_resu
     conn.commit()
 
 
+QUESTION_TYPES_SEED = [
+    ("essay",   "Essay",                  "Extended analytical prose on a given topic.",                                                                          '{"intro":"Introduction","body":"Body","conclusion":"Conclusion"}', '{"intro":0.15,"body":0.70,"conclusion":0.15}', "essay",  1),
+    ("précis",  "Précis Writing",         "Compress a passage to 1/3 length. Title in Intro, précis text in Body. Third person, no lifted phrases.",               '{"intro":"Title","body":"Précis","conclusion":""}',               '{"intro":0.10,"body":0.85,"conclusion":0.05}', "précis", 2),
+    ("rc",      "Reading Comprehension",  "Answer a question based on the passage. Direct answer first. Passage content only — no external knowledge.",            '{"intro":"Answer","body":"Evidence","conclusion":"Inference"}',    '{"intro":0.20,"body":0.60,"conclusion":0.20}', "rc",     3),
+    ("letter",  "Letter Writing",         "Formal letter: salutation, body paragraphs, proper closing. One of three options.",                                     '{"intro":"Opening","body":"Body","conclusion":"Closing"}',         '{"intro":0.15,"body":0.70,"conclusion":0.15}', "letter", 4),
+    ("report",  "Report Writing",         "Official report: To/From/Date/Subject header, factual body, clear recommendations. Concise, no personal opinion.",      '{"intro":"Header","body":"Body","conclusion":"Recommendations"}',   '{"intro":0.15,"body":0.70,"conclusion":0.15}', "report", 5),
+]
+
+
+def _ensure_types_seeded(conn):
+    for row in QUESTION_TYPES_SEED:
+        conn.execute(
+            "INSERT OR IGNORE INTO english_question_types "
+            "(type_id, type_name, description, section_labels_json, section_weights_json, rubric_type, sort_order, exam_id) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            (*row, EXAM_ID),
+        )
+    conn.commit()
+
+
+@english_bp.route("/english/dashboard", methods=["GET"])
+@login_required
+def english_dashboard():
+    conn = get_conn()
+    user_id = g.user_id
+    track_page_time(conn, "English Dashboard")
+    _ensure_types_seeded(conn)
+
+    all_types = _load_types(conn)
+    type_map = {t["type_id"]: t for t in all_types}
+
+    q_counts = {}
+    for t in all_types:
+        row = conn.execute(
+            "SELECT COUNT(*) FROM english_questions WHERE exam_id=? AND type_id=?",
+            (EXAM_ID, t["type_id"]),
+        ).fetchone()
+        q_counts[t["type_id"]] = row[0] if row else 0
+
+    attempts_rows = conn.execute(
+        "SELECT ea.attempt_id, ea.question_id, ea.auto_score, ea.self_assess_score, ea.created_at, "
+        "       eq.type_id "
+        "FROM english_attempts ea "
+        "JOIN english_questions eq ON ea.question_id = eq.question_id "
+        "WHERE ea.user_id=? AND ea.exam_id=? "
+        "ORDER BY ea.created_at DESC",
+        (user_id, EXAM_ID),
+    ).fetchall()
+    attempts = [dict(r) for r in attempts_rows]
+
+    total_attempts = len(attempts)
+    avg_auto = round(sum(a["auto_score"] or 0 for a in attempts) / total_attempts, 2) if total_attempts else 0
+    avg_self = round(sum(a["self_assess_score"] or 0 for a in attempts) / total_attempts, 2) if total_attempts else 0
+
+    by_type = {}
+    for a in attempts:
+        tid = a["type_id"]
+        if tid not in by_type:
+            by_type[tid] = {"count": 0, "auto_sum": 0.0, "self_sum": 0.0}
+        by_type[tid]["count"] += 1
+        by_type[tid]["auto_sum"] += a["auto_score"] or 0
+        by_type[tid]["self_sum"] += a["self_assess_score"] or 0
+    type_stats = []
+    for t in all_types:
+        tid = t["type_id"]
+        d = by_type.get(tid, {"count": 0, "auto_sum": 0.0, "self_sum": 0.0})
+        cnt = d["count"]
+        type_stats.append({
+            "type_id":  tid,
+            "name":     t["type_name"],
+            "count":    cnt,
+            "avg_auto": round(d["auto_sum"] / cnt, 2) if cnt else 0,
+            "avg_self": round(d["self_sum"] / cnt, 2) if cnt else 0,
+        })
+
+    recent = attempts[:5]
+
+    return render_template(
+        "english_dashboard.html",
+        active_page="english_dashboard",
+        all_types=all_types,
+        q_counts=q_counts,
+        total_attempts=total_attempts,
+        avg_auto=avg_auto,
+        avg_self=avg_self,
+        type_stats=type_stats,
+        recent=recent,
+    )
+
+
 @english_bp.route("/practice/english", methods=["GET"])
 @login_required
 def english_page():

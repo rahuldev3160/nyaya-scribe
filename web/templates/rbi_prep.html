@@ -76,7 +76,7 @@
   <div class="info-box">
     <strong>⏳ Question bank is being generated.</strong>
     Run <code>python3 scripts/rbi/02_generate_mcq_bank.py</code> to populate Phase 1 questions.
-    While you wait, the Tier 2 Quiz tab has 48 current-affairs MCQs ready.
+    While you wait, the Tier 2 Quiz tab has 54 current-affairs MCQs ready.
   </div>
 
   {% else %}
@@ -219,7 +219,7 @@
         <select name="subject" style="width:100%; background:#2C2C2E; color:#E8EAED; border:1px solid #3A3A3C; border-radius:6px; padding:7px 10px; font-size:0.84rem;"
                 onchange="this.form.submit()">
           {% for s in subjects %}
-          <option value="{{ s }}" {% if s == (drill_filter.subject or 'all') %}selected{% endif %}>{{ s }}</option>
+          <option value="{{ s }}" {% if s == (sel_subj if sel_subj != 'all' else (drill_filter.subject or 'all')) %}selected{% endif %}>{{ s }}</option>
           {% endfor %}
         </select>
       </div>
@@ -227,7 +227,7 @@
         <label style="font-size:0.80rem; color:#9AA0A6; display:block; margin-bottom:6px;">Topic</label>
         <select name="topic" style="width:100%; background:#2C2C2E; color:#E8EAED; border:1px solid #3A3A3C; border-radius:6px; padding:7px 10px; font-size:0.84rem;">
           {% for t in topics_for_subject %}
-          <option value="{{ t }}" {% if t == (drill_filter.topic or 'all') %}selected{% endif %}>{{ t }}</option>
+          <option value="{{ t }}" {% if t == (preselect_topic if preselect_topic else (drill_filter.topic or 'all')) %}selected{% endif %}>{{ t }}</option>
           {% endfor %}
         </select>
       </div>

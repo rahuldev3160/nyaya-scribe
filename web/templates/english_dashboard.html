@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+{% block title %}English Dashboard · Exam Prep{% endblock %}
+
+{% block content %}
+<div style="max-width:860px;">
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+  <div style="flex:3;min-width:200px;">
+    <h2 style="margin-bottom:4px;">✏️ English Dashboard</h2>
+    <span style="color:#9AA0A6;font-size:0.85rem;">RBI DEPR Phase 1 (100m) · IES General English · Essay, Précis, RC, Letter, Report</span>
+  </div>
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;border-color:#FDD66333;">
+    <div style="font-size:2rem;font-weight:700;color:#FDD663;">{{ total_attempts }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Attempts</div>
+  </div>
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ (avg_auto * 10)|round|int }}%</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Avg Auto</div>
+  </div>
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#81C995;">{{ (avg_self * 100)|round|int }}%</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Avg Self</div>
+  </div>
+</div>
+
+<!-- ── Tab bar ─────────────────────────────────────────────────────────────── -->
+<div id="eng-dash" style="margin-bottom:24px;">
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="model" onclick="switchTab('eng-dash','model')">Model Answers</button>
+    <button class="tab-btn" data-tab="practice" onclick="switchTab('eng-dash','practice')">Practice</button>
+    <button class="tab-btn" data-tab="progress" onclick="switchTab('eng-dash','progress')">Progress</button>
+    <button class="tab-btn" data-tab="insights" onclick="switchTab('eng-dash','insights')">Insights</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB 1 — Model Answers                                                -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div id="eng-dash-model" class="tab-panel active">
+    <p style="color:#9AA0A6;font-size:0.85rem;margin-bottom:20px;">
+      One model answer per type. Study the structure, vocabulary level, and length — not the content verbatim.
+    </p>
+
+    <!-- Essay -->
+    <details class="gem-card" style="margin-bottom:12px;padding:0;">
+      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Essay Writing</span>
+          <span class="chip chip-purple" style="margin-left:10px;">40m · 500 words</span>
+          <span class="chip" style="margin-left:6px;">RBI DEPR · IES</span>
+        </div>
+        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
+      </summary>
+      <div style="padding:0 16px 16px;">
+        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
+        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
+          Intro (hook + thesis, ~80w) → Body: 3–4 PEEL paragraphs (~300w) → Counterargument (~50w) → Conclusion (synthesis, ~70w). Avoid first person. Title required.
+        </div>
+        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt</div>
+        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
+          "Inflation targeting has served as the cornerstone of monetary policy in emerging economies. Critically examine its limitations in the Indian context."
+        </div>
+        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
+        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;">
+          <strong style="color:#FDD663;">The Limits of Inflation Targeting in India</strong><br><br>
+          Inflation targeting, adopted formally by India in 2016 under the Monetary Policy Framework Agreement, represents a paradigm shift from discretionary policymaking to rule-based central banking. While it has anchored inflationary expectations and enhanced the RBI's credibility, the framework carries structural limitations when applied to a complex, supply-driven economy like India.<br><br>
+          <strong>Supply-side dominance:</strong> Indian inflation is largely driven by food and fuel prices — components over which monetary policy has limited traction. A supply shock from a deficient monsoon can push headline CPI well above the 4% target irrespective of the policy rate. Aggressive rate hikes in such episodes suppress demand without addressing the underlying supply constraint, generating stagflationary risk.<br><br>
+          <strong>Transmission lags:</strong> India's financial system remains bank-dominated, with significant segments of the population and small enterprises operating outside formal credit channels. The transmission of repo rate changes to lending rates is slow and incomplete, reducing the precision of inflation targeting as a stabilisation tool.<br><br>
+          <strong>Growth trade-off:</strong> In a developing economy with high unemployment and infrastructure deficits, an unwavering focus on price stability can crowd out investment at critical junctures. The 2019–20 slowdown underlined the tension between meeting a 4% CPI target and supporting productive capacity expansion.<br><br>
+          Critics argue for a flexible mandate that explicitly weights output gaps. Yet, abandoning the framework risks undermining hard-won credibility. The resolution lies in complementing inflation targeting with coordinated supply-side policies — strengthening agricultural supply chains, rationalising energy price pass-through, and deepening financial inclusion to improve monetary transmission.<br><br>
+          Inflation targeting remains a necessary anchor, but not a sufficient framework. Its limitations in India are not failures of design so much as reminders that price stability and development cannot be separated in an economy still building its structural foundations.
+        </div>
+      </div>
+    </details>
+
+    <!-- Précis -->
+    <details class="gem-card" style="margin-bottom:12px;padding:0;">
+      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Précis Writing</span>
+          <span class="chip chip-purple" style="margin-left:10px;">30m · ~160 words</span>
+          <span class="chip" style="margin-left:6px;">RBI DEPR · UPSC</span>
+        </div>
+        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
+      </summary>
+      <div style="padding:0 16px 16px;">
+        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
+        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
+          Compress source (≈500w) to exactly 1/3 length (150–170w). Give a title. Write in third person. No lifted phrases — paraphrase throughout. No personal opinion. Retain all key ideas.
+        </div>
+        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt (source passage, abridged)</div>
+        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.85rem;color:#9AA0A6;margin-bottom:14px;line-height:1.7;">
+          "Digital public infrastructure has emerged as a transformative force in India's development story. The JAM trinity — Jan Dhan accounts, Aadhaar biometric identity, and Mobile connectivity — has enabled direct benefit transfers reaching over 300 million households... [500-word passage continues]"
+        </div>
+        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Précis (~160 words)</div>
+        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;">
+          <strong style="color:#FDD663;">Digital Infrastructure as a Development Lever</strong><br><br>
+          India's digital public infrastructure has become a pivotal instrument of socioeconomic transformation. The convergence of universal banking access, biometric identification, and widespread mobile connectivity has enabled targeted welfare delivery to hundreds of millions of previously underserved households, dramatically reducing leakages in subsidy programmes.<br><br>
+          The infrastructure has also catalysed private innovation. Fintech firms have built payment and credit services on open interoperability layers, expanding formal financial inclusion well beyond the reach of traditional institutions. Small enterprises have gained access to capital through digital credit assessment, accelerating formalisation of the economy.<br><br>
+          Nevertheless, structural challenges persist. Rural connectivity gaps, digital literacy deficits, and data privacy concerns limit the framework's reach and raise governance questions. Realising the full potential of digital infrastructure will require sustained public investment in connectivity, robust regulatory oversight, and citizen-centred data protection standards. The gains so far are significant but unevenly distributed.
+        </div>
+      </div>
+    </details>
+
+    <!-- Reading Comprehension -->
+    <details class="gem-card" style="margin-bottom:12px;padding:0;">
+      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Reading Comprehension</span>
+          <span class="chip chip-purple" style="margin-left:10px;">25m · 5 Qs</span>
+          <span class="chip" style="margin-left:6px;">RBI DEPR · UPSC</span>
+        </div>
+        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
+      </summary>
+      <div style="padding:0 16px 16px;">
+        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
+        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
+          Economics-themed passage (~600w). 5 questions (5m each). State your answer directly in the first sentence. Support with 2–3 sentences from the passage. Never import external knowledge. Infer only what the text supports.
+        </div>
+        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Question</div>
+        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
+          "According to the passage, what are the two principal constraints on the effectiveness of monetary policy transmission in India?"
+        </div>
+        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
+        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;">
+          The passage identifies bank dominance and financial exclusion as the two principal constraints on monetary policy transmission in India.<br><br>
+          The author notes that the majority of credit in India flows through scheduled commercial banks rather than capital markets, creating a single, slow-moving channel for policy rate signals. Transmission is further impeded by the large share of the population and small businesses that operate outside the formal banking system, and therefore do not respond to changes in the policy rate at all.<br><br>
+          The passage implies that until financial deepening reduces these structural gaps, interest rate adjustments will remain a blunt instrument — effective at the margin but unable to influence the breadth of economic activity required for reliable stabilisation.
+        </div>
+      </div>
+    </details>
+
+    <!-- Letter -->
+    <details class="gem-card" style="margin-bottom:12px;padding:0;">
+      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Letter Writing</span>
+          <span class="chip chip-purple" style="margin-left:10px;">20m · ~250 words</span>
+          <span class="chip" style="margin-left:6px;">RBI DEPR · IES</span>
+        </div>
+        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
+      </summary>
+      <div style="padding:0 16px 16px;">
+        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
+        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
+          Formal letter only. Structure: Sender's address → Date → Recipient's designation + address → Subject line → Salutation (Dear Sir/Madam) → Body (3 paras) → Closing (Yours faithfully / sincerely) → Signature. 1 of 3 options.
+        </div>
+        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt</div>
+        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
+          "Write a formal letter to the Chief General Manager, Reserve Bank of India, recommending measures to improve credit access for micro-enterprises in semi-urban areas."
+        </div>
+        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
+        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;font-family:monospace;white-space:pre-wrap;">The Senior Research Fellow
+Institute of Economic Studies
+New Delhi – 110 001
+5 June 2026
+
+The Chief General Manager
+Department of Regulation
+Reserve Bank of India
+Mumbai – 400 001
+
+Subject: Recommendations for Improving Credit Access for Micro-Enterprises in Semi-Urban Areas
+
+Dear Sir/Madam,
+
+I write to draw attention to the persistent credit gap facing micro-enterprises operating in semi-urban India and to suggest regulatory measures that may address this structural constraint.
+
+Despite the expansion of Priority Sector Lending guidelines, field evidence indicates that micro-enterprises in semi-urban clusters face significant barriers to formal credit: absence of collateral, lack of formal accounting records, and limited proximity to bank branches. These constraints have pushed a substantial segment of productive enterprise toward informal moneylenders at significantly higher cost.
+
+I respectfully recommend that the Reserve Bank consider: (i) mandating district-level credit flow reporting disaggregated by enterprise size and location, enabling targeted monitoring; (ii) promoting cash-flow-based lending norms for enterprises with verifiable digital transaction histories; and (iii) incentivising co-lending arrangements between scheduled banks and registered NBFC-MFIs with established semi-urban reach. These measures, taken together, could meaningfully extend formal credit to underserved productive segments without compromising prudential standards.
+
+I trust these recommendations merit consideration in the Bank's forthcoming review of Priority Sector Lending norms.
+
+Yours faithfully,
+(Signature)
+Senior Research Fellow</div>
+      </div>
+    </details>
+
+    <!-- Report -->
+    <details class="gem-card" style="margin-bottom:12px;padding:0;">
+      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Report Writing</span>
+          <span class="chip chip-purple" style="margin-left:10px;">20m · ~300 words</span>
+          <span class="chip" style="margin-left:6px;">IES · UPSC</span>
+        </div>
+        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
+      </summary>
+      <div style="padding:0 16px 16px;">
+        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
+        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
+          Official format: To / From / Date / Subject (header block). Then: Objective → Findings (numbered or bulleted) → Analysis → Recommendations → Conclusion. No personal pronouns. Factual, formal tone throughout.
+        </div>
+        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt</div>
+        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
+          "You are an officer in the Ministry of Finance. Write a report to the Finance Secretary on the recent trend of rising household indebtedness and its implications for financial stability."
+        </div>
+        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
+        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;font-family:monospace;white-space:pre-wrap;">To      : Finance Secretary, Ministry of Finance
+From    : Deputy Secretary (Economic Analysis Division)
+Date    : 5 June 2026
+Subject : Rising Household Indebtedness — Trends and Financial Stability Implications
+
+1. OBJECTIVE
+This report examines the recent increase in household debt levels in India and assesses its implications for macroeconomic and financial stability.
+
+2. FINDINGS
+(i)  Household debt-to-GDP ratio has risen from approximately 35% in FY20 to 40% in FY24, driven primarily by consumer credit, personal loans, and housing finance.
+(ii) NBFC and fintech lending to sub-prime household segments has grown at 28% CAGR over the same period.
+(iii) Loan-to-income ratios in urban households, particularly for unsecured consumer credit, have risen to levels flagging early stress in RBI's Financial Stability Reports.
+
+3. ANALYSIS
+While a portion of the increase reflects formalisation of previously informal borrowing, the pace of unsecured retail credit growth raises systemic concern. Rising interest rates have increased debt-service burdens, potentially crowding out household consumption and productive investment. Concentration of stress in lower-income urban segments could translate into elevated NBFC NPAs if employment conditions deteriorate.
+
+4. RECOMMENDATIONS
+(i)  Direct RBI to tighten risk weights on unsecured consumer loans above a defined loan-to-income threshold.
+(ii) Commission a quarterly household debt survey disaggregated by income decile.
+(iii) Review macroprudential buffers for NBFC-consumer lenders with retail portfolios growing above 25% annually.
+
+5. CONCLUSION
+Household indebtedness, while currently manageable in aggregate, warrants proactive monitoring and targeted macroprudential intervention to prevent localised stress from amplifying into systemic risk.
+
+Submitted for consideration.
+(Signature)
+Deputy Secretary</div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB 2 — Practice                                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div id="eng-dash-practice" class="tab-panel">
+    <p style="color:#9AA0A6;font-size:0.85rem;margin-bottom:20px;">
+      Launch practice for any question type. Each card shows available questions.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:24px;">
+      {% for t in all_types %}
+      {% set cnt = q_counts.get(t.type_id, 0) %}
+      <a href="/practice/english?type={{ t.type_id }}"
+         class="gem-card"
+         style="text-decoration:none;border-color:#FDD66322;display:block;padding:16px;transition:border-color .15s;"
+         onmouseover="this.style.borderColor='#FDD663'" onmouseout="this.style.borderColor='#FDD66322'">
+        <div style="font-weight:700;color:#FDD663;font-size:0.95rem;margin-bottom:6px;">{{ t.type_name }}</div>
+        <div style="color:#9AA0A6;font-size:0.8rem;line-height:1.5;margin-bottom:12px;">{{ t.description[:80] }}{% if t.description|length > 80 %}…{% endif %}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="chip">{{ cnt }} question{{ 's' if cnt != 1 }}</span>
+          <span style="color:#8AB4F8;font-size:0.8rem;">Practice →</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div style="margin-top:8px;">
+      <a href="/practice/english" class="btn btn-primary">▶ Open English Practice</a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB 3 — Progress                                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div id="eng-dash-progress" class="tab-panel">
+    {% if total_attempts == 0 %}
+    <div class="info-box" style="margin-top:16px;">No attempts yet. Head to the Practice tab to get started.</div>
+    {% else %}
+
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="score-card" style="border-color:#FDD66333;">
+        <div class="score-num" style="color:#FDD663;">{{ total_attempts }}</div>
+        <div class="score-label">Total Attempts</div>
+      </div>
+      <div class="score-card {% if avg_auto >= 0.7 %}score-green{% elif avg_auto >= 0.4 %}score-amber{% else %}score-red{% endif %}">
+        <div class="score-num">{{ (avg_auto * 10)|round|int }}%</div>
+        <div class="score-label">Avg Auto Score</div>
+      </div>
+      <div class="score-card {% if avg_self >= 0.7 %}score-green{% elif avg_self >= 0.4 %}score-amber{% else %}score-red{% endif %}">
+        <div class="score-num">{{ (avg_self * 100)|round|int }}%</div>
+        <div class="score-label">Avg Self Score</div>
+      </div>
+      <div class="score-card">
+        <div class="score-num" style="color:#C084FC;">{{ type_stats|selectattr('count','gt',0)|list|length }}</div>
+        <div class="score-label">Types Practised</div>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-bottom:12px;">By Question Type</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+      {% for ts in type_stats %}
+      <div class="gem-card-sm" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;align-items:center;">
+        <div style="font-size:0.88rem;color:#E8EAED;font-weight:600;">{{ ts.name }}</div>
+        <div style="text-align:right;"><span class="chip">{{ ts.count }} attempt{{ 's' if ts.count != 1 }}</span></div>
+        <div style="text-align:right;">
+          {% if ts.count > 0 %}
+          <span style="font-size:0.8rem;color:#8AB4F8;">Auto {{ (ts.avg_auto * 10)|round|int }}%</span>
+          {% else %}
+          <span style="font-size:0.8rem;color:#9AA0A6;">—</span>
+          {% endif %}
+        </div>
+        <div style="text-align:right;">
+          {% if ts.count > 0 %}
+          <span style="font-size:0.8rem;color:#81C995;">Self {{ (ts.avg_self * 100)|round|int }}%</span>
+          {% else %}
+          <span style="font-size:0.8rem;color:#9AA0A6;">—</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="section-header" style="margin-bottom:12px;">Recent Attempts</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      {% for a in recent %}
+      <div class="gem-card-sm" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;align-items:center;">
+        <div>
+          <span style="font-size:0.82rem;color:#9AA0A6;font-family:monospace;">{{ a.question_id }}</span>
+          <span class="chip chip-purple" style="margin-left:8px;">{{ a.type_id }}</span>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:0.8rem;color:#8AB4F8;">Auto {{ (a.auto_score * 10)|round|int if a.auto_score else 0 }}%</span>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:0.8rem;color:#81C995;">Self {{ (a.self_assess_score * 100)|round|int if a.self_assess_score else 0 }}%</span>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:0.75rem;color:#9AA0A6;">{{ a.created_at[:10] if a.created_at else '—' }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TAB 4 — Insights                                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div id="eng-dash-insights" class="tab-panel">
+    <p style="color:#9AA0A6;font-size:0.85rem;margin-bottom:20px;">
+      Examiner tips, format rules, and common mistakes for each type.
+    </p>
+
+    {% set insights = [
+      {
+        "id": "essay",
+        "name": "Essay Writing",
+        "marks": "40 marks · 500 words · 1 of 4 topics",
+        "rules": [
+          "500 ± 20 words — lose marks outside range",
+          "Title is mandatory — write it above the introduction",
+          "3–4 body paragraphs; each starts with a clear topic sentence",
+          "Include one counterargument and rebuttal in the body",
+          "Conclusion must synthesise — not summarise — the argument",
+          "No first-person pronouns (I, my, we)"
+        ],
+        "mistakes": [
+          "Writing a summary instead of a critical analysis",
+          "Repeating the same point in different words",
+          "Ignoring the counterargument entirely",
+          "Generic conclusions that add no new insight",
+          "Starting every sentence with a connector (Thus, Hence, Therefore)"
+        ],
+        "tips": [
+          "Spend 5 minutes outlining — stronger essays follow a plan",
+          "The intro's final sentence should be your thesis statement",
+          "Examiners reward evidence (data, examples) over assertion alone",
+          "Vocabulary range matters — avoid repeating key nouns more than twice"
+        ]
+      },
+      {
+        "id": "précis",
+        "name": "Précis Writing",
+        "marks": "30 marks · 150–170 words · 1 passage",
+        "rules": [
+          "Target length: exactly 1/3 of the source passage word count",
+          "Give the précis a title (included in word count for some papers — verify)",
+          "Write in third person throughout — no 'the author says'",
+          "Do not lift phrases — paraphrase every sentence",
+          "Retain all key ideas; omit examples and repetition",
+          "No personal opinion, no additions beyond the source"
+        ],
+        "mistakes": [
+          "Copying sentences verbatim from the passage",
+          "Omitting a key argument to stay within the word limit",
+          "Adding your own views or examples not present in the passage",
+          "Writing in first person or quoting the author directly",
+          "Exceeding or falling below the word limit by more than 10%"
+        ],
+        "tips": [
+          "Read the full passage twice before writing a single word",
+          "Annotate: mark must-keep ideas and cut-able examples",
+          "Write a rough draft first, then trim to the target length",
+          "Count words before submission — examiners count too"
+        ]
+      },
+      {
+        "id": "rc",
+        "name": "Reading Comprehension",
+        "marks": "25 marks · 5 questions · 5m each",
+        "rules": [
+          "Answer must be grounded exclusively in the passage",
+          "State your answer directly in the first sentence",
+          "Support with 2–3 passage-based sentences",
+          "Final sentence: inference from passage logic",
+          "No external economic knowledge unless question explicitly requires it",
+          "Each answer: 80–120 words"
+        ],
+        "mistakes": [
+          "Importing external knowledge not present in the passage",
+          "Vague answers that never directly state what was asked",
+          "Quoting large chunks of text instead of paraphrasing",
+          "Missing the inference component — just summarising",
+          "Answering a different aspect of the question than what was asked"
+        ],
+        "tips": [
+          "Read all questions before reading the passage — know what to look for",
+          "Underline the specific paragraph each question refers to",
+          "Inference questions want logical extension, not opinion",
+          "If two answers seem valid, choose the one with stronger textual support"
+        ]
+      },
+      {
+        "id": "letter",
+        "name": "Letter Writing",
+        "marks": "20 marks · ~250 words · 1 of 3 options",
+        "rules": [
+          "Formal letter format only: address, date, designation, subject, salutation, body, closing",
+          "Subject line must be specific — not 'Regarding the above matter'",
+          "Salutation: Dear Sir/Madam (never 'To Whom It May Concern')",
+          "Closing: 'Yours faithfully' for unknown recipients, 'Yours sincerely' for named recipients",
+          "Three body paragraphs: context → substance → request/recommendation",
+          "No colloquial language or contractions"
+        ],
+        "mistakes": [
+          "Missing the subject line or writing a vague one",
+          "Wrong closing formula ('With regards', 'Thanking you')",
+          "Informal or emotional tone",
+          "Body that buries the main request in the final sentence",
+          "No sender address or wrong date format"
+        ],
+        "tips": [
+          "The subject line should summarise the letter's purpose in 10 words",
+          "Opening para: establish who you are and why you are writing",
+          "Middle para: the substantive content — specific, factual, well-structured",
+          "Closing para: clear request or next step",
+          "Read the format out loud — awkward phrasing is obvious"
+        ]
+      },
+      {
+        "id": "report",
+        "name": "Report Writing",
+        "marks": "20 marks · ~300 words · official format",
+        "rules": [
+          "Mandatory header block: To / From / Date / Subject",
+          "Section headings: Objective, Findings, Analysis, Recommendations, Conclusion",
+          "Findings must be numbered or bulleted — not prose paragraphs",
+          "Factual, impersonal tone — no first-person pronouns",
+          "Recommendations must be actionable — not vague suggestions",
+          "Date format: DD Month YYYY"
+        ],
+        "mistakes": [
+          "Missing the To/From/Date/Subject header",
+          "Writing findings as continuous prose instead of numbered points",
+          "Conflating findings and analysis in the same section",
+          "Recommendations that are not specific or actionable",
+          "Using first-person perspective ('I recommend')"
+        ],
+        "tips": [
+          "Treat each finding as a standalone, verifiable fact",
+          "Analysis section explains why the findings matter",
+          "Recommendations should map one-to-one with key findings",
+          "Government report style: more formal than corporate — no bullet emojis",
+          "The conclusion is a single paragraph — no new information"
+        ]
+      }
+    ] %}
+
+    {% for ins in insights %}
+    <div class="gem-card" style="margin-bottom:16px;border-color:#FDD66322;">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;">
+        <span style="font-weight:700;color:#FDD663;font-size:1rem;">{{ ins.name }}</span>
+        <span class="chip chip-purple">{{ ins.marks }}</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <div class="section-header" style="color:#8AB4F8;margin-bottom:8px;">Format Rules</div>
+          <ul style="margin:0;padding-left:18px;color:#E8EAED;font-size:0.85rem;line-height:1.9;">
+            {% for r in ins.rules %}
+            <li>{{ r }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <div class="section-header" style="color:#F28B82;margin-bottom:8px;">Common Mistakes</div>
+          <ul style="margin:0;padding-left:18px;color:#E8EAED;font-size:0.85rem;line-height:1.9;">
+            {% for m in ins.mistakes %}
+            <li>{{ m }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div class="section-header" style="color:#81C995;margin-bottom:8px;">Examiner Tips</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          {% for tip in ins.tips %}
+          <div style="background:#2C2C2E;border-radius:8px;padding:8px 12px;font-size:0.82rem;color:#E8EAED;flex:1;min-width:200px;line-height:1.6;">
+            {{ tip }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+</div>
+{% endblock %}

@@ -229,4 +229,6 @@ def set_state(topic_id):
     valid_states = {"UNVISITED", "IN_STUDY", "PARTIAL", "VERIFIED", "DECAYING", "FLAGGED"}
     if new_state in valid_states:
         set_topic_state(conn, topic_id, new_state, trigger, user_id=g.user_id)
+    if new_state == "IN_STUDY" and trigger in ("ui_advance", "ui_focus_start"):
+        return redirect(url_for("ies_answers.answers") + f"?topic={topic_id}")
     return redirect(request.referrer or url_for("dashboard.dashboard"))

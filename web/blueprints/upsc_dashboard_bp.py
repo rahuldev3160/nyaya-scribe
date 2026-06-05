@@ -242,4 +242,6 @@ def upsc_topic_state(topic_id):
     VALID = {"UNVISITED", "IN_STUDY", "PARTIAL", "VERIFIED", "FLAGGED", "DECAYING"}
     if new_state in VALID and g.upsc_conn:
         _set_state(g.upsc_conn, g.user_id, topic_id, new_state)
+    if new_state == "IN_STUDY":
+        return redirect(url_for("upsc.mains") + f"?topic={topic_id}")
     return redirect(url_for("upsc_dashboard.upsc_dashboard_page") + "#topics")

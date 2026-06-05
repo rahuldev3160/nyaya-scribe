@@ -141,7 +141,7 @@
       {% elif ans.intro_text %}
       <div class="answer-section" style="margin-bottom: 10px;">
         <div class="section-header">Introduction</div>
-        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.intro_text }}</div>
+        <div class="no-math" style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.intro_text }}</div>
       </div>
       {% endif %}
 
@@ -154,7 +154,7 @@
       {% elif ans.body_text %}
       <div class="answer-section answer-section-body" style="margin-bottom: 10px;">
         <div class="section-header">Body</div>
-        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.body_text }}</div>
+        <div class="no-math" style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.body_text }}</div>
       </div>
       {% endif %}
 
@@ -167,7 +167,7 @@
       {% elif ans.conclusion_text %}
       <div class="answer-section answer-section-conc" style="margin-bottom: 10px;">
         <div class="section-header">Conclusion</div>
-        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.conclusion_text }}</div>
+        <div class="no-math" style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.conclusion_text }}</div>
       </div>
       {% endif %}
 
@@ -178,6 +178,10 @@
 
         {# matplotlib diagram as PNG #}
         {% if ans._norm_dtype in covered_types %}
+        <div style="background: #3A3000; border: 1px solid #FDD663; border-radius: 8px;
+                    padding: 8px 12px; margin-bottom: 10px; font-size: 0.8rem; color: #FDD663;">
+          &#9888; Concept diagram only — this is a generic illustration. The written interpretation specific to this question is shown below.
+        </div>
         <div style="background: #1C1C1E; border: 1px solid #3A3A3C; border-radius: 10px;
                     padding: 12px; display: inline-block; max-width: 100%;">
           <img src="/ies/diagram/{{ ans._norm_dtype }}.png"

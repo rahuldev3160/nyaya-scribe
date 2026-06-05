@@ -171,8 +171,11 @@ def _update_mastery(conn: sqlite3.Connection, topic: str, subject: str, is_corre
 def get_progress_data(conn: sqlite3.Connection) -> dict:
     """Compute formula readiness, true readiness, and top gaps."""
     uid = get_user_id()
-    weights = {r["topic"]: r["base_weight"]
-               for r in conn.execute("SELECT topic, base_weight FROM rbi_topic_weights").fetchall()}
+    tw_rows = conn.execute(
+        "SELECT topic, subject, base_weight FROM rbi_topic_weights"
+    ).fetchall()
+    weights = {r["topic"]: r["base_weight"] for r in tw_rows}
+    topic_subjects = {r["topic"]: r["subject"] for r in tw_rows}
 
     mastery_rows = conn.execute(
         "SELECT topic, subject, attempts, mastery_score, coverage_pct, flag_impact, gap_state "
@@ -196,7 +199,7 @@ def get_progress_data(conn: sqlite3.Connection) -> dict:
             true_penalty += bw * (0.5 - coverage)
             gaps.append({
                 "topic": topic,
-                "subject": m["subject"] if m else "",
+                "subject": topic_subjects.get(topic, "other"),
                 "coverage_pct": coverage,
                 "flag_impact": bw * (1.0 - coverage),
             })
@@ -208,8 +211,7 @@ def get_progress_data(conn: sqlite3.Connection) -> dict:
     by_subject: dict = {}
     for topic, bw in weights.items():
         m = mastery_map.get(topic)
-        subj_row = conn.execute("SELECT subject FROM rbi_topic_weights WHERE topic=?", (topic,)).fetchone()
-        subj = subj_row[0] if subj_row else "other"
+        subj = topic_subjects.get(topic, "other")
         if subj not in by_subject:
             by_subject[subj] = {"weight": 0.0, "weighted_cov": 0.0, "attempts": 0}
         cov = m["coverage_pct"] if m else 0.0
@@ -652,6 +654,9 @@ def prep():
     t1_count = 0
     subjects = []
     topics_for_subject = []
+    sel_subj = "all"
+    # topic param from dashboard redirect — look up its subject to pre-populate filter
+    preselect_topic = request.args.get("topic", "")
     if conn:
         try:
             t1_count = conn.execute(
@@ -664,6 +669,14 @@ def prep():
                     ).fetchall()
                 })
                 sel_subj = request.args.get("subject", "all")
+                # If a topic is pre-selected but no subject given, infer the subject
+                if preselect_topic and preselect_topic != "all" and sel_subj == "all":
+                    subj_row = conn.execute(
+                        "SELECT subject FROM rbi_questions WHERE tier=1 AND topic=? LIMIT 1",
+                        (preselect_topic,),
+                    ).fetchone()
+                    if subj_row:
+                        sel_subj = subj_row[0]
                 if sel_subj != "all" and sel_subj in subjects:
                     topics_for_subject = ["all"] + sorted({
                         r[0] for r in conn.execute(
@@ -726,9 +739,9 @@ def prep():
         if not result_mode:
             session.pop("rbi_tier2_answers", None)
 
-    # ── Progress data ──────────────────────────────────────────────
+    # ── Progress data — always computed so JS tab-switch shows live data ──
     progress = None
-    if tab == "progress" and conn:
+    if conn:
         try:
             progress = get_progress_data(conn)
         except Exception:
@@ -762,6 +775,8 @@ def prep():
         drill_results=drill_results,
         drill_n=session.get("rbi_drill_n", 10),
         drill_filter=session.get("rbi_drill_filter", {}),
+        preselect_topic=preselect_topic,
+        sel_subj=sel_subj,
         subjects=subjects,
         topics_for_subject=topics_for_subject,
         # tier 2

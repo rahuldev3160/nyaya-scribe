@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from flask import Blueprint, g, render_template
+from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
 from db import get_conn, track_page_time
 
@@ -78,10 +78,11 @@ def rbi_dashboard():
     accuracy = total_correct / total_attempts if total_attempts > 0 else 0.0
     p1_pct = round(100 * answered_p1 / total_p1) if total_p1 > 0 else 0
 
-    weights = {
-        r["topic"]: r["base_weight"]
-        for r in conn.execute("SELECT topic, base_weight FROM rbi_topic_weights").fetchall()
-    }
+    tw_rows = conn.execute(
+        "SELECT topic, subject, base_weight FROM rbi_topic_weights"
+    ).fetchall()
+    weights = {r["topic"]: r["base_weight"] for r in tw_rows}
+    topic_subjects = {r["topic"]: r["subject"] for r in tw_rows}
 
     mastery_rows = conn.execute(
         "SELECT topic, subject, mastery_score, coverage_pct, flag_impact, gap_state "
@@ -111,7 +112,7 @@ def rbi_dashboard():
     raw_gaps = [
         {
             "topic": t,
-            "subject": mastery_map.get(t, {}).get("subject", ""),
+            "subject": topic_subjects.get(t, "other"),
             "coverage_pct": mastery_map.get(t, {}).get("coverage_pct", 0.0),
             "impact": bw * (1.0 - mastery_map.get(t, {}).get("coverage_pct", 0.0)),
         }
@@ -122,10 +123,7 @@ def rbi_dashboard():
 
     subject_data: dict = {}
     for t, bw in weights.items():
-        subj_row = conn.execute(
-            "SELECT subject FROM rbi_topic_weights WHERE topic=?", (t,)
-        ).fetchone()
-        subj = subj_row[0] if subj_row else "other"
+        subj = topic_subjects.get(t, "other")
         if subj not in subject_data:
             subject_data[subj] = {"weight": 0.0, "weighted_cov": 0.0}
         cov = mastery_map.get(t, {}).get("coverage_pct", 0.0)
@@ -202,4 +200,13 @@ def rbi_dashboard():
         sc_right=sc_right,
         subject_labels=SUBJECT_LABELS,
         gaps=gaps,
+    )
+
+
+@rbi_dashboard_bp.route("/rbi/topics/<topic_name>/drill", methods=["POST"])
+@login_required
+def rbi_topic_drill(topic_name):
+    """Redirect to the Phase 1 drill pre-filtered to the given topic."""
+    return redirect(
+        url_for("rbi_prep.prep", tab="phase1_drill", mode="filter", topic=topic_name)
     )
