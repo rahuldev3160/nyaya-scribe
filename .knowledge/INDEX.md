@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-05 (Session 14)
+Last updated: 2026-06-06 (Session 18)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -19,15 +19,18 @@ Last updated: 2026-06-05 (Session 14)
 | [BUG-004](bugs/BUG-004.md) | FIXED | HIGH | data-isolation | Session state bleed — User B inherits User A's quiz/RBI state | SESSION-001 | S13 | 831479c |
 | [BUG-005](bugs/BUG-005.md) | FIXED | HIGH | concurrency | attempt_count race — read-then-write across concurrent tabs | DB-001 | S13 | 831479c |
 | [BUG-006](bugs/BUG-006.md) | FIXED | MEDIUM | validation | Quiz accepts partial answers — any() instead of all() | — | S13 | 831479c |
-| [BUG-007](bugs/BUG-007.md) | OPEN | MEDIUM | resource | DB connection leaks — 12+ st.stop() paths bypass conn.close() | — | S13 | — |
-| [BUG-008](bugs/BUG-008.md) | OPEN | LOW | security | OAuth CSRF — state param generated but never validated in callback | — | S13 | — |
+| [BUG-007](bugs/BUG-007.md) | FIXED | MEDIUM | resource | DB connection leaks — fixed by Flask g-scoped connections + teardown hooks | — | S17 | 9f842a2 |
+| [BUG-008](bugs/BUG-008.md) | FIXED | LOW | security | OAuth CSRF — state validated in Flask auth_bp callback via session["oauth_state"] | — | S17 | 9f842a2 |
 | [BUG-009](bugs/BUG-009.md) | OPEN | LOW | consistency | Transaction rollback swallows gap_state_events silently | — | S13 | — |
-| [BUG-010](bugs/BUG-010.md) | OPEN | HIGH | data-isolation | set_topic_state() calls get_user_id() internally — wrong-user writes possible | — | S13 | — |
-| [BUG-011](bugs/BUG-011.md) | OPEN | MEDIUM | data-isolation | "rahul" fallback in get_user_id() — data written under literal string in error paths | — | S13 | — |
-| [BUG-012](bugs/BUG-012.md) | INFO | LOW | auth | 1_Model_Answers.py + 7_UPSC_Mains.py have no require_user() — may be intentional | — | S13 | — |
+| [BUG-010](bugs/BUG-010.md) | FIXED | HIGH | data-isolation | set_topic_state() now takes explicit user_id param; all routes pass g.user_id | — | S17 | 9f842a2 |
+| [BUG-011](bugs/BUG-011.md) | FIXED | MEDIUM | data-isolation | "rahul" fallback gone — Flask context always has g.user_id or returns 401 | — | S17 | 9f842a2 |
+| [BUG-012](bugs/BUG-012.md) | FIXED | LOW | auth | All Flask routes use @login_required — no open pages remaining | — | S17 | 9f842a2 |
 | [BUG-013](bugs/BUG-013.md) | FIXED | HIGH | auth | CookieManager(key="main") instantiated 3x → StreamlitDuplicateElementKey with st.navigation() | — | S14 | ba83b9b |
 | [BUG-014](bugs/BUG-014.md) | FIXED | MEDIUM | auth | validate_session crashes on naive datetimes from SQLite datetime('now') vs UTC-aware Python | — | S14 | ba83b9b |
 | [BUG-015](bugs/BUG-015.md) | FIXED | LOW | auth | "Page not found" flash on cookie-restored sessions — nav rebuilt before rerun | — | S14 | ba83b9b |
+| [BUG-016](bugs/BUG-016.md) | FIXED | HIGH | template | `section.items` resolves to Python dict builtin in Jinja2 — 500 on /rbi/prep; fix: `section['items']` | — | S18 | 1384854 |
+| [BUG-017](bugs/BUG-017.md) | FIXED | HIGH | ui | RBI tab panels are siblings of #rbi-tabs div, not children — switchTab querySelectorAll finds nothing, all panels stack | — | S18 | f68b976 |
+| [BUG-018](bugs/BUG-018.md) | FIXED | HIGH | scoring | Drill scoring always 0 — form submits full option text but code took `chosen_full[0]` (first char of sentence) vs `correct_option` letter | — | S18 | 6968d5d |
 
 ---
 
@@ -47,7 +50,9 @@ Last updated: 2026-06-05 (Session 14)
 | [PLAN-002](plans/PLAN-002.md) | 2026-06-05 | S14 features: persistent login + plan templates + dashboard labeling | COMPLETE |
 | [PLAN-003](plans/PLAN-003.md) | 2026-06-05 | S15: RBI+UPSC dashboards + plan reduction 144→24 + exam date labels | COMPLETE |
 | [PLAN-004](plans/PLAN-004.md) | 2026-06-05 | English question type templates — 9 types (Essay, Précis, Letter, RC, Report, etc.) for RBI+UPSC | COMPLETE |
-| [PLAN-005](plans/PLAN-005.md) | 2026-06-05 | English Practice Module — taxonomy (7 types), schema (4 tables), keyword scoring, page 11 | PLANNING |
+| [PLAN-005](plans/PLAN-005.md) | 2026-06-05 | English Practice Module — taxonomy (7 types), schema (4 tables), keyword scoring, page 11 | COMPLETE |
+| [PLAN-006](plans/PLAN-006.md) | 2026-06-05 | Streamlit→Flask migration — 28 routes, gunicorn, 0% idle CPU | COMPLETE |
+| [PLAN-007](plans/PLAN-007.md) | 2026-06-06 | S18: Railway deploy + 5 UI features + 3 critical bug fixes | COMPLETE |
 
 ---
 
