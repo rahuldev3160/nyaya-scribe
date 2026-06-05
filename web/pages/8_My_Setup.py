@@ -21,17 +21,18 @@ user_id = require_user(conn)
 track_page_time(conn, "My Setup")
 
 # ── Labels ─────────────────────────────────────────────────────────────────────
-EXAM_LABELS = {"ies": "IES 2026", "rbi": "RBI DEPR", "upsc": "UPSC Eco Optional"}
+EXAM_LABELS = {
+    "ies":  "IES 2026 · 19-21 June",
+    "rbi":  "RBI DEPR · 14 June",
+    "upsc": "UPSC Eco Optional · ~Aug 2026",
+}
 PREP_LABELS = {
-    "fresh":      "Starting fresh — building from basics",
-    "foundation": "Some foundation — read material, need practice",
-    "revision":   "Revision mode — filling gaps and drilling",
+    "fresh":    "Starting fresh — building from basics",
+    "revision": "Revision mode — filling gaps and drilling",
 }
 MODE_LABELS = {
     "answers_only": "Model answers + answer writing (understand exam patterns)",
     "full_prep":    "Full prep — theory → practice → revision",
-    "mcq_drill":    "MCQ drill + quick practice (time-constrained)",
-    "mixed":        "Mixed (theory + answers + MCQ)",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -322,11 +323,11 @@ with st.form("setup_form"):
     st.markdown("**Which exams are you preparing for?**")
     col_e1, col_e2, col_e3 = st.columns(3)
     with col_e1:
-        ies_on  = st.checkbox("IES 2026",           value=True)
+        ies_on  = st.checkbox("IES 2026 · 19-21 June",      value=True)
     with col_e2:
-        rbi_on  = st.checkbox("RBI DEPR",            value=False)
+        rbi_on  = st.checkbox("RBI DEPR · 14 June",          value=False)
     with col_e3:
-        upsc_on = st.checkbox("UPSC Eco Optional",   value=False)
+        upsc_on = st.checkbox("UPSC Eco Optional · ~Aug 2026", value=False)
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("**When is your primary exam?**")

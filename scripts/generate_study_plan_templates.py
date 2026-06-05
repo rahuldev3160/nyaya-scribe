@@ -21,19 +21,20 @@ DB_PATH = ROOT / "data" / "ies.db"
 
 # ── Mirror the label maps from 8_My_Setup.py ──────────────────────────────────
 
-EXAM_LABELS = {"ies": "IES 2026", "rbi": "RBI DEPR", "upsc": "UPSC Eco Optional"}
+EXAM_LABELS = {
+    "ies":  "IES 2026 (19-21 June)",
+    "rbi":  "RBI DEPR (14 June)",
+    "upsc": "UPSC Eco Optional (~Aug 2026 Mains)",
+}
 
 PREP_LABELS = {
-    "fresh":      "Starting fresh — building from basics",
-    "foundation": "Some foundation — read material, need practice",
-    "revision":   "Revision mode — filling gaps and drilling",
+    "fresh":    "Starting fresh — building from basics",
+    "revision": "Revision mode — filling gaps and drilling",
 }
 
 MODE_LABELS = {
     "answers_only": "Model answers + answer writing (understand exam patterns)",
     "full_prep":    "Full prep — theory → practice → revision",
-    "mcq_drill":    "MCQ drill + quick practice (time-constrained)",
-    "mixed":        "Mixed (theory + answers + MCQ)",
 }
 
 _SYSTEM = """You are an expert study advisor for Indian competitive economics exams (IES, RBI DEPR, UPSC Economics Optional). Generate a personalised study plan.
@@ -105,8 +106,6 @@ Write a plan that is honest and specific — not generic motivational text."""
 def _days_bucket(days_to_exam: int) -> str:
     if days_to_exam <= 15:
         return "crunch"
-    if days_to_exam <= 30:
-        return "intensive"
     return "standard"
 
 
@@ -183,16 +182,14 @@ if __name__ == "__main__":
         ["ies"],
         ["rbi"],
         ["upsc"],
-        ["ies", "rbi"],
     ]
     # Representative days_to_exam for each bucket
     BUCKET_DAYS = {
-        "crunch":    10,
-        "intensive": 21,
-        "standard":  60,
+        "crunch":   10,
+        "standard": 60,
     }
-    PREP_LEVELS = ["fresh", "foundation", "revision"]
-    STUDY_MODES = ["answers_only", "full_prep", "mcq_drill", "mixed"]
+    PREP_LEVELS = ["fresh", "revision"]
+    STUDY_MODES = ["answers_only", "full_prep"]
 
     combos = [
         (exams, days, prep, mode)

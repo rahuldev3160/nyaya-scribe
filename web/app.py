@@ -54,6 +54,56 @@ try:
             _mc.commit()
         except Exception:
             pass  # Column already exists
+
+        # English Practice tables (idempotent)
+        try:
+            _mc.executescript("""
+                CREATE TABLE IF NOT EXISTS english_question_types (
+                    type_id TEXT NOT NULL, exam_id TEXT NOT NULL DEFAULT 'english_practice',
+                    type_name TEXT NOT NULL, description TEXT,
+                    section_labels_json TEXT, section_weights_json TEXT,
+                    rubric_type TEXT, sort_order INTEGER DEFAULT 0,
+                    PRIMARY KEY (type_id, exam_id)
+                );
+                CREATE TABLE IF NOT EXISTS english_questions (
+                    question_id TEXT NOT NULL, exam_id TEXT NOT NULL DEFAULT 'english_practice',
+                    type_id TEXT NOT NULL, prompt_text TEXT NOT NULL,
+                    marks INTEGER, word_guide_json TEXT, word_count_target INTEGER,
+                    section_weights_json TEXT, intro_text TEXT, body_text TEXT,
+                    conclusion_text TEXT, difficulty TEXT DEFAULT 'medium',
+                    source_exam TEXT, created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (question_id, exam_id)
+                );
+                CREATE TABLE IF NOT EXISTS english_keywords (
+                    keyword_id TEXT NOT NULL, question_id TEXT NOT NULL,
+                    exam_id TEXT NOT NULL DEFAULT 'english_practice',
+                    section TEXT NOT NULL CHECK(section IN ('intro','body','conclusion')),
+                    keyword TEXT NOT NULL, variants_json TEXT, weight INTEGER DEFAULT 1,
+                    keyword_type TEXT DEFAULT 'required'
+                        CHECK(keyword_type IN ('required','bonus','negative','phrase')),
+                    fuzzy_threshold REAL DEFAULT 0.82, penalty REAL,
+                    PRIMARY KEY (keyword_id, exam_id)
+                );
+                CREATE TABLE IF NOT EXISTS english_attempts (
+                    attempt_id TEXT NOT NULL, exam_id TEXT NOT NULL DEFAULT 'english_practice',
+                    user_id TEXT NOT NULL, question_id TEXT NOT NULL,
+                    user_answer_intro TEXT, user_answer_body TEXT, user_answer_conclusion TEXT,
+                    word_count_intro INTEGER DEFAULT 0, word_count_body INTEGER DEFAULT 0,
+                    word_count_conclusion INTEGER DEFAULT 0,
+                    score_intro REAL DEFAULT 0.0, score_body REAL DEFAULT 0.0,
+                    score_conclusion REAL DEFAULT 0.0, auto_score REAL DEFAULT 0.0,
+                    self_assess_score REAL DEFAULT 0.0,
+                    keywords_matched_json TEXT, keywords_missed_json TEXT,
+                    self_assess_json TEXT, session_id TEXT,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    PRIMARY KEY (attempt_id, exam_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_english_attempts_user
+                    ON english_attempts(user_id, exam_id, created_at DESC);
+            """)
+            _mc.commit()
+        except Exception:
+            pass
         finally:
             _mc.close()
 except Exception:
@@ -80,26 +130,29 @@ if not st.session_state.get("session_token"):
 # ── Auth-aware navigation ─────────────────────────────────────────────────────
 _authed = bool(st.session_state.get("session_token"))
 
-_login      = st.Page("pages/0_Login.py",        title="Sign In",       icon=":material/login:")
-_dashboard  = st.Page("pages/Dashboard.py",       title="Dashboard",     icon=":material/home:",      default=True)
-_ies_pyqs   = st.Page("pages/1_Model_Answers.py", title="IES PYQs",      icon=":material/menu_book:")
-_quiz       = st.Page("pages/2_Quiz.py",          title="Quiz",          icon=":material/edit_note:")
-_study      = st.Page("pages/3_Study_Brief.py",   title="Study Brief",   icon=":material/description:")
-_progress   = st.Page("pages/4_My_Progress.py",   title="My Progress",   icon=":material/bar_chart:")
-_return_q   = st.Page("pages/5_Return_Quiz.py",   title="Return Quiz",   icon=":material/quiz:")
-_rbi        = st.Page("pages/6_RBI_Prep.py",      title="RBI Prep",      icon=":material/account_balance:")
-_upsc       = st.Page("pages/7_UPSC_Mains.py",    title="UPSC Mains",    icon=":material/school:")
-_setup      = st.Page("pages/8_My_Setup.py",      title="My Setup",      icon=":material/tune:")
-_answer_rev = st.Page("pages/9_Answer_Review.py", title="Answer Review", icon=":material/rate_review:")
-_profile    = st.Page("pages/10_Profile.py",      title="Profile",       icon=":material/person:")
+_login         = st.Page("pages/0_Login.py",          title="Sign In",          icon=":material/login:")
+_dashboard     = st.Page("pages/Dashboard.py",         title="IES Dashboard",    icon=":material/home:",           default=True)
+_rbi_dash      = st.Page("pages/RBI_Dashboard.py",     title="RBI Dashboard",    icon=":material/account_balance:")
+_upsc_dash     = st.Page("pages/UPSC_Dashboard.py",    title="UPSC Dashboard",   icon=":material/school:")
+_ies_pyqs      = st.Page("pages/1_Model_Answers.py",   title="IES PYQs",         icon=":material/menu_book:")
+_quiz          = st.Page("pages/2_Quiz.py",            title="Quiz",             icon=":material/edit_note:")
+_study         = st.Page("pages/3_Study_Brief.py",     title="Study Brief",      icon=":material/description:")
+_progress      = st.Page("pages/4_My_Progress.py",     title="My Progress",      icon=":material/bar_chart:")
+_return_q      = st.Page("pages/5_Return_Quiz.py",     title="Return Quiz",      icon=":material/quiz:")
+_rbi           = st.Page("pages/6_RBI_Prep.py",        title="RBI Prep",         icon=":material/quiz:")
+_upsc          = st.Page("pages/7_UPSC_Mains.py",      title="UPSC Mains",       icon=":material/menu_book:")
+_setup         = st.Page("pages/8_My_Setup.py",        title="My Setup",         icon=":material/tune:")
+_answer_rev    = st.Page("pages/9_Answer_Review.py",   title="Answer Review",    icon=":material/rate_review:")
+_profile       = st.Page("pages/10_Profile.py",        title="Profile",          icon=":material/person:")
+_english       = st.Page("pages/11_English_Practice.py", title="English Practice", icon=":material/spellcheck:")
 
 if not _authed:
     _pg = st.navigation([_login])
 else:
     _pg = st.navigation({
-        "":           [_dashboard],
+        "Dashboards": [_dashboard, _rbi_dash, _upsc_dash],
         "Study":      [_ies_pyqs, _study, _upsc],
-        "Practice":   [_quiz, _return_q, _rbi],
+        "Practice":   [_quiz, _return_q, _rbi, _english],
         "Progress":   [_progress, _answer_rev],
         "Account":    [_setup, _profile],
     })

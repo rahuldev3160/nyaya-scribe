@@ -45,6 +45,9 @@ Last updated: 2026-06-05 (Session 14)
 |----|------|-------|--------|
 | [PLAN-001](plans/PLAN-001.md) | 2026-06-03 | Multi-user architecture (S10) | COMPLETE |
 | [PLAN-002](plans/PLAN-002.md) | 2026-06-05 | S14 features: persistent login + plan templates + dashboard labeling | COMPLETE |
+| [PLAN-003](plans/PLAN-003.md) | 2026-06-05 | S15: RBI+UPSC dashboards + plan reduction 144→24 + exam date labels | COMPLETE |
+| [PLAN-004](plans/PLAN-004.md) | 2026-06-05 | English question type templates — 9 types (Essay, Précis, Letter, RC, Report, etc.) for RBI+UPSC | COMPLETE |
+| [PLAN-005](plans/PLAN-005.md) | 2026-06-05 | English Practice Module — taxonomy (7 types), schema (4 tables), keyword scoring, page 11 | PLANNING |
 
 ---
 

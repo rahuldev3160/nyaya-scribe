@@ -650,8 +650,6 @@ def get_paper_coverage(conn, user_id: str = None) -> list[dict]:
 def _days_bucket(days_to_exam: int) -> str:
     if days_to_exam <= 15:
         return "crunch"
-    if days_to_exam <= 30:
-        return "intensive"
     return "standard"
 
 

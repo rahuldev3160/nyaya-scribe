@@ -1,4 +1,5 @@
 """IES 2026 Study Dashboard."""
+import json
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -33,6 +34,22 @@ if _onb and not _onb["onboarding_completed"]:
     st.stop()
 
 track_page_time(conn, "Dashboard")
+
+# ── Cross-exam banner ─────────────────────────────────────────────────────────
+_focus_row = conn.execute("SELECT exam_focus FROM users WHERE user_id=?", (user_id,)).fetchone()
+_exam_focus = json.loads(_focus_row["exam_focus"] or '["ies"]') if _focus_row and _focus_row["exam_focus"] else ["ies"]
+_other_exams = [e for e in _exam_focus if e != "ies"]
+_OTHER_LINKS = {
+    "rbi":  ("pages/RBI_Dashboard.py",  "🏦 RBI DEPR Dashboard (14th June)"),
+    "upsc": ("pages/UPSC_Dashboard.py", "🎓 UPSC Eco Optional Dashboard (~Aug 2026)"),
+}
+if _other_exams:
+    _banner_cols = st.columns(len(_other_exams))
+    for _col, _exam in zip(_banner_cols, _other_exams):
+        _path, _label = _OTHER_LINKS[_exam]
+        with _col:
+            st.page_link(_path, label=f"→ {_label}", use_container_width=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
 
 def days_left() -> int:
