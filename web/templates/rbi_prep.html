@@ -47,7 +47,7 @@
     <span style="font-size:0.95rem; font-weight:600; color:#E8EAED;">{{ section.label }}</span>
   </div>
 
-  {% for name, value, note, verify in section.items %}
+  {% for name, value, note, verify in section['items'] %}
   <div class="gem-card-sm" style="border-left:3px solid {{ section.color }}40; margin-bottom:6px;">
     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:4px;">
       <span style="font-size:0.82rem; font-weight:600; color:#E8EAED;">
