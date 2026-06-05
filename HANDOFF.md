@@ -1,7 +1,57 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-05 (Session 13 — COMPLETE)
+2026-06-05 (Session 14 — COMPLETE)
+
+---
+
+## Session 14 Summary (2026-06-05)
+
+### 3 features shipped + 3 bugs fixed during testing
+
+**Feature 4c — Dashboard labeling (Dashboard.py)**
+- Buttons: Begin Study / Resume / Mark Partial / Mark Verified / Quick Verify / Reset
+- Priority score: raw float → Top/High/Medium/Lower priority + "exam frequency + recency + gap" sub-label
+- Today's Focus: state-aware context note per card ("not yet started", "needs a quick refresh" etc.)
+- Overview state labels: plain English (Not Started, In Progress, Needs Refresh, Needs Work…)
+
+**Feature 1 — Persistent login (auth.py, app.py, 0_Login.py, 10_Profile.py, init_db.py, requirements.txt)**
+- "Keep me signed in for 30 days" checkbox on login page
+- `remember_me` flag encoded into OAuth state param (survives Google redirect)
+- `de_session` browser cookie written after callback; read on every page load via `CookieManager`
+- Sign-out deletes only this device's session token (multi-device safe)
+- Migration: `ALTER TABLE sessions ADD COLUMN remember_me INTEGER DEFAULT 0`
+- Production: `remember_me` column confirmed live ✅
+
+**Feature 3 — Pre-generated study plan templates (db.py, 8_My_Setup.py, init_db.py)**
+- `study_plan_templates` table in schema; lookup before API call in My Setup
+- `get_study_plan_template()` in db.py — silent None fallback if table absent
+- `scripts/generate_study_plan_templates.py` ready to run (144 plans, ~$0.15)
+
+**3 bugs fixed during testing:**
+- BUG: `CookieManager(key="main")` instantiated 3x → `StreamlitDuplicateElementKey` — fixed by singleton in app.py shared via `st.session_state["_cookie_mgr"]`
+- BUG: `validate_session` crashed on naive datetimes from SQLite default — fixed by adding UTC tzinfo when absent
+- BUG: "Page not found" flash after cookie restore — fixed by `st.rerun()` after session bootstrap
+
+**Commits this session:**
+- `da52e12` — feat(s14): persistent login + plan templates + dashboard labeling
+- `ba83b9b` — fix(auth): cookie duplicate key + datetime tz + rerun on restore
+
+**Deployed:** `ies-descriptive-prep-production.up.railway.app` — deployment `1891c838` ✅
+
+### Next steps
+1. **Manual test "Remember me"**: Go to production, check the box, sign in with Google, close browser, reopen — should auto-sign back in without login page
+2. **Generate plan templates**: `python scripts/generate_study_plan_templates.py` (~$0.15, ~3 min, needs `ANTHROPIC_API_KEY`)
+3. **Feature 2 (Feedback system + GitHub Issues)**: Schema designed, ready to build. Needs GitHub personal access token with `issues:write` scope
+4. **Feature 4 (Dynamic dashboard)**: Phase 1 (IES↔UPSC switching) and Phase 2 (RBI, different schema) planned
+
+### Open bugs (unchanged from S13)
+- BUG-007: Connection leaks — 12+ `st.stop()` paths bypass `conn.close()`
+- BUG-008: OAuth CSRF — state param carries `remember_me` flag but CSRF token not validated on callback
+- BUG-009: Transaction rollback silently swallows `gap_state_events`
+- BUG-010: `set_topic_state()` calls `get_user_id()` internally — wrong-user writes possible
+- BUG-011: `"rahul"` fallback in `get_user_id()` — MEDIUM
+- BUG-012: `1_Model_Answers.py` + `7_UPSC_Mains.py` unauthenticated — confirm if intentional
 
 ---
 
