@@ -645,3 +645,38 @@ def get_paper_coverage(conn, user_id: str = None) -> list[dict]:
             "topic_count": p["total"],
         })
     return result
+
+
+def _days_bucket(days_to_exam: int) -> str:
+    if days_to_exam <= 15:
+        return "crunch"
+    if days_to_exam <= 30:
+        return "intensive"
+    return "standard"
+
+
+def _template_key(exam_list: list[str], days_to_exam: int, prep_level: str, study_mode: str) -> str:
+    exam_part = "_".join(sorted(exam_list))
+    bucket = _days_bucket(days_to_exam)
+    return f"{exam_part}__{bucket}__{prep_level}__{study_mode}"
+
+
+def get_study_plan_template(
+    conn,
+    exam_list: list[str],
+    days_to_exam: int,
+    prep_level: str,
+    study_mode: str,
+) -> dict | None:
+    """Return a pre-generated plan dict from study_plan_templates, or None if not found."""
+    key = _template_key(exam_list, days_to_exam, prep_level, study_mode)
+    try:
+        row = conn.execute(
+            "SELECT plan_json FROM study_plan_templates WHERE template_key = ?",
+            (key,),
+        ).fetchone()
+        if row:
+            return json.loads(row["plan_json"])
+    except Exception:
+        pass
+    return None

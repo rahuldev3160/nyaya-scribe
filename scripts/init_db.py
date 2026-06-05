@@ -362,7 +362,8 @@ def create_tables(conn: sqlite3.Connection) -> None:
     CREATE TABLE IF NOT EXISTS sessions (
         session_token TEXT PRIMARY KEY,             -- secrets.token_hex(32)
         user_id       TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-        expires_at    TEXT NOT NULL,                -- ISO-8601; 7-day rolling
+        expires_at    TEXT NOT NULL,                -- ISO-8601; 1-day or 30-day rolling
+        remember_me   INTEGER DEFAULT 0,            -- 1 = 30-day persistent, 0 = 1-day ephemeral
         created_at    TEXT DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
@@ -374,6 +375,20 @@ def create_tables(conn: sqlite3.Connection) -> None:
     CREATE INDEX IF NOT EXISTS idx_um_user_exam    ON user_mastery(user_id, exam_id);
     CREATE INDEX IF NOT EXISTS idx_gs_user_exam_st ON gap_states(user_id, exam_id, state);
     CREATE INDEX IF NOT EXISTS idx_tas_user_exam   ON topic_attempt_summary(user_id, exam_id);
+
+    -- ─────────────────────────────────────────────
+    -- STUDY PLAN TEMPLATES (user-agnostic cache)
+    -- ─────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS study_plan_templates (
+        template_key    TEXT PRIMARY KEY,
+        exam_focus      TEXT NOT NULL,
+        days_bucket     TEXT NOT NULL CHECK (days_bucket IN ('crunch','intensive','standard')),
+        prep_level      TEXT NOT NULL,
+        study_mode      TEXT NOT NULL,
+        plan_json       TEXT NOT NULL,
+        generated_at    TEXT DEFAULT (datetime('now')),
+        version         INTEGER DEFAULT 1
+    );
 
     """)
     conn.commit()
@@ -417,6 +432,15 @@ def verify(conn: sqlite3.Connection) -> None:
     print(f"  exam_date  : {exam[1]}")
     print(f"  w1         : {exam[2]}")
     print("─────────────────────────────────────────────────\n")
+
+
+def migrate(conn: sqlite3.Connection) -> None:
+    """Apply incremental migrations to an existing DB. Safe to re-run."""
+    try:
+        conn.execute("ALTER TABLE sessions ADD COLUMN remember_me INTEGER DEFAULT 0")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
 
 
 if __name__ == "__main__":

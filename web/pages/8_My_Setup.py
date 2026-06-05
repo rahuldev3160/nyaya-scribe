@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import streamlit as st
 
 from auth import require_user
-from db import get_conn, get_study_path, load_api_key, save_onboarding, track_page_time
+from db import get_conn, get_study_path, get_study_plan_template, load_api_key, save_onboarding, track_page_time
 from resources import AI_TOOLS, YOUTUBE, resources_summary
 from styles import apply_theme
 
@@ -160,6 +160,12 @@ def _authoritative_resources(exam_focus: list[str]) -> list[dict]:
 
 
 def generate_plan(exam_focus, days_to_exam, prep_level, study_mode):
+    template = get_study_plan_template(conn, exam_focus, days_to_exam, prep_level, study_mode)
+    if template is not None:
+        st.info("✓ Plan loaded instantly")
+        template["resources"] = _authoritative_resources(exam_focus)
+        return template
+
     res_text = resources_summary(exam_focus)
     try:
         import anthropic

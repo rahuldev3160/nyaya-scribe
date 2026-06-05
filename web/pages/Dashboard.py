@@ -39,6 +39,36 @@ def days_left() -> int:
     return (datetime.strptime(EXAM_DATE, "%Y-%m-%d").date() - datetime.today().date()).days
 
 
+def priority_label(score: float) -> str:
+    if score >= 0.85: return "Top priority"
+    if score >= 0.60: return "High priority"
+    if score >= 0.40: return "Medium priority"
+    return "Lower priority"
+
+
+_STATE_META = {
+    "UNVISITED": "not yet started",
+    "IN_STUDY":  "in progress",
+    "PARTIAL":   "partially done — test yourself to verify",
+    "VERIFIED":  "fully verified ✓",
+    "DECAYING":  "studied before — needs a quick refresh",
+    "FLAGGED":   "scored below 50% in quiz — needs more practice",
+}
+
+_STATE_DISPLAY = {
+    "UNVISITED": "Not Started", "IN_STUDY": "In Progress", "FLAGGED": "Needs Work",
+    "PARTIAL": "Partially Done", "VERIFIED": "Verified", "DECAYING": "Needs Refresh",
+}
+
+_FOCUS_START_LABEL = {
+    "UNVISITED": "Begin Study",
+    "FLAGGED":   "Resume",
+    "DECAYING":  "Resume",
+    "IN_STUDY":  "Mark Partial",
+    "PARTIAL":   "Mark Verified",
+}
+
+
 # ── Header metrics ─────────────────────────────────────────────────────────────
 d = days_left()
 total_a = conn.execute("SELECT COUNT(*) FROM model_answers WHERE exam_id=?", (EXAM_ID,)).fetchone()[0]
@@ -149,20 +179,22 @@ for col, t in zip([fc1, fc2, fc3], focus_topics):
         st.markdown(f"""<div class="focus-card">
             {badge(state)}
             <h4>{name}</h4>
-            <div class="meta">{paper} · {t['pyq_count'] or 0} PYQs · priority {score:.3f}</div>
+            <div class="meta">{paper} · {t['pyq_count'] or 0} past questions · {priority_label(score)}</div>
+            <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px">{_STATE_META.get(state, '')}</div>
             {progress_bar(mastery_pct, 100)}
             <div style="font-size:0.7rem;color:#9AA0A6;margin-top:4px">{mastery_pct}% mastered · {ans}/{total} answers ready</div>
         </div>""", unsafe_allow_html=True)
         b1, b2 = st.columns(2)
         with b1:
-            if st.button("▶ Start", key=f"focus_start_{t['topic_id']}", use_container_width=True,
+            _btn = _FOCUS_START_LABEL.get(state, "Begin Study")
+            if st.button(_btn, key=f"focus_start_{t['topic_id']}", use_container_width=True,
                          disabled=(state == "VERIFIED")):
                 next_s = {"UNVISITED": "IN_STUDY", "FLAGGED": "IN_STUDY", "DECAYING": "IN_STUDY",
                           "IN_STUDY": "PARTIAL", "PARTIAL": "VERIFIED"}.get(state, state)
                 set_topic_state(conn, t["topic_id"], next_s, "ui_focus_start")
                 st.rerun()
         with b2:
-            if st.button("✓ Done", key=f"focus_done_{t['topic_id']}", use_container_width=True,
+            if st.button("Mark Verified", key=f"focus_done_{t['topic_id']}", use_container_width=True,
                          disabled=(state == "VERIFIED")):
                 set_topic_state(conn, t["topic_id"], "VERIFIED", "ui_focus_done")
                 st.rerun()
@@ -216,31 +248,35 @@ for tab, (paper_id, _) in zip(tabs, PAPERS):
             with col_b:
                 st.markdown(
                     f'<div style="font-size:0.78rem;color:#9AA0A6;padding-top:4px">'
-                    f'{t["pyq_count"] or 0} PYQs · score <strong style="color:#8AB4F8">{score:.3f}</strong></div>',
+                    f'{t["pyq_count"] or 0} past questions · '
+                    f'<strong style="color:#8AB4F8">{priority_label(score)}</strong>'
+                    f'<span style="font-size:0.65rem;color:#555;display:block;margin-top:2px">'
+                    f'Priority: exam frequency + recency + gap</span></div>',
                     unsafe_allow_html=True
                 )
             with col_c:
                 next_states = {
-                    "UNVISITED": ("▶ Start", "IN_STUDY"),
-                    "FLAGGED":   ("▶ Start", "IN_STUDY"),
-                    "DECAYING":  ("↺ Revise", "IN_STUDY"),
-                    "IN_STUDY":  ("◕ Partial", "PARTIAL"),
-                    "PARTIAL":   ("✓ Verify", "VERIFIED"),
-                    "VERIFIED":  ("✓ Done", "VERIFIED"),
+                    "UNVISITED": ("Begin Study",   "IN_STUDY"),
+                    "FLAGGED":   ("Resume",         "IN_STUDY"),
+                    "DECAYING":  ("Resume",         "IN_STUDY"),
+                    "IN_STUDY":  ("Mark Partial",   "PARTIAL"),
+                    "PARTIAL":   ("Mark Verified",  "VERIFIED"),
+                    "VERIFIED":  ("Verified ✓",     "VERIFIED"),
                 }
-                btn_label, next_state = next_states.get(state, ("▶", "IN_STUDY"))
+                btn_label, next_state = next_states.get(state, ("Begin Study", "IN_STUDY"))
                 if st.button(btn_label, key=f"adv_{paper_id}_{t['topic_id']}", use_container_width=True,
                              disabled=(state == "VERIFIED")):
                     set_topic_state(conn, t["topic_id"], next_state, "ui_advance")
                     st.rerun()
             with col_d:
-                if st.button("✓ Verify", key=f"ver_{paper_id}_{t['topic_id']}", use_container_width=True,
-                             disabled=(state == "VERIFIED")):
+                if st.button("Quick Verify", key=f"ver_{paper_id}_{t['topic_id']}", use_container_width=True,
+                             disabled=(state == "VERIFIED"),
+                             help="Skip ahead — mark this topic as fully verified from any state"):
                     set_topic_state(conn, t["topic_id"], "VERIFIED", "ui_verify")
                     st.rerun()
             with col_e:
-                if st.button("↺", key=f"rst_{paper_id}_{t['topic_id']}", use_container_width=True,
-                             help="Reset to Unvisited"):
+                if st.button("Reset", key=f"rst_{paper_id}_{t['topic_id']}", use_container_width=True,
+                             help="Reset to Not Started — clears all progress for this topic"):
                     set_topic_state(conn, t["topic_id"], "UNVISITED", "ui_reset")
                     st.rerun()
 
@@ -268,7 +304,7 @@ for col, s in zip(scols, STATE_ORDER):
     with col:
         st.markdown(f"""<div class="gem-card" style="text-align:center;border-color:{color}33">
             <div style="font-size:1.8rem;font-weight:700;color:{color}">{cnt}</div>
-            <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">{STATE_EMOJI[s]} {s.replace('_',' ').title()}</div>
+            <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">{STATE_EMOJI[s]} {_STATE_DISPLAY.get(s, s)}</div>
         </div>""", unsafe_allow_html=True)
 
 conn.close()

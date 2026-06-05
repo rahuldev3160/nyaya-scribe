@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
+import extra_streamlit_components as stx
 
 from auth import require_user
 from db import get_conn, track_page_time
@@ -15,6 +16,8 @@ from styles import apply_theme
 
 st.set_page_config(page_title="Profile · Exam Prep", page_icon="👤", layout="centered")
 apply_theme()
+
+cookie_manager = stx.CookieManager(key="main")
 
 conn = get_conn()
 user_id = require_user(conn)
@@ -182,8 +185,12 @@ st.markdown("---")
 st.markdown("#### Session")
 
 if st.button("Sign out", type="secondary"):
-    conn.execute("DELETE FROM sessions WHERE user_id=?", (user_id,))
-    conn.commit()
+    # Delete only this device's session token, not all sessions for the user
+    current_token = st.session_state.get("session_token")
+    if current_token:
+        conn.execute("DELETE FROM sessions WHERE session_token=?", (current_token,))
+        conn.commit()
+    cookie_manager.delete("de_session", key="delete_de_session")
     conn.close()
     st.session_state.clear()
     st.rerun()

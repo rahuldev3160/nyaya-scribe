@@ -25,14 +25,17 @@ def is_oauth_configured() -> bool:
     return bool(client_id and client_secret)
 
 
-def build_auth_url() -> str:
+def build_auth_url(remember_me: bool = False) -> str:
     client_id, _, redirect_uri = _google_env()
+    # Encode remember_me into the OAuth state so it survives the redirect.
+    # Format: "<csrf_hex>:<0|1>"
+    state = f"{secrets.token_hex(16)}:{'1' if remember_me else '0'}"
     params = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
         "response_type": "code",
         "scope": "openid email profile",
-        "state": secrets.token_hex(16),
+        "state": state,
         "access_type": "online",
     }
     return f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
@@ -84,20 +87,16 @@ def upsert_user(conn: sqlite3.Connection, google_sub: str, email: str,
     return user_id
 
 
-def create_session(conn: sqlite3.Connection, user_id: str) -> str:
-    """Create a 7-day session token. Enforces single-session: all existing
-    sessions for this user are deleted before the new one is created, so only
-    one device can be logged in at a time. Expired tokens for other users are
-    also pruned as a housekeeping step."""
+def create_session(conn: sqlite3.Connection, user_id: str, remember_me: bool = False) -> str:
+    """Create a session token. Expiry is 30 days if remember_me else 1 day.
+    Multi-device: existing sessions for this user are preserved.
+    Expired sessions across all users are pruned as housekeeping."""
     token = secrets.token_hex(32)
-    expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+    days = 30 if remember_me else 1
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
     conn.execute(
-        "DELETE FROM sessions WHERE user_id=?",
-        (user_id,),
-    )
-    conn.execute(
-        "INSERT INTO sessions (session_token, user_id, expires_at) VALUES (?,?,?)",
-        (token, user_id, expires_at),
+        "INSERT INTO sessions (session_token, user_id, expires_at, remember_me) VALUES (?,?,?,?)",
+        (token, user_id, expires_at, int(remember_me)),
     )
     conn.execute(
         "DELETE FROM sessions WHERE expires_at < ?",

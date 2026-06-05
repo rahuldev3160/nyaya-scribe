@@ -9,6 +9,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
+import extra_streamlit_components as stx
+
+from auth import validate_session
+from db import get_conn
 
 # ── First-boot: copy seed DBs if live DBs don't exist ────────────────────────
 _DATA  = Path(__file__).parent.parent / "data"
@@ -37,6 +41,39 @@ def _boot_db(name: str) -> None:
 _boot_db("ies")
 _boot_db("rbi")
 _boot_db("upsc")
+
+# ── Run DB migrations (idempotent) ────────────────────────────────────────────
+# Add remember_me column to sessions if it doesn't exist yet (existing DBs).
+try:
+    import sqlite3 as _sqlite3
+    _db_path = _DATA / "ies.db"
+    if _db_path.exists():
+        _mc = _sqlite3.connect(str(_db_path))
+        try:
+            _mc.execute("ALTER TABLE sessions ADD COLUMN remember_me INTEGER DEFAULT 0")
+            _mc.commit()
+        except Exception:
+            pass  # Column already exists
+        finally:
+            _mc.close()
+except Exception:
+    pass
+
+# ── Cookie bootstrap: restore session from persistent browser cookie ──────────
+# CookieManager must be instantiated before st.navigation() so it renders its
+# hidden component. get() returns None on the first render pass before cookies
+# load — the None check below handles that gracefully without st.stop().
+_cookie_manager = stx.CookieManager(key="main")
+
+if not st.session_state.get("session_token"):
+    _cookie_token = _cookie_manager.get("de_session")
+    if _cookie_token:
+        _conn = get_conn()
+        _user_id = validate_session(_conn, _cookie_token)
+        _conn.close()
+        if _user_id:
+            st.session_state["session_token"] = _cookie_token
+            st.session_state["user_id"] = _user_id
 
 # ── Auth-aware navigation ─────────────────────────────────────────────────────
 _authed = bool(st.session_state.get("session_token"))
