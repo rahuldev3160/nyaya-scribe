@@ -842,8 +842,15 @@ def drill_submit():
     for q in questions:
         qid = str(q["id"])
         chosen_full = request.form.get(f"q_{qid}", "")
-        letter = chosen_full[0] if chosen_full else ""
-        is_correct = letter == q.get("correct_option", "")
+        # Reverse-map full option text → letter (form submits full text, DB stores letter)
+        _opt_map = {
+            q.get("option_a", "").strip(): "A",
+            q.get("option_b", "").strip(): "B",
+            q.get("option_c", "").strip(): "C",
+            q.get("option_d", "").strip(): "D",
+        }
+        letter = _opt_map.get(chosen_full.strip(), "")
+        is_correct = bool(letter) and letter == q.get("correct_option", "")
 
         save_attempt(conn, qid, letter, is_correct, sid,
                      q.get("topic", ""), q.get("subject", ""))
