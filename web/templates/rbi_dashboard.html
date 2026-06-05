@@ -50,6 +50,22 @@
 </div>
 {% endif %}
 
+<!-- ── Action buttons ─────────────────────────────────────────────────────── -->
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:stretch;">
+  <a href="/rbi/prep?tab=phase1_drill&mode=smart&start=1" class="btn btn-primary"
+     style="flex:1;min-width:200px;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;letter-spacing:.01em;">
+    🧠 Priority 1 MCQs — Smart Session
+  </a>
+  <a href="/rbi/prep?tab=tier2_quiz" class="btn btn-primary"
+     style="flex:1;min-width:160px;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;border-color:rgba(192,132,252,0.4);color:#C084FC;background:rgba(192,132,252,0.1);">
+    ❓ Priority 2 MCQs
+  </a>
+</div>
+<p style="font-size:0.75rem;color:#6E6E73;margin-top:-14px;margin-bottom:20px;">
+  Priority 1: Core monetary policy &amp; economics MCQs from Phase 1 syllabus ·
+  Priority 2: Current affairs &amp; specialized topic buckets
+</p>
+
 <!-- ── Key Data + My Progress (side by side) ──────────────────────────────── -->
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
 
@@ -150,10 +166,12 @@
 
 </div>
 
-<!-- ── Subject Coverage (summary) ─────────────────────────────────────────── -->
-<div class="dash-panel" style="margin-bottom:16px;">
-  <div class="dash-panel-title">📊 Subject Coverage — Weakest First</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px;">
+<!-- ── Subject Coverage + Top Gaps (side by side) ─────────────────────────── -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+
+  <!-- Left: Subject Coverage -->
+  <div class="dash-panel">
+    <div class="dash-panel-title">📊 Subject Coverage — Weakest First</div>
     {% for sk, cov, label, bar_color in sc_all[:3] %}
     <div style="margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
@@ -163,60 +181,37 @@
       <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:{{ [2,(cov*100)|int]|max }}%;background:{{ bar_color }};"></div></div>
     </div>
     {% endfor %}
-  </div>
-  {% if sc_all|length > 3 %}
-  <details class="expand-section">
-    <summary><span class="expand-arrow">▸</span> Show all {{ sc_all|length }} subjects →</summary>
-    <div style="margin-top:10px;border-top:1px solid #3A3A3C;padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:0 32px;">
-      {% for sk, cov, label, bar_color in sc_all[3:] %}
-      <div style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
-          <span style="font-size:0.82rem;color:#E8EAED;">{{ label }}</span>
-          <span style="font-size:0.76rem;font-weight:600;color:{{ bar_color }};">{{ (cov * 100)|round|int }}%</span>
+    {% if sc_all|length > 3 %}
+    <details class="expand-section">
+      <summary><span class="expand-arrow">▸</span> Show all {{ sc_all|length }} subjects →</summary>
+      <div style="margin-top:10px;border-top:1px solid #3A3A3C;padding-top:10px;">
+        {% for sk, cov, label, bar_color in sc_all[3:] %}
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+            <span style="font-size:0.82rem;color:#E8EAED;">{{ label }}</span>
+            <span style="font-size:0.76rem;font-weight:600;color:{{ bar_color }};">{{ (cov * 100)|round|int }}%</span>
+          </div>
+          <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:{{ [2,(cov*100)|int]|max }}%;background:{{ bar_color }};"></div></div>
         </div>
-        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:{{ [2,(cov*100)|int]|max }}%;background:{{ bar_color }};"></div></div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  </details>
-  {% endif %}
-</div>
-
-<!-- ── Top Gaps ────────────────────────────────────────────────────────────── -->
-<div class="dash-panel" style="margin-bottom:20px;">
-  <div class="dash-panel-title">⚠ Top Gaps — Drill These First</div>
-
-  {% if gaps %}
-  <div style="display:flex;flex-direction:column;gap:6px;">
-    {% for gap in gaps[:3] %}
-    <div style="border-left:3px solid {{ gap.gcol }};padding:8px 12px;background:#1C1C1E;border-radius:4px;
-                display:grid;grid-template-columns:3fr 2fr 1fr 1fr;gap:8px;align-items:center;">
-      <div>
-        <span style="font-size:0.88rem;font-weight:600;color:#E8EAED;">{{ gap.topic_label }}</span>
-      </div>
-      <span class="chip chip-purple" style="width:fit-content;">{{ gap.subj_label }}</span>
-      <span style="font-size:0.8rem;color:{{ gap.gcol }};font-weight:600;text-align:right;">{{ (gap.coverage_pct * 100)|round|int }}%</span>
-      <div style="text-align:right;">
-        <form method="POST" action="/rbi/topics/{{ gap.topic }}/drill" style="display:inline;">
-          <button type="submit" class="btn btn-sm btn-primary">Drill →</button>
-        </form>
-      </div>
-    </div>
-    {% endfor %}
+    </details>
+    {% endif %}
   </div>
 
-  {% if gaps|length > 3 %}
-  <details class="expand-section">
-    <summary><span class="expand-arrow">▸</span> Show {{ gaps|length - 3 }} more gaps →</summary>
-    <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">
-      {% for gap in gaps[3:] %}
-      <div style="border-left:3px solid {{ gap.gcol }};padding:8px 12px;background:#1C1C1E;border-radius:4px;
-                  display:grid;grid-template-columns:3fr 2fr 1fr 1fr;gap:8px;align-items:center;">
+  <!-- Right: Top Gaps -->
+  <div class="dash-panel">
+    <div class="dash-panel-title">⚠ Top Gaps — Drill These First</div>
+    {% if gaps %}
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      {% for gap in gaps[:3] %}
+      <div style="border-left:3px solid {{ gap.gcol }};padding:7px 10px;background:#1C1C1E;border-radius:4px;
+                  display:grid;grid-template-columns:2fr 1fr auto;gap:6px;align-items:center;">
         <div>
-          <span style="font-size:0.88rem;font-weight:600;color:#E8EAED;">{{ gap.topic_label }}</span>
+          <span style="font-size:0.82rem;font-weight:600;color:#E8EAED;">{{ gap.topic_label }}</span>
+          <div style="font-size:0.72rem;color:#6E6E73;margin-top:1px;">{{ gap.subj_label }}</div>
         </div>
-        <span class="chip chip-purple" style="width:fit-content;">{{ gap.subj_label }}</span>
-        <span style="font-size:0.8rem;color:{{ gap.gcol }};font-weight:600;text-align:right;">{{ (gap.coverage_pct * 100)|round|int }}%</span>
+        <span style="font-size:0.78rem;color:{{ gap.gcol }};font-weight:600;text-align:right;">{{ (gap.coverage_pct * 100)|round|int }}%</span>
         <div style="text-align:right;">
           <form method="POST" action="/rbi/topics/{{ gap.topic }}/drill" style="display:inline;">
             <button type="submit" class="btn btn-sm btn-primary">Drill →</button>
@@ -225,27 +220,37 @@
       </div>
       {% endfor %}
     </div>
-  </details>
-  {% endif %}
-
-  <div style="font-size:0.72rem;color:#9AA0A6;margin-top:8px;">
-    Impact = base weight × (1 − coverage). Higher impact = more exam marks at risk.
+    {% if gaps|length > 3 %}
+    <details class="expand-section">
+      <summary><span class="expand-arrow">▸</span> Show {{ gaps|length - 3 }} more gaps →</summary>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+        {% for gap in gaps[3:] %}
+        <div style="border-left:3px solid {{ gap.gcol }};padding:7px 10px;background:#1C1C1E;border-radius:4px;
+                    display:grid;grid-template-columns:2fr 1fr auto;gap:6px;align-items:center;">
+          <div>
+            <span style="font-size:0.82rem;font-weight:600;color:#E8EAED;">{{ gap.topic_label }}</span>
+            <div style="font-size:0.72rem;color:#6E6E73;margin-top:1px;">{{ gap.subj_label }}</div>
+          </div>
+          <span style="font-size:0.78rem;color:{{ gap.gcol }};font-weight:600;text-align:right;">{{ (gap.coverage_pct * 100)|round|int }}%</span>
+          <div style="text-align:right;">
+            <form method="POST" action="/rbi/topics/{{ gap.topic }}/drill" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-primary">Drill →</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+    <div style="font-size:0.72rem;color:#9AA0A6;margin-top:8px;">
+      Impact = base weight × (1 − coverage). Higher impact = more exam marks at risk.
+    </div>
+    {% else %}
+    <div style="padding:10px 0;color:#81C995;font-size:0.85rem;">✅ No critical gaps — all topics ≥50%.</div>
+    {% endif %}
   </div>
-  {% else %}
-  <div style="padding:10px 0;color:#81C995;font-size:0.85rem;">✅ No critical gaps — all topics at ≥50% coverage. Keep drilling to maintain mastery.</div>
-  {% endif %}
-</div>
 
-<!-- ── Action buttons ─────────────────────────────────────────────────────── -->
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-  <a href="/rbi/prep?tab=phase1_drill&mode=smart&start=1" class="btn btn-primary">🧠 Priority 1 MCQs — Smart Session</a>
-  <a href="/rbi/prep?tab=tier2_quiz" class="btn btn-primary" style="border-color:rgba(192,132,252,0.4);color:#C084FC;background:rgba(192,132,252,0.1);">❓ Priority 2 Quiz</a>
-  <a href="/rbi/prep?tab=key_data" class="btn">📊 Full Key Data</a>
 </div>
-<p style="font-size:0.75rem;color:#6E6E73;">
-  Priority 1: Core monetary policy &amp; economics MCQs from Phase 1 syllabus ·
-  Priority 2: Current affairs &amp; specialized topic buckets
-</p>
 
 {% endif %}
 {% endblock %}
