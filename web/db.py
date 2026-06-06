@@ -406,9 +406,7 @@ def get_attempts(conn, topic_id=None, date_from=None, date_to=None,
 def get_attempt_summary(conn, user_id: str | None = None) -> dict:
     uid = user_id or get_user_id()
     row = conn.execute("""
-        SELECT COUNT(*) as total,
-               AVG(weighted_score) as avg_score,
-               MAX(weighted_score) as max_score
+        SELECT COUNT(*) as total
         FROM descriptive_attempts WHERE exam_id=? AND user_id=?
     """, (EXAM_ID, uid)).fetchone()
 
@@ -422,8 +420,6 @@ def get_attempt_summary(conn, user_id: str | None = None) -> dict:
 
     return {
         "total": row["total"] or 0,
-        "avg_score": round(row["avg_score"] * 10, 1) if row["avg_score"] else None,
-        "max_score": round(row["max_score"] * 10, 1) if row["max_score"] else None,
         "top_topic": top_topic["topic_id"] if top_topic else None,
     }
 

@@ -15,18 +15,6 @@
     <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Total Attempts</div>
   </div>
   <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#C084FC;">
-      {% if summary.avg_score is not none %}{{ summary.avg_score }}/10{% else %}—{% endif %}
-    </div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Average Score</div>
-  </div>
-  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#81C995;">
-      {% if summary.max_score is not none %}{{ summary.max_score }}/10{% else %}—{% endif %}
-    </div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Best Score</div>
-  </div>
-  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
     <div style="font-size:1.2rem;font-weight:700;color:#FDD663;line-height:2.2;">
       {{ top_topic_display or "—" }}
     </div>
@@ -124,8 +112,7 @@
           <th style="text-align:left;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Paper</th>
           <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Year</th>
           <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Marks</th>
-          <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Words</th>
-          <th style="text-align:left;padding:8px 20px 8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Score</th>
+          <th style="text-align:center;padding:8px 20px 8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Words</th>
         </tr>
       </thead>
       <tbody>
@@ -142,15 +129,7 @@
           </td>
           <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Year }}</td>
           <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Marks }}</td>
-          <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Words }}</td>
-          <td style="padding:10px 12px 10px 12px;padding-right:20px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div style="width:80px;background:#2A2F3A;border-radius:4px;height:8px;flex-shrink:0;">
-                <div style="background:{{ row._color }};height:8px;border-radius:4px;width:{{ (row.Score * 10)|int }}%;"></div>
-              </div>
-              <span style="color:{{ row._color }};font-weight:600;font-size:0.85rem;white-space:nowrap;">{{ row.Score }}/10</span>
-            </div>
-          </td>
+          <td style="padding:10px 20px 10px 12px;text-align:center;color:#9AA0A6;">{{ row.Words }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -162,25 +141,20 @@
 {% if recent %}
 <div class="section-header" style="margin-bottom:12px;">Recent Attempts</div>
 {% for a in recent %}
-<div class="gem-card" style="border-left:3px solid {{ a._color }};margin-bottom:8px;">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-      {% if a.created_at %}
-      <span class="chip">{{ a.created_at[:10] }}</span>
-      {% endif %}
-      {% if a.topic_id %}
-      <span class="chip">{{ a.topic_id.replace("_"," ").title() }}</span>
-      {% endif %}
-      {% if a.paper_id %}
-      <span class="chip chip-purple">{{ a.paper_id.upper().replace("_","-") }}</span>
-      {% endif %}
-      {% if a.marks %}
-      <span class="chip">{{ a.marks }}m</span>
-      {% endif %}
-    </div>
-    <div style="font-size:1.4rem;font-weight:700;color:{{ a._color }};white-space:nowrap;flex-shrink:0;">
-      {{ a._overall }}/10
-    </div>
+<div class="gem-card" style="margin-bottom:8px;">
+  <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+    {% if a.created_at %}
+    <span class="chip">{{ a.created_at[:10] }}</span>
+    {% endif %}
+    {% if a.topic_id %}
+    <span class="chip">{{ a.topic_id.replace("_"," ").title() }}</span>
+    {% endif %}
+    {% if a.paper_id %}
+    <span class="chip chip-purple">{{ a.paper_id.upper().replace("_","-") }}</span>
+    {% endif %}
+    {% if a.marks %}
+    <span class="chip">{{ a.marks }}m</span>
+    {% endif %}
   </div>
   {% if a.question_text %}
   <div style="font-size:0.85rem;color:#9AA0A6;margin-top:8px;line-height:1.5;">

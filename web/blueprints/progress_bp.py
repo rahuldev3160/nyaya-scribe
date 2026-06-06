@@ -10,14 +10,6 @@ from db import get_conn, get_attempt_summary, get_attempts, get_time_breakdown, 
 progress_bp = Blueprint("progress", __name__)
 
 
-def _score_color(score: float) -> str:
-    if score >= 7:
-        return "#81C995"
-    if score >= 4:
-        return "#FDD663"
-    return "#F28B82"
-
-
 def _fmt_seconds_today(total: int) -> str:
     m = total // 60
     s = total % 60
@@ -78,38 +70,20 @@ def progress_page():
 
     table_rows = []
     for a in attempts:
-        scores = a.get("scores") or {}
-        if isinstance(scores, list):
-            scores = {}
-        score_val = round((a.get("weighted_score") or 0) * 10, 1)
         table_rows.append({
             "Date": a["created_at"][:10] if a["created_at"] else "—",
             "Topic": (a.get("topic_id") or "").replace("_", " ").title(),
             "Paper": (a.get("paper_id") or "").upper().replace("_", "-"),
             "Year": a.get("year") or "—",
             "Marks": a.get("marks") or "—",
-            "Score": score_val,
             "Words": (
                 (a.get("word_count_intro") or 0)
                 + (a.get("word_count_body") or 0)
                 + (a.get("word_count_conclusion") or 0)
             ),
-            "_color": _score_color(score_val),
         })
 
-    recent = []
-    for a in attempts[:5]:
-        ws = a.get("weighted_score") or 0
-        overall = round(ws * 10, 1)
-        scores = a.get("scores") or {}
-        if isinstance(scores, list):
-            scores = {}
-        recent.append({
-            **a,
-            "_overall": overall,
-            "_color": _score_color(overall),
-            "_scores": scores,
-        })
+    recent = attempts[:5]
 
     all_topics = get_topics(conn)
 
