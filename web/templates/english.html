@@ -7,7 +7,7 @@
     <a href="/english/dashboard" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← English Dashboard</a>
   </div>
   <h2 style="margin-bottom:4px;">✍️ English Practice</h2>
-  <p style="color:#9AA0A6;font-size:0.88rem;margin-bottom:20px;">Essay, précis, and letter writing practice with auto-scoring</p>
+  <p style="color:#9AA0A6;font-size:0.88rem;margin-bottom:20px;">Write your answer, then compare against the model answer.</p>
 
   {% if no_content %}
   <div class="info-box">No English practice content has been added yet.</div>
@@ -90,161 +90,46 @@
     </div>
     {% endfor %}
 
-    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Score My Answer →</button>
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Submit &amp; See Model Answer →</button>
   </form>
-
-  <!-- ════════════════════════════════════════════════════════ -->
-  {% elif phase == "self_assess" and last %}
-  <!-- ── Phase 2: Self-assess ───────────────────────────────── -->
-  {% set auto = last.auto %}
-
-  <div class="grid-4" style="margin-bottom:20px;">
-    {% for sec_key, sec_label in sec_labels.items() %}
-    {% set sec_data = auto.sections.get(sec_key, {}) if auto and auto.sections else {} %}
-    {% set pct = sec_data.get('score_pct', 0) | round | int %}
-    {% if pct >= 70 %}{% set sc = "score-green" %}{% elif pct >= 40 %}{% set sc = "score-amber" %}{% else %}{% set sc = "score-red" %}{% endif %}
-    <div class="score-card {{ sc }}">
-      <div class="score-num">{{ pct }}%</div>
-      <div class="score-label">{{ sec_label }}</div>
-    </div>
-    {% endfor %}
-    {% set overall = auto.overall_pct | round | int if auto and auto.overall_pct else 0 %}
-    {% if overall >= 70 %}{% set oc = "score-green" %}{% elif overall >= 40 %}{% set oc = "score-amber" %}{% else %}{% set oc = "score-red" %}{% endif %}
-    <div class="score-card {{ oc }}" style="border-width:2px;">
-      <div class="score-num">{{ overall }}%</div>
-      <div class="score-label">Overall · {{ auto.grade if auto and auto.grade else '—' }}</div>
-    </div>
-  </div>
-
-  {% if auto and (auto.nailed or auto.missing) %}
-  <div class="gem-card" style="margin-bottom:16px;">
-    {% if auto.nailed %}
-    <div style="margin-bottom:10px;">
-      <div class="section-header" style="color:#81C995;margin-bottom:6px;">Nailed</div>
-      {% for kw in auto.nailed[:6] %}
-      <span class="chip chip-green">{{ kw }}</span>
-      {% endfor %}
-    </div>
-    {% endif %}
-    {% if auto.missing %}
-    <div>
-      <div class="section-header" style="color:#F28B82;margin-bottom:6px;">Missing</div>
-      {% for kw in auto.missing[:6] %}
-      <span class="chip" style="background:rgba(242,139,130,0.12);color:#F28B82;border-color:rgba(242,139,130,0.25);">{{ kw }}</span>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
-
-  {% if auto and auto.sections %}
-  {% for sec_key, sec_label in sec_labels.items() %}
-  {% set sec_data = auto.sections.get(sec_key, {}) %}
-  {% if sec_data.get('hint') %}
-  <details style="margin-bottom:8px;">
-    <summary style="cursor:pointer;color:#9AA0A6;font-size:0.82rem;padding:4px 0;list-style:none;">▸ {{ sec_label }} hint</summary>
-    <div style="margin-top:6px;color:#E8EAED;font-size:0.85rem;padding:8px 12px;background:#2C2C2E;border-radius:8px;">
-      {{ sec_data.hint }}
-    </div>
-  </details>
-  {% endif %}
-  {% endfor %}
-  {% endif %}
-
-  {% if selected_q.intro_text or selected_q.body_text or selected_q.conclusion_text %}
-  <div style="margin-bottom:20px;">
-    <details {% if selected_q.intro_text %}{% endif %}>
-      <summary style="cursor:pointer;color:#8AB4F8;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Introduction (model)</summary>
-      <div style="margin-top:8px;padding:12px 16px;background:#2C2C2E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.7;white-space:pre-wrap;">{{ selected_q.intro_text or '—' }}</div>
-    </details>
-    <details open style="margin-top:8px;">
-      <summary style="cursor:pointer;color:#C084FC;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Body (model)</summary>
-      <div style="margin-top:8px;padding:12px 16px;background:#2C2C2E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.7;white-space:pre-wrap;">{{ selected_q.body_text or '—' }}</div>
-    </details>
-    <details style="margin-top:8px;">
-      <summary style="cursor:pointer;color:#81C995;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Conclusion (model)</summary>
-      <div style="margin-top:8px;padding:12px 16px;background:#2C2C2E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.7;white-space:pre-wrap;">{{ selected_q.conclusion_text or '—' }}</div>
-    </details>
-  </div>
-  {% endif %}
-
-  {% if criteria %}
-  <div class="gem-card">
-    <div class="section-header" style="margin-bottom:12px;">Self-Assessment</div>
-    <form method="POST" action="/practice/english/assess">
-      <input type="hidden" name="type_id" value="{{ curr_type }}">
-      <input type="hidden" name="qid" value="{{ curr_qid }}">
-      {% for c in criteria %}
-      <label style="display:block;padding:4px 0;cursor:pointer;font-size:0.88rem;color:#E8EAED;">
-        <input type="checkbox" name="check_{{ c.id }}" value="1"
-               style="width:15px;height:15px;accent-color:#8AB4F8;margin-right:8px;vertical-align:middle;">
-        {{ c.text }}
-      </label>
-      {% endfor %}
-      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:16px;">Complete Assessment →</button>
-    </form>
-  </div>
-  {% else %}
-  <form method="POST" action="/practice/english/assess">
-    <input type="hidden" name="type_id" value="{{ curr_type }}">
-    <input type="hidden" name="qid" value="{{ curr_qid }}">
-    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Complete Assessment →</button>
-  </form>
-  {% endif %}
 
   <!-- ════════════════════════════════════════════════════════ -->
   {% elif phase == "done" and last %}
-  <!-- ── Phase 3: Done ─────────────────────────────────────── -->
-  {% set auto = last.auto %}
-  {% set sa = last.self_assess %}
+  <!-- ── Phase 2: Compare ──────────────────────────────────── -->
 
-  <div class="grid-2" style="margin-bottom:20px;">
-    <div class="score-card {% if auto and auto.overall_pct >= 70 %}score-green{% elif auto and auto.overall_pct >= 40 %}score-amber{% else %}score-red{% endif %}">
-      <div class="score-num">{{ (auto.overall_pct | round | int) if auto and auto.overall_pct else 0 }}%</div>
-      <div class="score-label">Keyword Coverage</div>
-    </div>
-    <div class="score-card {% if sa and sa.score >= 0.7 %}score-green{% elif sa and sa.score >= 0.4 %}score-amber{% else %}score-red{% endif %}">
-      {% set total_c = criteria | length %}
-      {% set checked_c = sa.checks.values() | selectattr('==', 'equalto', true) | list | length if sa and sa.checks else 0 %}
-      <div class="score-num">{{ checked_c }}/{{ total_c }}</div>
-      <div class="score-label">Structure Quality</div>
-    </div>
-  </div>
-
-  {% if auto and auto.sections %}
-  <div id="eng-tabs" style="margin-bottom:20px;">
+  <div id="eng-compare" style="margin-bottom:16px;">
     <div class="tab-bar">
+      <button class="tab-btn active" data-tab="yours" onclick="switchTab('eng-compare','yours')">Your Answer</button>
+      <button class="tab-btn" data-tab="model" onclick="switchTab('eng-compare','model')">Model Answer</button>
+    </div>
+
+    <!-- Your answer -->
+    <div id="eng-compare-yours" class="tab-panel active">
       {% for sec, label in sec_labels.items() %}
-      <button class="tab-btn {% if loop.first %}active{% endif %}"
-              data-tab="{{ sec }}" onclick="switchTab('eng-tabs','{{ sec }}')">{{ label }}</button>
+      {% if sec == "intro" %}{% set sec_color = "#8AB4F8" %}
+      {% elif sec == "body" %}{% set sec_color = "#C084FC" %}
+      {% else %}{% set sec_color = "#81C995" %}{% endif %}
+      <div style="margin-bottom:14px;">
+        <div class="section-header" style="color:{{ sec_color }};margin-bottom:6px;">{{ label }}</div>
+        <div style="padding:12px 16px;background:#1C1C1E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.75;white-space:pre-wrap;min-height:40px;">{{ last.get(sec) or '—' }}</div>
+      </div>
       {% endfor %}
     </div>
-    {% for sec, label in sec_labels.items() %}
-    {% set sec_data = auto.sections.get(sec, {}) %}
-    <div id="eng-tabs-{{ sec }}" class="tab-panel {% if loop.first %}active{% endif %}">
-      {% if sec_data.get('keywords_hit') %}
-      <div style="margin-bottom:10px;">
-        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Covered</div>
-        {% for kw in sec_data.keywords_hit %}
-        <span class="chip chip-green">{{ kw }}</span>
-        {% endfor %}
+
+    <!-- Model answer -->
+    <div id="eng-compare-model" class="tab-panel">
+      {% set model_map = {"intro": selected_q.intro_text, "body": selected_q.body_text, "conclusion": selected_q.conclusion_text} %}
+      {% for sec, label in sec_labels.items() %}
+      {% if sec == "intro" %}{% set sec_color = "#8AB4F8" %}
+      {% elif sec == "body" %}{% set sec_color = "#C084FC" %}
+      {% else %}{% set sec_color = "#81C995" %}{% endif %}
+      <div style="margin-bottom:14px;">
+        <div class="section-header" style="color:{{ sec_color }};margin-bottom:6px;">{{ label }}</div>
+        <div style="padding:12px 16px;background:#1C1C1E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.75;white-space:pre-wrap;min-height:40px;">{{ model_map[sec] or '—' }}</div>
       </div>
-      {% endif %}
-      {% if sec_data.get('keywords_missed') %}
-      <div>
-        <div class="section-header" style="color:#F28B82;margin-bottom:6px;">Missing</div>
-        {% for kw in sec_data.keywords_missed %}
-        <span class="chip" style="background:rgba(242,139,130,0.12);color:#F28B82;border-color:rgba(242,139,130,0.25);">{{ kw }}</span>
-        {% endfor %}
-      </div>
-      {% endif %}
-      {% if not sec_data.get('keywords_hit') and not sec_data.get('keywords_missed') %}
-      <div style="color:#9AA0A6;font-size:0.85rem;">No keyword data for this section.</div>
-      {% endif %}
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
-  {% endif %}
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
     <a href="/practice/english?type={{ curr_type }}&qid={{ curr_qid }}&reset=1" class="btn">Retry</a>
