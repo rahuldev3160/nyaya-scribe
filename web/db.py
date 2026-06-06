@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sqlite3
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -99,7 +100,7 @@ def log_event(conn, event_type: str, entity_type: str | None = None,
     uid = get_user_id()
     try:
         from flask import session as flask_session
-        session_id = flask_session.get("user_id", uid)
+        session_id = flask_session.get("session_id") or uid
     except RuntimeError:
         session_id = "script"
     try:
@@ -115,12 +116,17 @@ def log_event(conn, event_type: str, entity_type: str | None = None,
         pass  # Never crash the app over logging
 
 
-def track_page_time(conn, page_name: str) -> None:
-    """Log page visit. Flask handles timing per-request; no cross-page state needed."""
+def track_page_time(conn, page_name: str, exam_id: str | None = None) -> None:
     uid = get_user_id()
-    if not uid or uid == USER_ID:
+    if not uid:
         return
-    log_event(conn, "page_visit", "page", page_name)
+    try:
+        from flask import g as flask_g
+        elapsed = int(time.time() - getattr(flask_g, "request_start", time.time()))
+    except RuntimeError:
+        elapsed = None
+    log_event(conn, "page_view", "page", page_name, exam_id,
+              {"duration_s": elapsed} if elapsed is not None else None)
 
 
 def get_study_path(conn, user_id: str) -> dict | None:

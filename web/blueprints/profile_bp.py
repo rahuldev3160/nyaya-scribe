@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
 from auth import login_required
-from db import get_conn, track_page_time
+from db import get_conn, log_event, track_page_time
 
 profile_bp = Blueprint("profile_bp", __name__)
 
@@ -32,11 +32,20 @@ def profile_page():
 
     if request.method == "POST":
         phone = request.form.get("phone_number", "").strip()
+        old_row = conn.execute(
+            "SELECT phone_number FROM users WHERE user_id=?", (user_id,)
+        ).fetchone()
+        old_phone = old_row["phone_number"] if old_row else None
         conn.execute(
             "UPDATE users SET phone_number=? WHERE user_id=?",
             (phone, user_id),
         )
         conn.commit()
+        try:
+            if phone != (old_phone or ""):
+                log_event(conn, "config_changed", payload={"field": "phone_number", "old_value": old_phone, "new_value": phone})
+        except Exception:
+            pass
         flash("Contact details saved.", "success")
         return redirect(url_for("profile_bp.profile_page"))
 

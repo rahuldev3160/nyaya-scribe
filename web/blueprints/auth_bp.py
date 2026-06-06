@@ -2,6 +2,7 @@
 import secrets
 import sys
 from pathlib import Path
+from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -66,6 +67,7 @@ def callback():
         session.clear()
         session["session_token"] = session_token
         session["user_id"] = user_id
+        session["session_id"] = str(uuid4())
         if remember_me:
             session.permanent = True
 

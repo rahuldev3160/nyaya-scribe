@@ -4,6 +4,7 @@ import secrets
 import shutil
 import sqlite3
 import sys
+import time
 from datetime import timedelta
 from pathlib import Path
 
@@ -227,6 +228,7 @@ def create_app() -> Flask:
     def open_db():
         from db import _open_conn
         from auth import validate_session
+        g.request_start = time.time()
         g.conn = _open_conn()
         g.user_id = None
         token = session.get("session_token")

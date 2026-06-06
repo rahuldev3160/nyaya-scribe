@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
-from db import get_conn, get_study_path, get_study_plan_template, load_api_key, save_onboarding, track_page_time
+from db import get_conn, get_study_path, get_study_plan_template, load_api_key, log_event, save_onboarding, track_page_time
 from resources import AI_TOOLS, YOUTUBE, resources_summary
 
 setup_bp = Blueprint("setup", __name__)
@@ -174,9 +174,32 @@ def setup_page():
             exam_date = date.today()
             exam_date_str = exam_date.isoformat()
         days_to_exam = max(1, (exam_date - date.today()).days)
+
+        old_row = conn.execute(
+            "SELECT exam_focus, exam_date, prep_level, study_mode FROM users WHERE user_id=?",
+            (user_id,),
+        ).fetchone()
+        old_exam_focus = json.loads(old_row["exam_focus"]) if old_row and old_row["exam_focus"] else None
+        old_exam_date = old_row["exam_date"] if old_row else None
+        old_prep_level = old_row["prep_level"] if old_row else None
+        old_study_mode = old_row["study_mode"] if old_row else None
+
         plan = generate_plan(conn, exam_focus, days_to_exam, prep_level, study_mode)
         save_onboarding(conn, user_id, exam_focus=exam_focus, exam_date=exam_date_str,
                         prep_level=prep_level, study_mode=study_mode, study_path=plan)
+
+        try:
+            if sorted(exam_focus) != sorted(old_exam_focus or []):
+                log_event(conn, "config_changed", payload={"field": "exam_focus", "old_value": old_exam_focus, "new_value": exam_focus})
+            if exam_date_str != old_exam_date:
+                log_event(conn, "config_changed", payload={"field": "exam_date", "old_value": old_exam_date, "new_value": exam_date_str})
+            if prep_level != old_prep_level:
+                log_event(conn, "config_changed", payload={"field": "prep_level", "old_value": old_prep_level, "new_value": prep_level})
+            if study_mode != old_study_mode:
+                log_event(conn, "config_changed", payload={"field": "study_mode", "old_value": old_study_mode, "new_value": study_mode})
+        except Exception:
+            pass
+
         return redirect(url_for("setup.setup_page"))
 
     existing = get_study_path(conn, user_id)
