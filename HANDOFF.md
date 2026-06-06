@@ -1,7 +1,43 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 26 — COMPLETE)
+2026-06-07 (Session 29 — COMPLETE)
+
+---
+
+## Session 29 Summary (2026-06-07) — User analytics query + BUG-024 data integrity fix
+
+### What was investigated
+Pulled user analytics from the live DBs:
+- 1 real Google OAuth visitor (d87e85b1, 2026-06-03, 15s on UPSC Mains page)
+- 2 test accounts (test@test.com, test2@test.com) — created 2026-06-05
+- No email recoverable for the real visitor — their `users` row was absent
+
+### Root cause diagnosed (BUG-024)
+Two gaps allowed events to be logged for non-existent users:
+1. `user_events` had no FK on `user_id` — inserts with ghost user_ids silently succeeded
+2. `validate_session` only queried `sessions` — stale session for a deleted user still returned a user_id
+
+### What shipped
+
+**`web/auth.py` — `validate_session`**
+- Added `JOIN users u ON s.user_id = u.user_id` — returns None (kills cookie) if user row is gone
+
+**`web/app.py` — `_run_nyaya_migrations()`**
+- New idempotent migration: recreates `user_events` with `REFERENCES users(user_id) ON DELETE CASCADE`
+- Guard: checks `sqlite_master` for `REFERENCES users` before running — safe on every restart
+- Called in `create_app()` after `_run_rbi_migrations()`
+
+**`seeds/nyaya_seed.db`**
+- FK baked into seed schema — fresh deploys never have the gap
+
+**Live `data/nyaya.db`**
+- Migration applied — 3 orphaned events dropped (d87e85b1 + test-user-s15), 40 remain
+
+### Next session
+1. **PLAN-013 Phase 3** — streak tracking, phone_number on nyaya.db, activation events
+2. **Deploy BUG-021/022/023 commits** — those are still TBD in INDEX.md, confirm they landed on Railway
+3. No open critical bugs
 
 ---
 

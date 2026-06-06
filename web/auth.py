@@ -104,11 +104,15 @@ def create_session(conn: sqlite3.Connection, user_id: str, remember_me: bool = F
 
 
 def validate_session(conn: sqlite3.Connection, token: str) -> str | None:
-    """Return user_id if session token is valid and unexpired, else None."""
+    """Return user_id if session token is valid, unexpired, and user still exists."""
     if not token:
         return None
     row = conn.execute(
-        "SELECT user_id, expires_at FROM sessions WHERE session_token=?", (token,)
+        """SELECT s.user_id, s.expires_at
+           FROM sessions s
+           JOIN users u ON s.user_id = u.user_id
+           WHERE s.session_token=?""",
+        (token,)
     ).fetchone()
     if not row:
         return None

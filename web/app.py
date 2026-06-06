@@ -174,6 +174,53 @@ def _boot_db(name: str) -> None:
     shutil.copy(seed, live)
 
 
+def _run_nyaya_migrations() -> None:
+    db_path = _DATA / "nyaya.db"
+    if not db_path.exists():
+        return
+    conn = sqlite3.connect(str(db_path))
+    try:
+        # Check if user_events already has a FK on user_id by looking for it in
+        # the CREATE TABLE statement stored in sqlite_master.
+        schema = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='user_events'"
+        ).fetchone()
+        if schema and "REFERENCES users" in (schema[0] or ""):
+            return  # already migrated
+
+        conn.executescript("""
+            PRAGMA foreign_keys = OFF;
+            BEGIN;
+
+            CREATE TABLE user_events_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                session_id TEXT,
+                event_type TEXT NOT NULL,
+                entity_type TEXT,
+                entity_id TEXT,
+                exam_id TEXT,
+                payload TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+
+            INSERT INTO user_events_new
+                SELECT * FROM user_events
+                WHERE user_id IN (SELECT user_id FROM users);
+
+            DROP TABLE user_events;
+            ALTER TABLE user_events_new RENAME TO user_events;
+
+            CREATE INDEX IF NOT EXISTS idx_ue_user ON user_events(user_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_ue_type ON user_events(event_type, created_at DESC);
+
+            COMMIT;
+            PRAGMA foreign_keys = ON;
+        """)
+    finally:
+        conn.close()
+
+
 def _run_migrations() -> None:
     db_path = _DATA / "ies.db"
     if not db_path.exists():
@@ -227,6 +274,7 @@ def create_app() -> Flask:
     _boot_db("nyaya")
     _run_migrations()
     _run_rbi_migrations()
+    _run_nyaya_migrations()
     _run_content_migrations()
 
     @app.context_processor
