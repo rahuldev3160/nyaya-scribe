@@ -56,13 +56,13 @@ def callback():
         tokens = exchange_code(code)
         info = get_user_info(tokens["access_token"])
         user_id = upsert_user(
-            g.conn,
+            g.nyaya_conn,
             google_sub=info["sub"],
             email=info["email"],
             display_name=info.get("name"),
             avatar_url=info.get("picture"),
         )
-        session_token = create_session(g.conn, user_id, remember_me=remember_me)
+        session_token = create_session(g.nyaya_conn, user_id, remember_me=remember_me)
 
         session.clear()
         session["session_token"] = session_token
@@ -82,8 +82,8 @@ def logout():
     token = session.get("session_token")
     if token:
         try:
-            g.conn.execute("DELETE FROM sessions WHERE session_token=?", (token,))
-            g.conn.commit()
+            g.nyaya_conn.execute("DELETE FROM sessions WHERE session_token=?", (token,))
+            g.nyaya_conn.commit()
         except Exception:
             pass
     session.clear()

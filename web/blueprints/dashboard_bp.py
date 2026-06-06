@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
 from db import (
-    EXAM_DATE, EXAM_ID, get_conn, get_user_id, init_user,
+    EXAM_DATE, EXAM_ID, get_conn, get_nyaya_conn, get_user_id, init_user,
     get_topics, get_true_readiness, get_paper_coverage,
     set_topic_state, is_crunch_mode, get_study_path,
     track_page_time,
@@ -81,11 +81,12 @@ def _priority_label(score: float) -> str:
 @login_required
 def dashboard():
     conn = get_conn()
+    nyaya_conn = get_nyaya_conn()
     user_id = g.user_id
     init_user(conn, user_id)
 
     # Redirect first-time users to setup
-    onb = conn.execute(
+    onb = nyaya_conn.execute(
         "SELECT onboarding_completed FROM users WHERE user_id=?", (user_id,)
     ).fetchone()
     if onb and not onb["onboarding_completed"]:
@@ -116,7 +117,7 @@ def dashboard():
     r_color = "#F28B82" if r_pct < 20 else "#FDD663" if r_pct < 50 else "#81C995"
 
     # ── Cross-exam banner ──────────────────────────────────────────────────────
-    focus_row = conn.execute(
+    focus_row = nyaya_conn.execute(
         "SELECT exam_focus FROM users WHERE user_id=?", (user_id,)
     ).fetchone()
     exam_focus = json.loads(focus_row["exam_focus"] or '["ies"]') if focus_row and focus_row["exam_focus"] else ["ies"]

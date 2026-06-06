@@ -216,6 +216,7 @@ def create_app() -> Flask:
     _boot_db("ies")
     _boot_db("rbi")
     _boot_db("upsc")
+    _boot_db("nyaya")
     _run_migrations()
     _run_rbi_migrations()
     _run_content_migrations()
@@ -226,14 +227,15 @@ def create_app() -> Flask:
 
     @app.before_request
     def open_db():
-        from db import _open_conn
+        from db import _open_conn, _open_nyaya_conn
         from auth import validate_session
         g.request_start = time.time()
         g.conn = _open_conn()
+        g.nyaya_conn = _open_nyaya_conn()
         g.user_id = None
         token = session.get("session_token")
         if token:
-            g.user_id = validate_session(g.conn, token)
+            g.user_id = validate_session(g.nyaya_conn, token)
             if not g.user_id:
                 session.pop("session_token", None)
 
@@ -242,6 +244,9 @@ def create_app() -> Flask:
         conn = g.pop("conn", None)
         if conn is not None:
             conn.close()
+        nyaya_conn = g.pop("nyaya_conn", None)
+        if nyaya_conn is not None:
+            nyaya_conn.close()
 
     from blueprints.auth_bp import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")

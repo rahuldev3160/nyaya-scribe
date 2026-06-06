@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Blueprint, g, render_template, request
 from auth import login_required
-from db import get_conn, get_attempt_summary, get_attempts, get_time_breakdown, get_topics, track_page_time
+from db import get_conn, get_nyaya_conn, get_attempt_summary, get_attempts, get_time_breakdown, get_topics, track_page_time
 
 progress_bp = Blueprint("progress", __name__)
 
@@ -111,10 +111,11 @@ def progress_page():
 @login_required
 def answer_review():
     conn = get_conn()
+    nyaya_conn = get_nyaya_conn()
     user_id = g.user_id
     track_page_time(conn, "Answer Review")
 
-    row = conn.execute(
+    row = nyaya_conn.execute(
         "SELECT subscription_tier FROM users WHERE user_id=?", (user_id,)
     ).fetchone()
     is_pro = bool(row and row["subscription_tier"] == "pro")

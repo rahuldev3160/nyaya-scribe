@@ -1,6 +1,6 @@
 """
 Pre-start migration runner. Multi-DB support.
-Each migration file declares DB = "ies" | "rbi" | "upsc" (defaults to "ies").
+Each migration file declares DB = "ies" | "rbi" | "upsc" | "nyaya" (defaults to "ies").
 Called before gunicorn on every Railway deploy.
 
 To add future content:
@@ -17,7 +17,11 @@ DB_PATHS = {
     "ies":  ROOT / "data" / "ies.db",
     "rbi":  ROOT / "data" / "rbi.db",
     "upsc": ROOT / "data" / "upsc.db",
+    "nyaya": ROOT / "data" / "nyaya.db",
 }
+
+# DBs created on first migration run (no seed file needed)
+BOOTSTRAP_DBS = {"nyaya"}
 MIGRATIONS_DIR = ROOT / "migrations"
 
 
@@ -56,7 +60,7 @@ def main() -> None:
 
             if db_key not in conns:
                 db_path = DB_PATHS[db_key]
-                if not db_path.exists():
+                if not db_path.exists() and db_key not in BOOTSTRAP_DBS:
                     print(f"migrate: {db_path.name} absent — skipping {db_key} migrations")
                     conns[db_key] = None
                 else:

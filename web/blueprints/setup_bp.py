@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
-from db import get_conn, get_study_path, get_study_plan_template, load_api_key, log_event, save_onboarding, track_page_time
+from db import get_conn, get_nyaya_conn, get_study_path, get_study_plan_template, load_api_key, log_event, save_onboarding, track_page_time
 from resources import AI_TOOLS, YOUTUBE, resources_summary
 
 setup_bp = Blueprint("setup", __name__)
@@ -175,7 +175,8 @@ def setup_page():
             exam_date_str = exam_date.isoformat()
         days_to_exam = max(1, (exam_date - date.today()).days)
 
-        old_row = conn.execute(
+        nyaya_conn = get_nyaya_conn()
+        old_row = nyaya_conn.execute(
             "SELECT exam_focus, exam_date, prep_level, study_mode FROM users WHERE user_id=?",
             (user_id,),
         ).fetchone()

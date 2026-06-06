@@ -66,6 +66,28 @@ def get_conn() -> sqlite3.Connection:
     return _open_conn()
 
 
+_NYAYA_PATH = Path(__file__).parent.parent / "data" / "nyaya.db"
+
+
+def _open_nyaya_conn() -> sqlite3.Connection:
+    conn = sqlite3.connect(_NYAYA_PATH, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=5000")
+    return conn
+
+
+def get_nyaya_conn() -> sqlite3.Connection:
+    try:
+        from flask import g
+        if hasattr(g, "nyaya_conn") and g.nyaya_conn:
+            return g.nyaya_conn
+    except RuntimeError:
+        pass
+    return _open_nyaya_conn()
+
+
 def init_user(conn, user_id: str) -> None:
     """Seed default rows for a new session user. Safe to call on every load (OR IGNORE)."""
     topics = conn.execute(
@@ -96,7 +118,7 @@ def init_user(conn, user_id: str) -> None:
 def log_event(conn, event_type: str, entity_type: str | None = None,
               entity_id: str | None = None, exam_id: str | None = None,
               payload: dict | None = None) -> None:
-    """Append one row to user_events. Silent no-op if table doesn't exist yet."""
+    """Append one row to user_events in nyaya.db. Silent no-op on any error."""
     uid = get_user_id()
     try:
         from flask import session as flask_session
@@ -104,16 +126,17 @@ def log_event(conn, event_type: str, entity_type: str | None = None,
     except RuntimeError:
         session_id = "script"
     try:
-        conn.execute(
+        nc = get_nyaya_conn()
+        nc.execute(
             """INSERT INTO user_events
                (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload)
                VALUES (?,?,?,?,?,?,?)""",
             (uid, session_id, event_type, entity_type, entity_id, exam_id,
              json.dumps(payload) if payload else None)
         )
-        conn.commit()
+        nc.commit()
     except Exception:
-        pass  # Never crash the app over logging
+        pass
 
 
 def track_page_time(conn, page_name: str, exam_id: str | None = None) -> None:
@@ -132,7 +155,8 @@ def track_page_time(conn, page_name: str, exam_id: str | None = None) -> None:
 def get_study_path(conn, user_id: str) -> dict | None:
     """Return the user's AI-generated study path, or None if onboarding not done."""
     try:
-        row = conn.execute(
+        nc = get_nyaya_conn()
+        row = nc.execute(
             "SELECT study_path, onboarding_completed FROM users WHERE user_id=?",
             (user_id,)
         ).fetchone()
@@ -145,8 +169,9 @@ def get_study_path(conn, user_id: str) -> dict | None:
 
 def save_onboarding(conn, user_id: str, exam_focus: list, exam_date: str,
                     prep_level: str, study_mode: str, study_path: dict) -> None:
-    """Persist onboarding answers and AI-generated study path; mark onboarding complete."""
-    conn.execute(
+    """Persist onboarding answers and AI-generated study path in nyaya.db."""
+    nc = get_nyaya_conn()
+    nc.execute(
         """UPDATE users SET
            exam_focus=?, exam_date=?, prep_level=?, study_mode=?,
            study_path=?, onboarding_completed=1
@@ -154,7 +179,7 @@ def save_onboarding(conn, user_id: str, exam_focus: list, exam_date: str,
         (json.dumps(exam_focus), exam_date, prep_level, study_mode,
          json.dumps(study_path), user_id)
     )
-    conn.commit()
+    nc.commit()
 
 
 def get_time_breakdown(conn, user_id: str, days: int = 1) -> list[dict]:
