@@ -729,6 +729,8 @@ def prep():
     if tab == "phase1_drill" and result_mode:
         drill_results = session.get("rbi_drill_results", [])
 
+    drill_error = session.pop("rbi_drill_error", None)
+
     # ── Tier 2 quiz state ──────────────────────────────────────────
     tier2_scores = session.get("rbi_tier2_scores", {})
     tier2_answers = session.get("rbi_tier2_answers", {})
@@ -773,6 +775,7 @@ def prep():
         drill_questions=drill_questions,
         drill_session_id=drill_session_id,
         drill_results=drill_results,
+        drill_error=drill_error,
         drill_n=session.get("rbi_drill_n", 10),
         drill_filter=session.get("rbi_drill_filter", {}),
         preselect_topic=preselect_topic,
@@ -838,11 +841,17 @@ def drill_submit():
     if not questions:
         return redirect(url_for("rbi_prep.prep", tab="phase1_drill"))
 
+    # Build answer map first so we can validate before writing anything
+    raw_answers = {str(q["id"]): request.form.get(f"q_{str(q['id'])}", "") for q in questions}
+    unanswered = [i + 1 for i, q in enumerate(questions) if not raw_answers.get(str(q["id"]))]
+    if unanswered:
+        session["rbi_drill_error"] = f"Please answer Q{', Q'.join(str(n) for n in unanswered)} before submitting."
+        return redirect(url_for("rbi_prep.prep", tab="phase1_drill"))
+
     results = []
     for q in questions:
         qid = str(q["id"])
-        chosen_full = request.form.get(f"q_{qid}", "")
-        # Reverse-map full option text → letter (form submits full text, DB stores letter)
+        chosen_full = raw_answers[qid]
         _opt_map = {
             q.get("option_a", "").strip(): "A",
             q.get("option_b", "").strip(): "B",
@@ -850,7 +859,9 @@ def drill_submit():
             q.get("option_d", "").strip(): "D",
         }
         letter = _opt_map.get(chosen_full.strip(), "")
-        is_correct = bool(letter) and letter == q.get("correct_option", "")
+        if not letter:
+            continue
+        is_correct = letter == q.get("correct_option", "")
 
         save_attempt(conn, qid, letter, is_correct, sid,
                      q.get("topic", ""), q.get("subject", ""))

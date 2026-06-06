@@ -157,6 +157,13 @@
 
   {% elif drill_questions %}
   {# ── Active quiz session ───────────────────────────────────────────────── #}
+  {% if drill_error %}
+  <div style="background:rgba(242,139,130,0.12); border:1px solid rgba(242,139,130,0.4);
+              border-radius:8px; padding:10px 14px; margin-bottom:16px;
+              font-size:0.84rem; color:#F28B82;">
+    {{ drill_error }}
+  </div>
+  {% endif %}
   <p style="font-size:0.80rem; color:#9AA0A6; margin-bottom:16px;">
     {{ drill_questions | length }} questions ·
     {% if drill_mode == 'smart' %}Smart Serve{% else %}Filtered{% endif %}
