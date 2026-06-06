@@ -49,8 +49,7 @@ TOPIC_WEIGHTS = [
 ]
 
 
-def seed_weights():
-    conn = sqlite3.connect(DB_PATH)
+def seed_into(conn) -> None:
     conn.executemany(
         """INSERT OR REPLACE INTO rbi_topic_weights
            (topic, subject, base_weight, exam_mcqs_2024, phase2_present, trend, notes)
@@ -58,6 +57,11 @@ def seed_weights():
         TOPIC_WEIGHTS,
     )
     conn.commit()
+
+
+def seed_weights():
+    conn = sqlite3.connect(DB_PATH)
+    seed_into(conn)
     count = conn.execute("SELECT COUNT(*) FROM rbi_topic_weights").fetchone()[0]
     conn.close()
     print(f"Seeded {count} topic weights into rbi_topic_weights")

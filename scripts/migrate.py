@@ -1,12 +1,10 @@
 """
-Pre-start migration runner.
+Pre-start migration runner. Multi-DB support.
+Each migration file declares DB = "ies" | "rbi" | "upsc" (defaults to "ies").
 Called before gunicorn on every Railway deploy.
 
-Discovers migration modules in migrations/ by filename order (m001_*, m002_*, …),
-checks _migrations table in data/ies.db, and runs any unapplied ones.
-
 To add future content:
-  1. Create migrations/mNNN_description.py with a run(conn) function
+  1. Create migrations/mNNN_description.py with DB = "<target>" and run(conn)
   2. Commit + push — it auto-applies on next deploy
 """
 import importlib.util
@@ -15,7 +13,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-DB_PATH = ROOT / "data" / "ies.db"
+DB_PATHS = {
+    "ies":  ROOT / "data" / "ies.db",
+    "rbi":  ROOT / "data" / "rbi.db",
+    "upsc": ROOT / "data" / "upsc.db",
+}
 MIGRATIONS_DIR = ROOT / "migrations"
 
 
@@ -32,43 +34,64 @@ def _applied(conn) -> set:
 
 
 def main() -> None:
-    if not DB_PATH.exists():
-        print("migrate: data/ies.db absent — skipping (first-boot seed will create it)")
+    migration_files = sorted(MIGRATIONS_DIR.glob("m*.py"))
+    if not migration_files:
+        print("migrate: no migrations found")
         return
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    conns: dict = {}
+    done: dict = {}
+
     try:
-        _ensure_migrations_table(conn)
-        done = _applied(conn)
-
-        migration_files = sorted(MIGRATIONS_DIR.glob("m*.py"))
-        if not migration_files:
-            print("migrate: no migrations found")
-            return
-
         for path in migration_files:
             name = path.stem
-            if name in done:
-                print(f"migrate: ~ {name} (already applied)")
-                continue
-
-            print(f"migrate: applying {name} …")
             spec = importlib.util.spec_from_file_location(name, path)
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
-            mod.run(conn)
 
+            db_key = getattr(mod, "DB", "ies")
+            if db_key not in DB_PATHS:
+                print(f"migrate: ERROR unknown DB '{db_key}' in {name}", file=sys.stderr)
+                sys.exit(1)
+
+            if db_key not in conns:
+                db_path = DB_PATHS[db_key]
+                if not db_path.exists():
+                    print(f"migrate: {db_path.name} absent — skipping {db_key} migrations")
+                    conns[db_key] = None
+                else:
+                    conn = sqlite3.connect(db_path)
+                    conn.row_factory = sqlite3.Row
+                    _ensure_migrations_table(conn)
+                    conns[db_key] = conn
+                    done[db_key] = _applied(conn)
+
+            conn = conns[db_key]
+            if conn is None:
+                print(f"migrate: ~ {name} (DB absent)")
+                continue
+
+            if name in done[db_key]:
+                print(f"migrate: ~ {name}")
+                continue
+
+            print(f"migrate: applying {name} ({db_key}) …")
+            mod.run(conn)
             conn.execute("INSERT INTO _migrations(name) VALUES (?)", (name,))
             conn.commit()
+            done[db_key].add(name)
             print(f"migrate: + {name} done")
 
     except Exception as exc:
         print(f"migrate: ERROR — {exc}", file=sys.stderr)
-        conn.close()
+        for c in conns.values():
+            if c:
+                c.close()
         sys.exit(1)
-    else:
-        conn.close()
+
+    for c in conns.values():
+        if c:
+            c.close()
 
 
 if __name__ == "__main__":

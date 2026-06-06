@@ -472,6 +472,32 @@ QUESTIONS = [
 ]
 
 
+def seed_into(conn) -> None:
+    existing = {row[0] for row in conn.execute("SELECT id FROM rbi_questions").fetchall()}
+    for q in QUESTIONS:
+        if q["id"] in existing:
+            continue
+        subject, topic = BUCKET_META[q["bucket"]]
+        conn.execute("""
+            INSERT INTO rbi_questions
+            (id, question, option_a, option_b, option_c, option_d,
+             correct_option, explanation, subject, topic, subtopic,
+             dimension, tier, difficulty, is_core_concept, is_recent_dev,
+             is_trap, question_type, tags)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,2,'medium',0,?,?,?,?)
+        """, (
+            q["id"], q["question"], q["option_a"], q["option_b"],
+            q["option_c"], q["option_d"], q["correct_option"],
+            q["explanation"], subject, topic, "",
+            "trap" if q.get("is_trap") else "definition",
+            int(q.get("is_recent_dev", 0)),
+            int(q.get("is_trap", 0)),
+            "standard",
+            json.dumps(["tier2", subject, topic]),
+        ))
+    conn.commit()
+
+
 def migrate():
     conn = sqlite3.connect(DB_PATH)
 

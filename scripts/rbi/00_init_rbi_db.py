@@ -5,13 +5,8 @@ from pathlib import Path
 DB_PATH = Path(__file__).parent.parent.parent / "data" / "rbi.db"
 
 
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    c = conn.cursor()
-
-    c.executescript("""
+def ensure_schema(conn) -> None:
+    conn.executescript("""
     CREATE TABLE IF NOT EXISTS rbi_questions (
         id              TEXT PRIMARY KEY,
         question        TEXT NOT NULL,
@@ -97,7 +92,12 @@ def init_db():
     CREATE INDEX IF NOT EXISTS idx_rbi_sess_user       ON rbi_sessions(user_id);
     """)
 
-    conn.commit()
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")
+    ensure_schema(conn)
     conn.close()
     print(f"rbi.db initialised at {DB_PATH}")
 
