@@ -23,7 +23,7 @@
     <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
     {% block head %}{% endblock %}
 </head>
-<body>
+<body class="page-loading">
 <div class="app-layout">
 
 {% if current_user_id %}
@@ -86,6 +86,9 @@ function toggleSidebar() {
     localStorage.setItem('sc', collapsed ? '1' : '0');
 }
 document.addEventListener('DOMContentLoaded', () => {
+    // Remove skeleton loading state — real content fades in
+    document.body.classList.remove('page-loading');
+    // Restore sidebar collapsed state
     if (localStorage.getItem('sc') === '1') {
         document.body.classList.add('sidebar-collapsed');
         const btn = document.getElementById('sidebar-toggle-btn');

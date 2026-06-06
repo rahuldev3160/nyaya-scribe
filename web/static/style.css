@@ -438,3 +438,29 @@ details.expand-section[open] > summary { color: #C084FC; }
 .login-card h2 { font-size: 1.5rem; color: #E8EAED; margin-bottom: 0.5rem; }
 .login-card p { color: #9AA0A6; font-size: 0.88rem; margin-bottom: 1.5rem; }
 .login-card .caption { font-size: 0.78rem; color: #6E6E73; margin-top: 1rem; text-align: center; }
+
+/* ── Skeleton loading ────────────────────────────────────────── */
+@keyframes skel-shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+}
+.skel {
+    background: linear-gradient(90deg, #2C2C2E 25%, #3A3A3C 50%, #2C2C2E 75%);
+    background-size: 1200px 100%;
+    animation: skel-shimmer 1.4s ease-in-out infinite;
+    border-radius: 4px;
+    display: block;
+}
+.skel-line        { height: 12px; margin-bottom: 8px; }
+.skel-line.short  { width: 38%; }
+.skel-line.mid    { width: 60%; }
+.skel-line.full   { width: 100%; }
+.skel-badge       { height: 20px; width: 68px; border-radius: 10px; display: inline-block; }
+.skel-bar         { height: 6px; width: 100%; margin-top: 6px; border-radius: 3px; }
+.skel-btn         { height: 28px; border-radius: 6px; }
+
+/* Hidden by default; body.page-loading reveals them and hides real content */
+.dashboard-skeleton { display: none; }
+.dashboard-content  { transition: opacity 0.25s ease; }
+body.page-loading .dashboard-skeleton { display: block; }
+body.page-loading .dashboard-content  { opacity: 0; height: 0; overflow: hidden; pointer-events: none; }

@@ -75,7 +75,46 @@
 {% endif %}
 
 
+<!-- ── Skeleton: focus cards + topic rows (shown while page-loading) ──────── -->
+<div class="dashboard-skeleton">
+  <div class="section-header" style="margin-bottom:10px;opacity:.4;">Today's Focus</div>
+  <div class="grid-3" style="margin-bottom:24px;">
+    {% for _ in range(3) %}
+    <div class="focus-card">
+      <span class="skel skel-badge"></span>
+      <div class="skel skel-line mid" style="margin-top:10px;"></div>
+      <div class="skel skel-line short"></div>
+      <div class="skel skel-bar"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <span class="skel skel-btn" style="flex:1;"></span>
+        <span class="skel skel-btn" style="flex:1;"></span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <hr>
+  <div style="margin-top:16px;">
+    {% for _ in range(6) %}
+    <div style="display:grid;grid-template-columns:4fr 2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #2C2C2E;">
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="skel skel-badge"></span>
+          <span class="skel skel-line mid" style="flex:1;margin-bottom:0;"></span>
+        </div>
+        <div class="skel skel-bar"></div>
+      </div>
+      <div class="skel skel-line short" style="margin-bottom:0;"></div>
+      <span class="skel skel-btn"></span>
+      <span class="skel skel-btn"></span>
+      <span class="skel skel-btn"></span>
+      <span class="skel skel-btn"></span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
 <!-- ── Today's Focus ──────────────────────────────────────────────────────── -->
+<div class="dashboard-content">
 <div class="section-header" style="margin-bottom:10px;">Today's Focus</div>
 <div class="grid-3" style="margin-bottom:24px;">
   {% for t in focus_topics %}
@@ -248,4 +287,5 @@
 {% else %}
 <div style="color:#9AA0A6;font-size:0.85rem;padding:8px 0;">No descriptive attempts yet — try the <a href="/ies/quiz" style="color:#8AB4F8;">Descriptive Quiz</a>.</div>
 {% endif %}
+</div><!-- /.dashboard-content -->
 {% endblock %}
