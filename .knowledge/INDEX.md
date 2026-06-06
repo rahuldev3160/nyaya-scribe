@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-06 (Session 23)
+Last updated: 2026-06-06 (Session 24)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -31,6 +31,7 @@ Last updated: 2026-06-06 (Session 23)
 | [BUG-016](bugs/BUG-016.md) | FIXED | HIGH | template | Jinja2 dict key `items` shadows Python builtin → 500; root fix: renamed key to `rows` in both blueprints | JINJA2-001 | S18+S20 | 1384854 |
 | [BUG-017](bugs/BUG-017.md) | FIXED | HIGH | ui | RBI tab panels are siblings of #rbi-tabs div, not children — switchTab querySelectorAll finds nothing, all panels stack | — | S18 | f68b976 |
 | [BUG-018](bugs/BUG-018.md) | FIXED | HIGH | scoring | Drill scoring always 0 — form submits full option text but code took `chosen_full[0]` (first char of sentence) vs `correct_option` letter | — | S18 | 6968d5d |
+| BUG-019 | FIXED | CRITICAL | data-loss | RBI drill `drill_submit()` called `save_attempt(answer_given="")` when user skipped — SQLite `CHECK(answer_given IN('A','B','C','D'))` raised, bare `except` swallowed it silently; 4/5 of Shubhang's answers lost. Fix: pre-validate all answers before any saves, redirect with flash error if any unanswered. | — | S24 | 389ff67 |
 
 ---
 
