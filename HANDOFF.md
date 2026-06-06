@@ -1,7 +1,54 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 22 — COMPLETE)
+2026-06-06 (Session 23 — COMPLETE)
+
+---
+
+## Session 23 Summary (2026-06-06) — Multi-DB Migrations + English UX Overhaul
+
+### Multi-DB migration extension (m003–m007)
+
+`scripts/migrate.py` rewritten for multi-DB routing — reads `DB = "ies"|"rbi"|"upsc"` from each migration file, lazy-opens only needed DBs, per-DB `done` set.
+
+New migrations:
+- `m003_init_rbi_schema.py` + `m004_seed_rbi_topic_weights.py` + `m005_seed_rbi_tier2.py` → rbi.db
+- `m006_init_upsc_schema.py` + `m007_seed_upsc_topics.py` → upsc.db
+
+RBI scripts refactored to expose `ensure_schema(conn)` / `seed_into(conn)` while keeping original `init_db()` entry points intact for standalone use.
+
+### Keyword scoring removed — model answer comparison
+
+3-phase flow (write→auto_scored→self_assess) replaced with 2-phase (write→done):
+- `scoring/` import removed from `english_bp.py` entirely
+- `_save_attempt()` stores word counts + raw text only
+- POST route saves and redirects; no scoring computation
+- `english.html` done phase: "Your Answer" | "Model Answer" two-tab compare
+- `/practice/english/assess` route removed
+
+### m008 — 5 new open-ended essay questions
+
+Original closed/analytical essay questions replaced with UPSC/IES-style open-ended topics (informal economy, growth vs equity, technology as equaliser, sustainability, automation) with ~500-word model answers.
+
+### DB-driven Model Answers tab
+
+`english_dashboard.html` Model Answers tab rebuilt — now loops `all_types → model_questions` dict:
+- Shows all questions per type (essay:5, précis:4, RC:4, letter:3, report:3)
+- Full `prompt_text` rendered above model sections (fixes précis/RC passage visibility)
+- `_load_types()` pre-parses `section_labels_json` → `section_labels` Python dict (Jinja2 has no `fromjson` built-in)
+
+### Open items (P2/P3)
+
+| Item | Detail |
+|---|---|
+| Progress tab score columns | "Avg Auto Score / Avg Self Score" always 0 after scoring removal — remove or replace with word count stats |
+| Précis word count | Insights tab says 150–170w; seeds `word_count_target`=140. Align. |
+| RC marks | Insights says 5m each; seeds have 10m. Audit. |
+
+### Commits this session
+- `ed19014` — feat(migrations): extend auto-migration to rbi.db + upsc.db
+- `5a006b9` — refactor(english): replace keyword scoring with model answer comparison
+- `9b0b09e` — feat(english): replace hardcoded model answers with DB-driven loop + new essay topics
 
 ---
 

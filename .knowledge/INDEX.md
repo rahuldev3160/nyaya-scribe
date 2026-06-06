@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-06 (Session 22)
+Last updated: 2026-06-06 (Session 23)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -56,6 +56,7 @@ Last updated: 2026-06-06 (Session 22)
 | [PLAN-008](plans/PLAN-008.md) | 2026-06-06 | S19: English dashboard UX fixes + Feedback feature | COMPLETE |
 | [PLAN-009](plans/PLAN-009.md) | 2026-06-06 | S19: RBI dashboard redesign + sidebar overhaul + Priority 1/2 rename | COMPLETE |
 | [PLAN-010](plans/PLAN-010.md) | 2026-06-06 | S20–S22: Dashboard UI uplift (all 4 dashboards) + English content seeding batch2 | COMPLETE |
+| [PLAN-011](plans/PLAN-011.md) | 2026-06-06 | S23: Multi-DB migrations (m003–m008), remove keyword scoring, DB-driven model answers, new essay Qs | COMPLETE |
 
 ---
 
