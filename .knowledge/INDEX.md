@@ -32,6 +32,7 @@ Last updated: 2026-06-06 (Session 26)
 | [BUG-017](bugs/BUG-017.md) | FIXED | HIGH | ui | RBI tab panels are siblings of #rbi-tabs div, not children — switchTab querySelectorAll finds nothing, all panels stack | — | S18 | f68b976 |
 | [BUG-018](bugs/BUG-018.md) | FIXED | HIGH | scoring | Drill scoring always 0 — form submits full option text but code took `chosen_full[0]` (first char of sentence) vs `correct_option` letter | — | S18 | 6968d5d |
 | BUG-019 | FIXED | CRITICAL | data-loss | RBI drill `drill_submit()` called `save_attempt(answer_given="")` when user skipped — SQLite `CHECK(answer_given IN('A','B','C','D'))` raised, bare `except` swallowed it silently; 4/5 of Shubhang's answers lost. Fix: pre-validate all answers before any saves, redirect with flash error if any unanswered. | — | S24 | 389ff67 |
+| BUG-020 | FIXED | CRITICAL | navigation | Topic→paper mismatch: set_state/upsc_topic_state redirected with `?topic=` but no `?paper=`; receiving pages defaulted to ge_01/upsc_p1 and returned 0 questions for 23/30 IES topics and all UPSC Paper II topics. Also: ies_quiz by-topic mode showed incoherent dropdown. Fix: DB lookup before redirect + auto-detect paper on receive. | — | S27 | 96f308e |
 
 ---
 

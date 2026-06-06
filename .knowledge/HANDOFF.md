@@ -56,6 +56,70 @@ Last updated: 2026-06-06 (Session 24)
 
 ---
 
+## Session 27 — Performance Overhaul + Multi-User Fix (AUDIT-002)
+
+### What was done
+
+**Deep performance audit** — identified 9 root causes of dashboard/page lag. Fixed 8 via 4 parallel agents.
+
+1. **RC-1 — Query deduplication** (`dashboard_bp.py`, `upsc_dashboard_bp.py`)
+   - IES dashboard was calling `get_topics()` 5× per load (1 global + 4 per-paper). Reduced to 1.
+   - UPSC dashboard was calling `_get_topics()` 3× per load. Reduced to 1.
+   - Fix: fetch once, group by `paper_id` in Python via `topics_by_paper` dict.
+
+2. **RC-2 — DB indexes** (`migrations/m013_perf_indexes_ies.py`, `m014_perf_indexes_upsc.py`)
+   - EXPLAIN QUERY PLAN showed `pyq_questions` + `model_answers` JOINs building AUTOMATIC COVERING INDEX on-the-fly per query. ORDER BY and COUNT(DISTINCT) used TEMP B-TREE.
+   - Added 5 explicit indexes to both ies.db and upsc.db: `idx_pyq_exam_topic`, `idx_ma_exam_qid`, `idx_topics_exam_level`, `idx_gs_user_exam`, `idx_um_user_exam`.
+
+3. **RC-3 — N+1 answers** (`ies_answers_bp.py`)
+   - `get_answer()` called per-question in a loop. Now batched via `IN` clause into `answers_map`.
+
+4. **RC-4 — init_user gate** (`db.py`)
+   - `init_user()` ran 94 INSERT OR IGNORE + commit on every `/dashboard` and `/ies/return-quiz` load.
+   - Added `SELECT 1 ... LIMIT 1` existence check — returns immediately for existing users.
+
+5. **RC-5 — SECRET_KEY** (`app.py`, Railway env var)
+   - `secrets.token_hex(32)` fallback gave every gunicorn worker a different key → redirect storm.
+   - Fixed: file-backed `.secret_key` for local dev + `FLASK_SECRET_KEY` env var set on Railway.
+
+6. **RC-7 — Async event writes** (`db.py`)
+   - `track_page_time()` blocked response with synchronous nyaya.db INSERT + COMMIT.
+   - Now fires in daemon thread — page response unblocked from write queue.
+
+7. **RC-9 — UPSC _init_user gate** (`upsc_dashboard_bp.py`)
+   - Same existence gate as RC-4. Drops from 16 SELECTs to 1 for returning users.
+
+**BUG-020 — Topic→paper mismatch (0 questions on answers/quiz pages)**
+
+Root cause: `set_state()` in dashboard and `upsc_topic_state()` in UPSC dashboard redirected with `?topic=<id>` but NO `?paper=`. Receiving pages defaulted to ge_01/upsc_p1 — 23/30 IES topics and all UPSC Paper II topics returned 0 questions. Also: ies_quiz by-topic mode showed incoherent dropdown (wrong paper's topics listed while correct topic's questions displayed).
+
+Five files fixed:
+- `dashboard_bp.py`: DB lookup of `paper_id` before redirect, appends `&paper=`
+- `ies_answers_bp.py`: auto-detects paper from topic_id when not found in current paper
+- `upsc_dashboard_bp.py`: same DB lookup before redirect to `/upsc/mains`
+- `upsc_bp.py`: same auto-detect defence
+- `ies_quiz_bp.py`: by-topic mode switches `selected_paper` to match incoming topic
+
+### Deploy status
+- Performance fixes committed: `d0d43e3` → pushed → Railway deploy
+- BUG-020 fix committed: `96f308e` → pushed → Railway deploy
+- `FLASK_SECRET_KEY` set on Railway production via `railway variable set --json`
+- Migrations m013+m014 applied locally; auto-apply on Railway on first startup via `_run_content_migrations()`
+
+### Key decisions
+- **DECIDE-S27-01**: `track_page_time()` events are non-critical — daemon thread fire-and-forget is acceptable; a missed event on thread timeout causes no data loss beyond analytics.
+- **DECIDE-S27-02**: `FLASK_SECRET_KEY` is now a required production env var. Local dev uses file-backed `.secret_key`. Any future Railway service must have this set.
+- **DECIDE-S27-03**: RC-8 (`_run_content_migrations()` per worker) deferred — idempotent, harmless, low priority.
+
+---
+
+### Watch For (S28)
+- Railway deploy for `96f308e` — verify Economic Growth & Development "Study" button now lands on correct page with questions
+- If any user reports 0 questions on any other topic, check if paper param is missing in the URL — same class of bug, same fix pattern
+- RC-8 (migrations per worker on startup) is still deferred — low priority, harmless
+
+---
+
 ## Exact Next Step
 
 Resume here in S25:
