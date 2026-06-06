@@ -1,12 +1,13 @@
-"""IES Quiz blueprint — /ies/quiz (AI eval disabled)."""
+"""IES Quiz blueprint — /ies/quiz (descriptive with model answer comparison)."""
 import random
 import re
 import sys
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from flask import Blueprint, g, render_template, request
+from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
 from db import EXAM_ID, get_conn, get_questions, get_topics, jl, track_page_time
 
@@ -52,7 +53,18 @@ def _q_label(q, idx: int = None) -> str:
 @login_required
 def quiz():
     conn = get_conn()
-    track_page_time(conn, "Quiz")
+    track_page_time(conn, "Quiz", exam_id=EXAM_ID)
+
+    # Load prior attempt if redirected from submit
+    attempt_id = request.args.get("attempt_id", "")
+    attempt = None
+    if attempt_id:
+        row = conn.execute(
+            "SELECT * FROM descriptive_attempts WHERE attempt_id=? AND user_id=?",
+            (attempt_id, g.user_id),
+        ).fetchone()
+        if row:
+            attempt = dict(row)
 
     # All answered questions, sorted year DESC
     all_qs = sorted(
@@ -154,4 +166,69 @@ def quiz():
         wc=wc,
         rubric_pts=rubric_pts,
         total_qs=len(all_qs),
+        attempt=attempt,
     )
+
+
+@ies_quiz_bp.route("/ies/quiz/submit", methods=["POST"])
+@login_required
+def quiz_submit():
+    conn = get_conn()
+    qid = request.form.get("qid", "")
+    intro = request.form.get("intro", "").strip()
+    body = request.form.get("body", "").strip()
+    conclusion = request.form.get("conclusion", "").strip()
+    mode = request.form.get("mode", "year-wise")
+    year_str = request.form.get("year_str", "")
+    paper = request.form.get("paper", "ge_01")
+    topic_id = request.form.get("topic_id", "")
+
+    conn.execute(
+        "INSERT INTO descriptive_attempts "
+        "(user_id, question_id, exam_id, quiz_mode, "
+        "user_answer_intro, user_answer_body, user_answer_conclusion, "
+        "word_count_intro, word_count_body, word_count_conclusion, session_id) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            g.user_id, qid, EXAM_ID, mode,
+            intro or None, body or None, conclusion or None,
+            len(intro.split()) if intro else 0,
+            len(body.split()) if body else 0,
+            len(conclusion.split()) if conclusion else 0,
+            uuid.uuid4().hex[:12],
+        ),
+    )
+    conn.commit()
+    attempt_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    return redirect(url_for(
+        "ies_quiz.quiz",
+        mode=mode, qid=qid, attempt_id=attempt_id,
+        year=year_str, paper=paper, topic=topic_id,
+    ))
+
+
+@ies_quiz_bp.route("/ies/quiz/rate", methods=["POST"])
+@login_required
+def quiz_rate():
+    conn = get_conn()
+    attempt_id = request.form.get("attempt_id", "")
+    rating = request.form.get("rating", "")
+    mode = request.form.get("mode", "year-wise")
+    qid = request.form.get("qid", "")
+    year_str = request.form.get("year_str", "")
+    paper = request.form.get("paper", "ge_01")
+    topic_id = request.form.get("topic_id", "")
+
+    if rating in ("got_it", "partial", "missed") and attempt_id:
+        conn.execute(
+            "UPDATE descriptive_attempts SET self_rating=? WHERE attempt_id=? AND user_id=?",
+            (rating, attempt_id, g.user_id),
+        )
+        conn.commit()
+
+    return redirect(url_for(
+        "ies_quiz.quiz",
+        mode=mode, qid=qid, attempt_id=attempt_id,
+        year=year_str, paper=paper, topic=topic_id,
+    ))

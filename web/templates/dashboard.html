@@ -53,11 +53,11 @@
 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;align-items:stretch;">
   <a href="/ies/quiz" class="btn btn-primary"
      style="flex:1;min-width:160px;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;">
-    ✏️ IES Quiz
+    ✏️ IES Descriptive Quiz
   </a>
   <a href="/ies/return-quiz" class="btn btn-primary"
      style="flex:1;min-width:160px;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;border-color:rgba(192,132,252,0.4);color:#C084FC;background:rgba(192,132,252,0.1);">
-    📋 IES Past Papers
+    📋 IES MCQ Quiz
   </a>
 </div>
 <!-- ── Reference tools ────────────────────────────────────────────────────── -->
@@ -74,17 +74,6 @@
 </div>
 {% endif %}
 
-<!-- ── Study path banner ──────────────────────────────────────────────────── -->
-{% if study_path and (study_path.current_phase or study_path.today_action) %}
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-  <div style="flex:1;background:#1C2B3A;border:1px solid #8AB4F833;border-radius:8px;padding:11px 16px;">
-    <span style="color:#8AB4F8;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:.07em;">🎯 {{ study_path.current_phase }}</span>
-    <span style="color:#9AA0A6;font-size:0.82rem;margin-left:10px;">Today: </span>
-    <span style="color:#E8EAED;font-size:0.88rem;">{{ study_path.today_action }}</span>
-  </div>
-  <a href="/setup" class="btn btn-sm">Update plan</a>
-</div>
-{% endif %}
 
 <!-- ── Today's Focus ──────────────────────────────────────────────────────── -->
 <div class="section-header" style="margin-bottom:10px;">Today's Focus</div>
@@ -146,7 +135,7 @@
 
     <!-- Topic rows -->
     {% for t in pd.topics %}
-    <div style="display:grid;grid-template-columns:4fr 2fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #2C2C2E;">
+    <div style="display:grid;grid-template-columns:4fr 2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #2C2C2E;">
       <!-- Name + answers bar -->
       <div>
         <span class="badge badge-{{ t._state|lower }}">{{ t._state_display }}</span>
@@ -161,6 +150,12 @@
         {{ t.pyq_count or 0 }} past questions ·
         <strong style="color:#8AB4F8;">{{ t._priority_label }}</strong>
       </div>
+      <!-- Per-topic MCQ Quiz -->
+      <a href="/ies/return-quiz?paper={{ pd.paper_id }}&topic={{ t.topic_id }}"
+         class="btn btn-sm"
+         style="width:100%;text-align:center;border-color:rgba(192,132,252,0.4);color:#C084FC;">
+        📝 Quiz
+      </a>
       <!-- Advance button -->
       <form method="POST" action="/ies/topics/{{ t.topic_id }}/state">
         <input type="hidden" name="state" value="{{ t._next_state }}">
@@ -176,7 +171,7 @@
         <input type="hidden" name="trigger" value="ui_verify">
         <button type="submit" class="btn btn-sm btn-primary"
                 style="width:100%;" {% if t._state == 'VERIFIED' %}disabled{% endif %}>
-          Quick Verify
+          Verify
         </button>
       </form>
       <!-- Reset button -->
@@ -203,4 +198,54 @@
   </div>
   {% endfor %}
 </div>
+
+<br><hr>
+
+<!-- ── IES Micro-Progress ─────────────────────────────────────────────────── -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+  <div class="section-header">My IES Progress</div>
+</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+  <div class="gem-card" style="flex:1;min-width:110px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ micro_descriptive }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Descriptive Attempts</div>
+  </div>
+  <div class="gem-card" style="flex:1;min-width:110px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#C084FC;">{{ micro_mcq }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">MCQ Attempts</div>
+  </div>
+</div>
+
+{% if micro_recent %}
+<div class="gem-card" style="padding:0;overflow:hidden;margin-bottom:8px;">
+  <div class="section-header" style="padding:12px 16px 10px;">Recent Attempts</div>
+  <table style="width:100%;border-collapse:collapse;font-size:0.83rem;">
+    <thead>
+      <tr style="border-bottom:1px solid #2A2F3A;">
+        <th style="text-align:left;padding:6px 16px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Date</th>
+        <th style="text-align:left;padding:6px 12px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Topic</th>
+        <th style="text-align:center;padding:6px 16px 6px 12px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Words</th>
+        <th style="text-align:center;padding:6px 16px 6px 12px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Self-rating</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in micro_recent %}
+      <tr style="border-bottom:1px solid #1E2535;">
+        <td style="padding:8px 16px;color:#9AA0A6;white-space:nowrap;">{{ r.created_at[:10] if r.created_at else '—' }}</td>
+        <td style="padding:8px 12px;color:#E8EAED;">{{ (r.topic_id or '').replace('_',' ').title() or '—' }}</td>
+        <td style="padding:8px 16px 8px 12px;text-align:center;color:#9AA0A6;">{{ r.words or '—' }}</td>
+        <td style="padding:8px 16px 8px 12px;text-align:center;">
+          {% if r.self_rating == 'got_it' %}<span style="color:#81C995;">✅ Got it</span>
+          {% elif r.self_rating == 'partial' %}<span style="color:#FDD663;">🟡 Partial</span>
+          {% elif r.self_rating == 'missed' %}<span style="color:#F28B82;">❌ Missed</span>
+          {% else %}<span style="color:#6E6E73;">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div style="color:#9AA0A6;font-size:0.85rem;padding:8px 0;">No descriptive attempts yet — try the <a href="/ies/quiz" style="color:#8AB4F8;">Descriptive Quiz</a>.</div>
+{% endif %}
 {% endblock %}

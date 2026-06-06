@@ -1,25 +1,54 @@
+import datetime
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from flask import Blueprint, g, render_template, request
+from flask import Blueprint, g, render_template
 from auth import login_required
-from db import get_conn, get_nyaya_conn, get_attempt_summary, get_attempts, get_time_breakdown, get_topics, track_page_time
+from db import get_conn, get_nyaya_conn, track_page_time
 
 progress_bp = Blueprint("progress", __name__)
 
+# Maps page_name values in user_events to exam labels for the macro time view.
+_PAGE_EXAM = {
+    "Dashboard":         "IES 2026",
+    "Quiz":              "IES 2026",
+    "Return Quiz":       "IES 2026",
+    "model_answers":     "IES 2026",
+    "Study Brief":       "IES 2026",
+    "RBI Dashboard":     "RBI Grade B",
+    "RBI Prep":          "RBI Grade B",
+    "UPSC Dashboard":    "UPSC Mains",
+    "upsc_mains":        "UPSC Mains",
+    "English Dashboard": "English",
+    "English Practice":  "English",
+}
 
-def _fmt_seconds_today(total: int) -> str:
-    m = total // 60
-    s = total % 60
+_EXAM_ORDER  = ["IES 2026", "RBI Grade B", "UPSC Mains", "English"]
+_EXAM_COLORS = {
+    "IES 2026":    "#8AB4F8",
+    "RBI Grade B": "#81C995",
+    "UPSC Mains":  "#FDD663",
+    "English":     "#C084FC",
+}
+_EXAM_LINKS = {
+    "IES 2026":    "/dashboard",
+    "RBI Grade B": "/rbi",
+    "UPSC Mains":  "/upsc",
+    "English":     "/english/dashboard",
+}
+_EXAM_DATES = [
+    {"name": "RBI Grade B",  "date": datetime.date(2026, 6, 14), "link": "/rbi",       "color": "#81C995"},
+    {"name": "IES 2026",     "date": datetime.date(2026, 6, 19), "link": "/dashboard", "color": "#8AB4F8"},
+    {"name": "UPSC Eco Opt", "date": datetime.date(2026, 8, 1),  "link": "/upsc",      "color": "#FDD663"},
+]
+
+
+def _seconds_label(s: int) -> str:
+    m = s // 60
     if m >= 60:
-        return f"{m}m"
-    return f"{m}m {s}s"
-
-
-def _fmt_seconds_week(total: int) -> str:
-    m = total // 60
+        return f"{m // 60}h {m % 60}m"
     return f"{m}m"
 
 
@@ -29,81 +58,59 @@ def progress_page():
     conn = get_conn()
     user_id = g.user_id
     track_page_time(conn, "My Progress")
+    nc = get_nyaya_conn()
 
-    summary = get_attempt_summary(conn, user_id=user_id)
+    def _time_rows(days: int) -> list[dict]:
+        rows = nc.execute(
+            "SELECT entity_id AS page_name, "
+            "SUM(CAST(json_extract(payload,'$.duration_s') AS INTEGER)) AS total_seconds "
+            "FROM user_events "
+            "WHERE user_id=? AND event_type='page_view' "
+            "AND created_at >= datetime('now', ? || ' days') "
+            "GROUP BY entity_id ORDER BY total_seconds DESC",
+            (user_id, f"-{days}"),
+        ).fetchall()
+        return [dict(r) for r in rows]
 
-    today_raw = get_time_breakdown(conn, user_id, days=1)
-    week_raw = get_time_breakdown(conn, user_id, days=7)
+    def _to_exam_buckets(raw: list[dict]) -> list[dict]:
+        buckets: dict[str, int] = {}
+        for r in raw:
+            exam = _PAGE_EXAM.get(r["page_name"] or "", None)
+            if exam:
+                buckets[exam] = buckets.get(exam, 0) + (r["total_seconds"] or 0)
+        mx = max(buckets.values(), default=1) or 1
+        return [
+            {
+                "exam":  exam,
+                "label": _seconds_label(buckets.get(exam, 0)),
+                "pct":   round(buckets.get(exam, 0) / mx * 100),
+                "color": _EXAM_COLORS[exam],
+                "link":  _EXAM_LINKS[exam],
+                "secs":  buckets.get(exam, 0),
+            }
+            for exam in _EXAM_ORDER
+            if buckets.get(exam, 0) > 0
+        ]
 
-    today_max = max((r["total_seconds"] or 0 for r in today_raw), default=1) or 1
-    week_max = max((r["total_seconds"] or 0 for r in week_raw), default=1) or 1
+    today_buckets = _to_exam_buckets(_time_rows(1))
+    week_buckets  = _to_exam_buckets(_time_rows(7))
 
-    today_time = [
-        {
-            "page_name": r["page_name"],
-            "label": _fmt_seconds_today(r["total_seconds"] or 0),
-            "pct": round((r["total_seconds"] or 0) / today_max * 100),
+    today_date = datetime.date.today()
+    countdowns = [
+        {**e,
+         "days_left": max((e["date"] - today_date).days, 0),
+         "past":      (e["date"] - today_date).days < 0,
+         "urgent":    0 <= (e["date"] - today_date).days <= 7,
         }
-        for r in today_raw
+        for e in _EXAM_DATES
     ]
-    week_time = [
-        {
-            "page_name": r["page_name"],
-            "label": _fmt_seconds_week(r["total_seconds"] or 0),
-            "pct": round((r["total_seconds"] or 0) / week_max * 100),
-        }
-        for r in week_raw
-    ]
-
-    topic_filter = request.args.get("topic", "all")
-    date_from = request.args.get("date_from", "")
-    date_to = request.args.get("date_to", "")
-
-    topic_id_filter = None if topic_filter == "all" else topic_filter
-    attempts = get_attempts(
-        conn,
-        topic_id=topic_id_filter,
-        date_from=date_from or None,
-        date_to=date_to or None,
-        user_id=user_id,
-    )
-
-    table_rows = []
-    for a in attempts:
-        table_rows.append({
-            "Date": a["created_at"][:10] if a["created_at"] else "—",
-            "Topic": (a.get("topic_id") or "").replace("_", " ").title(),
-            "Paper": (a.get("paper_id") or "").upper().replace("_", "-"),
-            "Year": a.get("year") or "—",
-            "Marks": a.get("marks") or "—",
-            "Words": (
-                (a.get("word_count_intro") or 0)
-                + (a.get("word_count_body") or 0)
-                + (a.get("word_count_conclusion") or 0)
-            ),
-        })
-
-    recent = attempts[:5]
-
-    all_topics = get_topics(conn)
-
-    top_topic_display = None
-    if summary.get("top_topic"):
-        top_topic_display = summary["top_topic"].replace("_", " ").title()
 
     return render_template(
         "progress.html",
         active_page="progress",
-        summary=summary,
-        top_topic_display=top_topic_display,
-        today_time=today_time,
-        week_time=week_time,
-        topic_filter=topic_filter,
-        date_from=date_from,
-        date_to=date_to,
-        all_topics=all_topics,
-        table_rows=table_rows,
-        recent=recent,
+        today_buckets=today_buckets,
+        week_buckets=week_buckets,
+        countdowns=countdowns,
     )
 
 

@@ -38,9 +38,34 @@ html, body {
     padding: 0.5rem 0.5rem 1rem;
     border-bottom: 1px solid #3A3A3C;
     margin-bottom: 0.75rem;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     text-decoration: none;
 }
+
+.sidebar-toggle {
+    margin-left: auto;
+    background: none;
+    border: 1px solid #3A3A3C;
+    border-radius: 5px;
+    color: #6E6E73;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 2px 7px;
+    flex-shrink: 0;
+    transition: color 0.15s, border-color 0.15s;
+}
+.sidebar-toggle:hover { color: #E8EAED; border-color: #6E6E73; }
+
+/* ── Collapsed sidebar ──────────────────────────────────────── */
+body.sidebar-collapsed .sidebar { width: 52px; overflow: hidden; }
+body.sidebar-collapsed .nav-text { display: none; }
+body.sidebar-collapsed .main-content { margin-left: 52px; }
+body.sidebar-collapsed .nav-link { padding: 0.4rem; text-align: center; font-size: 1rem; }
+body.sidebar-collapsed .sidebar-title { padding: 0.5rem 0.25rem 1rem; justify-content: center; }
+body.sidebar-collapsed .sidebar-toggle { margin-left: 0; }
 
 .nav-group { margin-bottom: 1.25rem; }
 

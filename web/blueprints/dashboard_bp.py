@@ -92,7 +92,7 @@ def dashboard():
     if onb and not onb["onboarding_completed"]:
         return redirect("/setup")
 
-    track_page_time(conn, "Dashboard")
+    track_page_time(conn, "Dashboard", exam_id=EXAM_ID)
 
     # ── Metrics ────────────────────────────────────────────────────────────────
     d = _days_left()
@@ -201,6 +201,30 @@ def dashboard():
         for s in STATE_ORDER
     ]
 
+    # ── IES micro-progress ─────────────────────────────────────────────────────
+    micro_descriptive = conn.execute(
+        "SELECT COUNT(*) FROM descriptive_attempts WHERE exam_id=? AND user_id=?",
+        (EXAM_ID, user_id)
+    ).fetchone()[0]
+    micro_mcq = conn.execute(
+        "SELECT COUNT(*) FROM return_quiz_attempts WHERE exam_id=? AND user_id=?",
+        (EXAM_ID, user_id)
+    ).fetchone()[0]
+    try:
+        micro_recent_rows = conn.execute(
+            "SELECT da.created_at, q.topic_id, da.self_rating, "
+            "(COALESCE(da.word_count_intro,0)+COALESCE(da.word_count_body,0)"
+            "+COALESCE(da.word_count_conclusion,0)) AS words "
+            "FROM descriptive_attempts da "
+            "LEFT JOIN pyq_questions q ON da.question_id=q.question_id AND da.exam_id=q.exam_id "
+            "WHERE da.exam_id=? AND da.user_id=? "
+            "ORDER BY da.created_at DESC LIMIT 5",
+            (EXAM_ID, user_id)
+        ).fetchall()
+    except Exception:
+        micro_recent_rows = []
+    micro_recent = [dict(r) for r in micro_recent_rows]
+
     return render_template(
         "dashboard.html",
         active_page="dashboard",
@@ -221,6 +245,9 @@ def dashboard():
         papers_data=papers_data,
         state_summary=state_summary,
         papers=PAPERS,
+        micro_descriptive=micro_descriptive,
+        micro_mcq=micro_mcq,
+        micro_recent=micro_recent,
     )
 
 

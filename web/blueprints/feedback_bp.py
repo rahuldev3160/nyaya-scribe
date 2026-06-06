@@ -1,7 +1,7 @@
 import uuid
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 from auth import login_required
-from db import get_conn, get_nyaya_conn
+from db import get_nyaya_conn
 
 feedback_bp = Blueprint("feedback", __name__)
 
@@ -22,30 +22,15 @@ STATUS_COLORS = {
 @feedback_bp.route("/feedback", methods=["GET"])
 @login_required
 def feedback_list():
-    conn = get_conn()
+    conn = get_nyaya_conn()
     feedbacks = conn.execute(
-        "SELECT * FROM user_feedback ORDER BY created_at DESC"
+        "SELECT f.*, u.display_name, u.email "
+        "FROM user_feedback f "
+        "LEFT JOIN users u ON f.user_id = u.user_id "
+        "ORDER BY f.created_at DESC"
     ).fetchall()
 
-    nyaya_conn = get_nyaya_conn()
-    user_ids = list({f["user_id"] for f in feedbacks})
-    if user_ids:
-        placeholders = ",".join("?" * len(user_ids))
-        user_rows = nyaya_conn.execute(
-            f"SELECT user_id, display_name, email FROM users WHERE user_id IN ({placeholders})",
-            user_ids,
-        ).fetchall()
-        users_map = {r["user_id"]: r for r in user_rows}
-    else:
-        users_map = {}
-
-    items = []
-    for f in feedbacks:
-        u = users_map.get(f["user_id"])
-        row = dict(f)
-        row["display_name"] = u["display_name"] if u else None
-        row["email"] = u["email"] if u else None
-        items.append(row)
+    items = [dict(f) for f in feedbacks]
     return render_template(
         "feedback.html",
         active_page="feedback",
@@ -59,7 +44,7 @@ def feedback_list():
 @feedback_bp.route("/feedback/submit", methods=["POST"])
 @login_required
 def feedback_submit():
-    conn = get_conn()
+    conn = get_nyaya_conn()
     category = request.form.get("category", "bug")
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()

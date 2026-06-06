@@ -4,12 +4,11 @@
 {% block content %}
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
   <h2 style="flex:1;min-width:200px;">✍️ Descriptive Quiz</h2>
-  <span style="font-size:0.82rem;color:#9AA0A6;">{{ total_qs }} questions available · AI eval coming soon</span>
+  <span style="font-size:0.82rem;color:#9AA0A6;">{{ total_qs }} questions available</span>
 </div>
 
 <!-- ── Mode + Filter bar ───────────────────────────────────────────────────── -->
 <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;">
-  <!-- Mode pills -->
   <div>
     <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Mode</label>
     <div style="display:flex;gap:4px;">
@@ -20,7 +19,6 @@
   </div>
 
   {% if mode == 'year-wise' %}
-  <!-- Year selector -->
   <div>
     <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Year</label>
     <select onchange="location.href='?mode=year-wise&year='+this.value"
@@ -31,7 +29,6 @@
       <option value="all" {% if year_str == 'all' %}selected{% endif %}>All years</option>
     </select>
   </div>
-  <!-- Question selector -->
   {% if qs_with_labels %}
   <div style="flex:2;min-width:300px;">
     <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Question</label>
@@ -45,7 +42,6 @@
   {% endif %}
 
   {% elif mode == 'by-topic' %}
-  <!-- Paper selector -->
   <div>
     <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Paper</label>
     <select onchange="location.href='?mode=by-topic&paper='+this.value"
@@ -55,7 +51,6 @@
       {% endfor %}
     </select>
   </div>
-  <!-- Topic selector -->
   {% if topic_opts %}
   <div>
     <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Topic</label>
@@ -67,7 +62,6 @@
     </select>
   </div>
   {% endif %}
-  <!-- Question selector -->
   {% if qs_with_labels %}
   <div style="flex:2;min-width:300px;">
     <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Question</label>
@@ -81,7 +75,6 @@
   {% endif %}
 
   {% else %}
-  <!-- Random mode -->
   <div>
     <label style="display:block;margin-bottom:4px;font-size:0.75rem;">&nbsp;</label>
     <a href="?mode=random" class="btn btn-primary">🎲 Random question</a>
@@ -130,40 +123,132 @@
 </details>
 {% endif %}
 
-<!-- ── Answer form (disabled — AI eval coming soon) ──────────────────────── -->
-<div class="gem-card" style="margin-bottom:16px;">
-  <div class="section-header" style="color:#8AB4F8;margin-bottom:8px;">Introduction</div>
-  <textarea disabled placeholder="~{{ wc[0] }} words · Define the key concept, state the scope of your answer"
-            style="height:100px;opacity:0.6;cursor:not-allowed;resize:none;"></textarea>
+<!-- ── Submitted: side-by-side model answer ──────────────────────────────── -->
+{% if attempt %}
+<div style="background:#81C99515;border:1px solid #81C99544;border-radius:8px;padding:10px 16px;margin-bottom:16px;">
+  <span style="color:#81C995;font-weight:700;">✓ Answer submitted</span>
+  <span style="color:#9AA0A6;font-size:0.85rem;margin-left:8px;">Compare below and rate yourself</span>
+</div>
 
-  <div class="section-header" style="color:#C084FC;margin-top:16px;margin-bottom:8px;">Body</div>
-  <textarea disabled placeholder="~{{ wc[1] }} words · Analysis, theories, diagrams (described), data points, government schemes"
-            style="height:260px;opacity:0.6;cursor:not-allowed;resize:none;"></textarea>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+  <!-- User answer -->
+  <div class="gem-card" style="padding:16px;">
+    <div class="section-header" style="color:#FDD663;margin-bottom:12px;">Your Answer</div>
+    {% if attempt.user_answer_intro %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Introduction</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;white-space:pre-wrap;">{{ attempt.user_answer_intro }}</div>
+    {% endif %}
+    {% if attempt.user_answer_body %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Body</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;white-space:pre-wrap;">{{ attempt.user_answer_body }}</div>
+    {% endif %}
+    {% if attempt.user_answer_conclusion %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Conclusion</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;white-space:pre-wrap;">{{ attempt.user_answer_conclusion }}</div>
+    {% endif %}
+    <div style="margin-top:10px;color:#9AA0A6;font-size:0.78rem;">
+      {{ attempt.word_count_intro + attempt.word_count_body + attempt.word_count_conclusion }} words total
+    </div>
+  </div>
 
-  <div class="section-header" style="color:#81C995;margin-top:16px;margin-bottom:8px;">Conclusion</div>
-  <textarea disabled placeholder="~{{ wc[2] }} words · Policy implications, way forward, evaluative statement"
-            style="height:90px;opacity:0.6;cursor:not-allowed;resize:none;"></textarea>
-
-  <div style="margin-top:16px;text-align:center;">
-    <span style="background:#8AB4F815;border:1px solid #8AB4F844;border-radius:20px;
-                 padding:8px 20px;color:#8AB4F8;font-size:0.82rem;font-weight:600;letter-spacing:.02em;
-                 display:inline-block;">
-      🔒 AI grading coming soon &nbsp;·&nbsp; ₹4.50 per answer
-    </span>
+  <!-- Model answer -->
+  <div class="gem-card" style="padding:16px;border-color:rgba(138,180,248,0.3);">
+    <div class="section-header" style="color:#8AB4F8;margin-bottom:12px;">Model Answer</div>
+    {% if selected_q.intro_text %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Introduction</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;">{{ selected_q.intro_text }}</div>
+    {% endif %}
+    {% if selected_q.body_text %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Body</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;">{{ selected_q.body_text }}</div>
+    {% endif %}
+    {% if selected_q.conclusion_text %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Conclusion</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;">{{ selected_q.conclusion_text }}</div>
+    {% endif %}
   </div>
 </div>
 
-<!-- ── Navigation ─────────────────────────────────────────────────────────── -->
-<div style="display:flex;gap:8px;margin-top:16px;">
+<!-- Self-rating -->
+{% if not attempt.self_rating %}
+<div class="gem-card" style="padding:14px 16px;margin-bottom:16px;">
+  <div style="font-size:0.85rem;color:#9AA0A6;margin-bottom:10px;">How did you do compared to the model answer?</div>
+  <form method="POST" action="/ies/quiz/rate" style="display:flex;gap:8px;flex-wrap:wrap;">
+    <input type="hidden" name="attempt_id" value="{{ attempt.attempt_id }}">
+    <input type="hidden" name="mode" value="{{ mode }}">
+    <input type="hidden" name="qid" value="{{ qid }}">
+    <input type="hidden" name="year_str" value="{{ year_str }}">
+    <input type="hidden" name="paper" value="{{ paper }}">
+    <input type="hidden" name="topic_id" value="{{ topic_id }}">
+    <button type="submit" name="rating" value="got_it"
+            class="btn btn-primary" style="flex:1;min-width:120px;border-color:#81C99544;color:#81C995;background:#81C99515;">
+      ✅ Got it
+    </button>
+    <button type="submit" name="rating" value="partial"
+            class="btn btn-primary" style="flex:1;min-width:120px;border-color:#FDD66344;color:#FDD663;background:#FDD66315;">
+      🟡 Partially
+    </button>
+    <button type="submit" name="rating" value="missed"
+            class="btn btn-primary" style="flex:1;min-width:120px;border-color:#F28B8244;color:#F28B82;background:#F28B8215;">
+      ❌ Missed it
+    </button>
+  </form>
+</div>
+{% else %}
+<div style="margin-bottom:16px;padding:10px 16px;background:#2A2F3A;border-radius:8px;font-size:0.88rem;">
+  Self-rated:
+  {% if attempt.self_rating == 'got_it' %}<span style="color:#81C995;font-weight:600;">✅ Got it</span>
+  {% elif attempt.self_rating == 'partial' %}<span style="color:#FDD663;font-weight:600;">🟡 Partially</span>
+  {% else %}<span style="color:#F28B82;font-weight:600;">❌ Missed it</span>{% endif %}
+</div>
+{% endif %}
+
+<!-- Navigation after submission -->
+<div style="display:flex;gap:8px;margin-top:8px;">
   <a class="btn" style="flex:1;text-align:center;"
-     href="?mode={{ mode }}{% if mode == 'year-wise' %}&year={{ year_str }}{% elif mode == 'by-topic' %}&paper={{ paper }}&topic={{ topic_id }}{% endif %}&qid={{ qid }}">
-    ↩ Retry this question
+     href="?mode={{ mode }}&qid={{ qid }}{% if mode == 'year-wise' %}&year={{ year_str }}{% elif mode == 'by-topic' %}&paper={{ paper }}&topic={{ topic_id }}{% endif %}">
+    ↩ Try again
   </a>
   <a class="btn btn-primary" style="flex:1;text-align:center;"
-     href="?mode={{ mode }}{% if mode == 'year-wise' %}&year={{ year_str }}{% elif mode == 'by-topic' %}&paper={{ paper }}&topic={{ topic_id }}{% endif %}&qid={{ next_qid }}">
+     href="?mode={{ mode }}&qid={{ next_qid }}{% if mode == 'year-wise' %}&year={{ year_str }}{% elif mode == 'by-topic' %}&paper={{ paper }}&topic={{ topic_id }}{% endif %}">
     Next Question →
   </a>
 </div>
+
+{% else %}
+<!-- ── Answer form ────────────────────────────────────────────────────────── -->
+<form method="POST" action="/ies/quiz/submit">
+  <input type="hidden" name="qid" value="{{ qid }}">
+  <input type="hidden" name="mode" value="{{ mode }}">
+  <input type="hidden" name="year_str" value="{{ year_str }}">
+  <input type="hidden" name="paper" value="{{ paper }}">
+  <input type="hidden" name="topic_id" value="{{ topic_id }}">
+
+  <div class="gem-card" style="margin-bottom:16px;">
+    <div class="section-header" style="color:#8AB4F8;margin-bottom:8px;">Introduction</div>
+    <textarea name="intro" placeholder="~{{ wc[0] }} words · Define the key concept, state the scope of your answer"
+              style="height:100px;resize:vertical;"></textarea>
+
+    <div class="section-header" style="color:#C084FC;margin-top:16px;margin-bottom:8px;">Body</div>
+    <textarea name="body" placeholder="~{{ wc[1] }} words · Analysis, theories, diagrams (described), data points, government schemes"
+              style="height:260px;resize:vertical;"></textarea>
+
+    <div class="section-header" style="color:#81C995;margin-top:16px;margin-bottom:8px;">Conclusion</div>
+    <textarea name="conclusion" placeholder="~{{ wc[2] }} words · Policy implications, way forward, evaluative statement"
+              style="height:90px;resize:vertical;"></textarea>
+
+    <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+      <button type="submit" class="btn btn-primary" style="flex:1;padding:12px;font-size:1rem;font-weight:700;">
+        Submit &amp; Compare →
+      </button>
+      <a class="btn" style="flex:0.4;text-align:center;padding:12px;"
+         href="?mode={{ mode }}&qid={{ next_qid }}{% if mode == 'year-wise' %}&year={{ year_str }}{% elif mode == 'by-topic' %}&paper={{ paper }}&topic={{ topic_id }}{% endif %}">
+        Skip →
+      </a>
+    </div>
+  </div>
+</form>
+{% endif %}
 
 {% endif %}
 {% endblock %}

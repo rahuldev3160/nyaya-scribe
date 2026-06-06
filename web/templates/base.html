@@ -27,25 +27,28 @@
 <div class="app-layout">
 
 {% if current_user_id %}
-<nav class="sidebar">
-    <div class="sidebar-title">📚 Exam Prep</div>
-
-    <div class="nav-group">
-        <div class="nav-group-label">Dashboards</div>
-        <a href="/dashboard"         class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">🏠 IES 2026</a>
-        <a href="/rbi"               class="nav-link {% if active_page == 'rbi_dashboard' %}active{% endif %}">🏦 RBI Grade B</a>
-        <a href="/upsc"              class="nav-link {% if active_page == 'upsc_dashboard' %}active{% endif %}">🎓 UPSC Mains</a>
-        <a href="/english/dashboard" class="nav-link {% if active_page == 'english_dashboard' %}active{% endif %}">✏️ English</a>
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-title">
+        📚 <span class="nav-text">Exam Prep</span>
+        <button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse sidebar">‹</button>
     </div>
 
     <div class="nav-group">
-        <div class="nav-group-label">Track &amp; Account</div>
-        <a href="/progress"         class="nav-link {% if active_page == 'progress' %}active{% endif %}">📈 My Progress</a>
-        <a href="/progress/review"  class="nav-link {% if active_page == 'answer_review' %}active{% endif %}">⭐ Answer Review</a>
-        <a href="/feedback"         class="nav-link {% if active_page == 'feedback' %}active{% endif %}">💬 Feedback</a>
-        <a href="/setup"            class="nav-link {% if active_page == 'setup' %}active{% endif %}">⚙️ Setup</a>
-        <a href="/profile"          class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 Profile</a>
-        <a href="/auth/logout"      class="nav-link">🚪 Sign Out</a>
+        <div class="nav-group-label nav-text">Dashboards</div>
+        <a href="/dashboard"         class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">🏠 <span class="nav-text">IES 2026</span></a>
+        <a href="/rbi"               class="nav-link {% if active_page == 'rbi_dashboard' %}active{% endif %}">🏦 <span class="nav-text">RBI Grade B</span></a>
+        <a href="/upsc"              class="nav-link {% if active_page == 'upsc_dashboard' %}active{% endif %}">🎓 <span class="nav-text">UPSC Mains</span></a>
+        <a href="/english/dashboard" class="nav-link {% if active_page == 'english_dashboard' %}active{% endif %}">✏️ <span class="nav-text">English</span></a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-label nav-text">Track &amp; Account</div>
+        <a href="/progress"         class="nav-link {% if active_page == 'progress' %}active{% endif %}">📈 <span class="nav-text">My Progress</span></a>
+        <a href="/progress/review"  class="nav-link {% if active_page == 'answer_review' %}active{% endif %}">⭐ <span class="nav-text">Answer Review</span></a>
+        <a href="/feedback"         class="nav-link {% if active_page == 'feedback' %}active{% endif %}">💬 <span class="nav-text">Feedback</span></a>
+        <a href="/setup"            class="nav-link {% if active_page == 'setup' %}active{% endif %}">📋 <span class="nav-text">My Plan</span></a>
+        <a href="/profile"          class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 <span class="nav-text">Profile</span></a>
+        <a href="/auth/logout"      class="nav-link">🚪 <span class="nav-text">Sign Out</span></a>
     </div>
 </nav>
 {% endif %}
@@ -74,6 +77,21 @@ function switchTab(groupId, tabId) {
     document.querySelector('#' + groupId + ' [data-tab="' + tabId + '"]').classList.add('active');
     document.getElementById(groupId + '-' + tabId).classList.add('active');
 }
+
+// Sidebar toggle
+function toggleSidebar() {
+    const collapsed = document.body.classList.toggle('sidebar-collapsed');
+    const btn = document.getElementById('sidebar-toggle-btn');
+    if (btn) btn.textContent = collapsed ? '›' : '‹';
+    localStorage.setItem('sc', collapsed ? '1' : '0');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('sc') === '1') {
+        document.body.classList.add('sidebar-collapsed');
+        const btn = document.getElementById('sidebar-toggle-btn');
+        if (btn) btn.textContent = '›';
+    }
+});
 </script>
 {% block scripts %}{% endblock %}
 </body>

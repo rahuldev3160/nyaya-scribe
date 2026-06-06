@@ -1,37 +1,46 @@
 {% extends "base.html" %}
-{% block title %}My Progress · IES 2026{% endblock %}
+{% block title %}My Progress · Nyaya Scribe{% endblock %}
 
 {% block content %}
 
 <div style="margin-bottom:24px;">
   <h2 style="margin-bottom:4px;">📈 My Progress</h2>
-  <span style="color:#9AA0A6;font-size:0.85rem;">Track your descriptive practice across all papers</span>
+  <span style="color:#9AA0A6;font-size:0.85rem;">Macro view — time across all dashboards &amp; exam countdowns</span>
 </div>
 
-<!-- ── Metric cards ─────────────────────────────────────────────────────────── -->
-<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
-  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ summary.total }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Total Attempts</div>
-  </div>
-  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
-    <div style="font-size:1.2rem;font-weight:700;color:#FDD663;line-height:2.2;">
-      {{ top_topic_display or "—" }}
+<!-- ── Exam countdowns ───────────────────────────────────────────────────── -->
+<div class="section-header" style="margin-bottom:10px;">Exam Countdown</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;">
+  {% for c in countdowns %}
+  <a href="{{ c.link }}" style="text-decoration:none;flex:1;min-width:130px;">
+    <div class="gem-card" style="text-align:center;border-color:{{ c.color }}33;transition:border-color 0.15s;">
+      {% if c.past %}
+        <div style="font-size:1.6rem;font-weight:700;color:#9AA0A6;">Done</div>
+      {% elif c.urgent %}
+        <div style="font-size:1.6rem;font-weight:700;color:{{ c.color }};">{{ c.days_left }}d</div>
+      {% else %}
+        <div style="font-size:1.6rem;font-weight:700;color:{{ c.color }};">{{ c.days_left }}d</div>
+      {% endif %}
+      <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">{{ c.name }}</div>
+      <div style="font-size:0.68rem;color:#6E6E73;margin-top:2px;">{{ c.date.strftime('%b %d') }}</div>
+      {% if c.urgent and not c.past %}
+      <div style="font-size:0.68rem;color:#F28B82;margin-top:4px;font-weight:600;">⚡ Crunch</div>
+      {% endif %}
     </div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Most Practiced</div>
-  </div>
+  </a>
+  {% endfor %}
 </div>
 
-<!-- ── Time tracker ─────────────────────────────────────────────────────────── -->
-<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
+<!-- ── Time by exam ──────────────────────────────────────────────────────── -->
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;">
   <div class="gem-card" style="flex:1;min-width:220px;">
-    <div class="section-header" style="margin-bottom:12px;">Today's Time</div>
-    {% if today_time %}
-      {% for item in today_time %}
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <div style="width:110px;font-size:0.82rem;color:#E8EAED;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ item.page_name }}</div>
+    <div class="section-header" style="margin-bottom:12px;">Today's Time by Exam</div>
+    {% if today_buckets %}
+      {% for item in today_buckets %}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <a href="{{ item.link }}" style="width:110px;font-size:0.82rem;color:{{ item.color }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none;">{{ item.exam }}</a>
         <div style="flex:1;background:#2A2F3A;border-radius:4px;height:8px;">
-          <div style="background:#8AB4F8;height:8px;border-radius:4px;width:{{ item.pct }}%;"></div>
+          <div style="background:{{ item.color }};height:8px;border-radius:4px;width:{{ item.pct }}%;"></div>
         </div>
         <div style="width:52px;font-size:0.8rem;color:#9AA0A6;text-align:right;">{{ item.label }}</div>
       </div>
@@ -40,14 +49,15 @@
       <div style="color:#9AA0A6;font-size:0.85rem;">No time logged today yet.</div>
     {% endif %}
   </div>
+
   <div class="gem-card" style="flex:1;min-width:220px;">
-    <div class="section-header" style="margin-bottom:12px;">Last 7 Days</div>
-    {% if week_time %}
-      {% for item in week_time %}
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <div style="width:110px;font-size:0.82rem;color:#E8EAED;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ item.page_name }}</div>
+    <div class="section-header" style="margin-bottom:12px;">Last 7 Days by Exam</div>
+    {% if week_buckets %}
+      {% for item in week_buckets %}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <a href="{{ item.link }}" style="width:110px;font-size:0.82rem;color:{{ item.color }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none;">{{ item.exam }}</a>
         <div style="flex:1;background:#2A2F3A;border-radius:4px;height:8px;">
-          <div style="background:#8AB4F8;height:8px;border-radius:4px;width:{{ item.pct }}%;"></div>
+          <div style="background:{{ item.color }};height:8px;border-radius:4px;width:{{ item.pct }}%;"></div>
         </div>
         <div style="width:52px;font-size:0.8rem;color:#9AA0A6;text-align:right;">{{ item.label }}</div>
       </div>
@@ -58,113 +68,26 @@
   </div>
 </div>
 
-<!-- ── Filters ──────────────────────────────────────────────────────────────── -->
-<form method="GET" action="/progress" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
-  <div>
-    <label style="display:block;font-size:0.78rem;color:#9AA0A6;margin-bottom:4px;">Topic</label>
-    <select name="topic" style="background:#1E2535;color:#E8EAED;border:1px solid #3C4454;border-radius:6px;padding:6px 10px;font-size:0.85rem;">
-      <option value="all" {% if topic_filter == "all" %}selected{% endif %}>All topics</option>
-      {% for t in all_topics %}
-      <option value="{{ t.topic_id }}" {% if topic_filter == t.topic_id %}selected{% endif %}>
-        {{ t.topic_name }}
-      </option>
-      {% endfor %}
-    </select>
-  </div>
-  <div>
-    <label style="display:block;font-size:0.78rem;color:#9AA0A6;margin-bottom:4px;">From</label>
-    <input type="date" name="date_from" value="{{ date_from or '' }}"
-      style="background:#1E2535;color:#E8EAED;border:1px solid #3C4454;border-radius:6px;padding:6px 10px;font-size:0.85rem;">
-  </div>
-  <div>
-    <label style="display:block;font-size:0.78rem;color:#9AA0A6;margin-bottom:4px;">To</label>
-    <input type="date" name="date_to" value="{{ date_to or '' }}"
-      style="background:#1E2535;color:#E8EAED;border:1px solid #3C4454;border-radius:6px;padding:6px 10px;font-size:0.85rem;">
-  </div>
-  <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-  <a href="/progress" class="btn btn-sm">Clear</a>
-</form>
-
-{% if not table_rows %}
-<!-- ── Empty state ──────────────────────────────────────────────────────────── -->
-<div class="gem-card" style="text-align:center;padding:48px 24px;">
-  <div style="font-size:2rem;margin-bottom:12px;">📭</div>
-  <div style="color:#E8EAED;font-weight:600;margin-bottom:6px;">No attempts yet</div>
-  <div style="color:#9AA0A6;font-size:0.88rem;">
-    Complete a quiz to see your progress here.
-    {% if topic_filter != "all" or date_from or date_to %}
-    Try clearing your filters.
-    {% endif %}
-  </div>
+<!-- ── Per-dashboard micro-progress links ────────────────────────────────── -->
+<div class="section-header" style="margin-bottom:10px;">Detailed Progress</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+  <a href="/dashboard#ies-progress" class="btn" style="border-color:rgba(138,180,248,0.3);color:#8AB4F8;">
+    🏠 IES 2026 detail →
+  </a>
+  <a href="/rbi" class="btn" style="border-color:rgba(129,201,149,0.3);color:#81C995;">
+    🏦 RBI Grade B detail →
+  </a>
+  <a href="/upsc" class="btn" style="border-color:rgba(253,214,99,0.3);color:#FDD663;">
+    🎓 UPSC Mains detail →
+  </a>
+  <a href="/english/dashboard" class="btn" style="border-color:rgba(192,132,252,0.3);color:#C084FC;">
+    ✏️ English detail →
+  </a>
 </div>
 
-{% else %}
-
-<!-- ── Attempt history table ────────────────────────────────────────────────── -->
-<div class="gem-card" style="margin-bottom:24px;padding:0;overflow:hidden;">
-  <div class="section-header" style="padding:16px 20px 12px;">Attempt History</div>
-  <div style="overflow-x:auto;">
-    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
-      <thead>
-        <tr style="border-bottom:1px solid #2A2F3A;">
-          <th style="text-align:left;padding:8px 20px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Date</th>
-          <th style="text-align:left;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Topic</th>
-          <th style="text-align:left;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Paper</th>
-          <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Year</th>
-          <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Marks</th>
-          <th style="text-align:center;padding:8px 20px 8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Words</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in table_rows %}
-        <tr style="border-bottom:1px solid #1E2535;">
-          <td style="padding:10px 20px;color:#9AA0A6;white-space:nowrap;">{{ row.Date }}</td>
-          <td style="padding:10px 12px;color:#E8EAED;">{{ row.Topic or "—" }}</td>
-          <td style="padding:10px 12px;">
-            {% if row.Paper and row.Paper != "—" %}
-            <span class="chip chip-purple">{{ row.Paper }}</span>
-            {% else %}
-            <span style="color:#9AA0A6;">—</span>
-            {% endif %}
-          </td>
-          <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Year }}</td>
-          <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Marks }}</td>
-          <td style="padding:10px 20px 10px 12px;text-align:center;color:#9AA0A6;">{{ row.Words }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div style="font-size:0.78rem;color:#6E6E73;margin-top:8px;">
+  Time data reflects pages visited since your account was created.
+  Visit each dashboard to see exam-specific metrics, attempt history, and topic coverage.
 </div>
-
-<!-- ── Recent 5 attempts ─────────────────────────────────────────────────────── -->
-{% if recent %}
-<div class="section-header" style="margin-bottom:12px;">Recent Attempts</div>
-{% for a in recent %}
-<div class="gem-card" style="margin-bottom:8px;">
-  <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-    {% if a.created_at %}
-    <span class="chip">{{ a.created_at[:10] }}</span>
-    {% endif %}
-    {% if a.topic_id %}
-    <span class="chip">{{ a.topic_id.replace("_"," ").title() }}</span>
-    {% endif %}
-    {% if a.paper_id %}
-    <span class="chip chip-purple">{{ a.paper_id.upper().replace("_","-") }}</span>
-    {% endif %}
-    {% if a.marks %}
-    <span class="chip">{{ a.marks }}m</span>
-    {% endif %}
-  </div>
-  {% if a.question_text %}
-  <div style="font-size:0.85rem;color:#9AA0A6;margin-top:8px;line-height:1.5;">
-    {{ a.question_text[:100] }}{% if a.question_text|length > 100 %}…{% endif %}
-  </div>
-  {% endif %}
-</div>
-{% endfor %}
-{% endif %}
-
-{% endif %}
 
 {% endblock %}
