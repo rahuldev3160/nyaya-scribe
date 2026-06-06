@@ -1,7 +1,60 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 25 — COMPLETE)
+2026-06-06 (Session 26 — COMPLETE)
+
+---
+
+## Session 26 Summary (2026-06-06) — Demo prep, dry run, 3 bug fixes, deploy
+
+### What shipped (commit d79e6b4)
+
+**3 bug fixes deployed to production.**
+
+**BUG-009 (CLOSED)** — Silent transaction rollback in `submit_return_quiz()`:
+- `ies_return_quiz_bp.py` `submit()` now wraps `submit_return_quiz()` in try/except
+- On failure: logs full traceback via `current_app.logger`, sets `session["rq_error"]`, redirects back with user-facing error message
+- Previously: unhandled exception → silent 500, no user feedback, no audit trail
+
+**IES Answers perf fix** — `ies_answers_bp.py`:
+- Default `year_filter` to most recent year (`years[0]`) when unset and `show_all=False`
+- Page size: 1102 KB → 65 KB on default load
+- `show_all=1` still loads full 1099 KB (no data loss)
+
+**UPSC Mains perf fix** — `upsc_bp.py`:
+- Default `sel_year` to `available_years[0]` when unset and `show_all=False`
+- Page size: 979 KB → 17 KB on default load
+
+### Doc fixes (no deploy needed)
+- Route count corrected to 31 across: `CLAUDE.md`, `.claude/skills/run-app/SKILL.md`, `memory/MEMORY.md`
+- Dead `/practice/english/assess` route removed from skill doc (dropped in S23 keyword scoring removal)
+- Root cause: method-level double-counting in skill doc + stale endpoint reference
+
+### Demo session plan created
+Full Google Meet session plan for Nyaya Scribe friend demo:
+- 7-section chronological flow (~60-75 min): hook → login → IES dashboard → IES quiz → English Practice → RBI drill → UPSC → progress → Q&A
+- Verbatim script (cue-card style, not teleprompter)
+- AI transcript analysis prompt (section clustering by keyword, delivery scoring)
+- Pre-session checklist (including: pre-load `/ies/answers` + `/upsc/mains` before friends join)
+- Likely Q&A responses pre-prepared (mobile, notes, account isolation, model answer cadence)
+
+### Dry run findings
+All 16 authenticated routes: 200/302, zero real errors, zero server log errors. Key findings:
+- First-time login → `/setup` (by design; mention in demo)
+- `/ies/answers`: 1102 KB (now fixed to 65 KB)
+- `/upsc/mains`: 979 KB (now fixed to 17 KB)
+- English practice: model answer visible before submit, form present, all 5 types clean
+- RBI prep: drill section + questions + topic content all present
+
+### Next session
+1. **Verify Railway deploy is live** before the Google Meet tonight — check production URL loads fast on `/ies/answers` and `/upsc/mains`
+2. **PLAN-013 Phase 3** items (post-demo):
+   - Add `phone_number` to nyaya.db; fully migrate `profile_bp` to `nyaya_conn`
+   - Streak tracking: `streak_current`, `streak_longest`, `last_practice_date`
+   - `first_ai_eval_at` / `activation_completed` (aha moment tracking)
+   - Wire `quiz_session_completed` events in `rbi_prep_bp`; fix `rbi_sessions` 0-row bug
+   - Progress aggregation query (accuracy trend, syllabus %, days-until-exam)
+3. **Post-demo**: drop AI transcript into Claude with the analysis prompt from the session plan
 
 ---
 
