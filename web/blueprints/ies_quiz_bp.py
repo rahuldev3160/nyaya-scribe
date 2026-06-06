@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
-from db import EXAM_ID, get_conn, get_questions, get_topics, jl, track_page_time
+from db import EXAM_ID, get_answer, get_conn, get_questions, get_topics, jl, track_page_time
 
 ies_quiz_bp = Blueprint("ies_quiz", __name__)
 
@@ -147,6 +147,16 @@ def quiz():
     marks = selected_q["marks"] if selected_q else None
     wc = _wc(marks)
     rubric_pts = jl(selected_q.get("rubric_points")) if selected_q else []
+
+    # Fetch model answer text for the selected question (not included in get_questions to avoid
+    # loading full text for all 1200+ questions on every page view)
+    if selected_q and selected_q.get("answer_id"):
+        ma = get_answer(conn, selected_q["question_id"])
+        if ma:
+            selected_q = {**selected_q,
+                          "intro_text": ma.get("intro_text") or "",
+                          "body_text": ma.get("body_text") or "",
+                          "conclusion_text": ma.get("conclusion_text") or ""}
 
     return render_template(
         "ies_quiz.html",
