@@ -57,6 +57,7 @@ Last updated: 2026-06-06 (Session 23)
 | [PLAN-009](plans/PLAN-009.md) | 2026-06-06 | S19: RBI dashboard redesign + sidebar overhaul + Priority 1/2 rename | COMPLETE |
 | [PLAN-010](plans/PLAN-010.md) | 2026-06-06 | S20–S22: Dashboard UI uplift (all 4 dashboards) + English content seeding batch2 | COMPLETE |
 | [PLAN-011](plans/PLAN-011.md) | 2026-06-06 | S23: Multi-DB migrations (m003–m008), remove keyword scoring, DB-driven model answers, new essay Qs | COMPLETE |
+| PLAN-012 | 2026-06-06 | S24: Essay quality overhaul — UPSC open-canvas style, m009+m010, seed DB sync, auto-migration | COMPLETE |
 
 ---
 

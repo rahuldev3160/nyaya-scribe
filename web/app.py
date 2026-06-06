@@ -198,6 +198,15 @@ def _run_migrations() -> None:
         conn.close()
 
 
+def _run_content_migrations() -> None:
+    import importlib.util
+    migrate_path = Path(__file__).parent.parent / "scripts" / "migrate.py"
+    spec = importlib.util.spec_from_file_location("migrate", migrate_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.main()
+
+
 def create_app() -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
@@ -208,6 +217,7 @@ def create_app() -> Flask:
     _boot_db("upsc")
     _run_migrations()
     _run_rbi_migrations()
+    _run_content_migrations()
 
     @app.context_processor
     def inject_globals():
