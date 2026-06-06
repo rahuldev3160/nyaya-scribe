@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-07 (Session 29)
+Last updated: 2026-06-07 (Session 30)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -36,7 +36,8 @@ Last updated: 2026-06-07 (Session 29)
 | [BUG-021](bugs/BUG-021.md) | FIXED | MEDIUM | data-sync | Profile "MCQs Attempted" always 0 — queried `return_quiz_attempts` in ies.db only; RBI MCQs in `rbi_attempts`/rbi.db and blueprint-scoped `g.rbi_conn` not available on /profile route. Fix: open short-lived direct connections per DB in profile_bp. | SYNC-001 | S28 | TBD |
 | [BUG-022](bugs/BUG-022.md) | FIXED | HIGH | data-sync | Progress page "Time per page" permanently stale — `get_time_breakdown` read ies.db `user_events` with `event_type='page_time'`, but all writes since S25 go to nyaya.db as `event_type='page_view'`. Double mismatch: wrong DB + wrong event type. Fix: use `get_nyaya_conn()` + filter `page_view`. | SYNC-001 | S28 | TBD |
 | [BUG-023](bugs/BUG-023.md) | FIXED | MEDIUM | data-sync | Profile "Answers Graded" undercounts — only queries IES `descriptive_attempts` in ies.db; UPSC `descriptive_attempts` in upsc.db ignored. Fix: open direct upsc.db connection in profile_bp and sum. | SYNC-001 | S28 | TBD |
-| [BUG-024](bugs/BUG-024.md) | FIXED | MEDIUM | data-integrity | Orphaned `user_events` rows with no `users` FK — `user_events` had no `REFERENCES users(user_id)`; `validate_session` didn't JOIN users so stale sessions returned ghost user_ids. Fix: FK + ON DELETE CASCADE via `_run_nyaya_migrations()`; validate_session now JOINs users. | — | S29 | TBD |
+| [BUG-024](bugs/BUG-024.md) | FIXED | MEDIUM | data-integrity | Orphaned `user_events` rows with no `users` FK — `user_events` had no `REFERENCES users(user_id)`; `validate_session` didn't JOIN users so stale sessions returned ghost user_ids. Fix: FK + ON DELETE CASCADE via `_run_nyaya_migrations()`; validate_session now JOINs users. | — | S29 | 4bf3097 |
+| [BUG-025](bugs/BUG-025.md) | FIXED | HIGH | data | Quiz model answer panel always empty — `get_questions()` selects `ma.answer_id` but not `intro_text/body_text/conclusion_text` (too expensive for 1219 rows). Fix: call `get_answer()` for `selected_q` only, merge 3 text fields after question selection. | — | S30 | 49d0d0e |
 
 ---
 

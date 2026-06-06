@@ -1,6 +1,6 @@
 # HANDOFF — Descriptive Exams
 
-Last updated: 2026-06-06 (Session 24)
+Last updated: 2026-06-07 (Session 30)
 
 ---
 
@@ -112,6 +112,68 @@ Five files fixed:
 - **DECIDE-S27-03**: RC-8 (`_run_content_migrations()` per worker) deferred — idempotent, harmless, low priority.
 
 ---
+
+---
+
+## Session 29+30 — Feedback Triage, Permanent Fixes, Skeleton Loading, BUG-025
+
+### What was done
+
+**Feedback sync fix (META)**
+- `migrations/m015_move_feedback_to_nyaya.py`: moves `user_feedback` table from ies.db to nyaya.db (canonical identity+events store). Copies existing rows via ATTACH DATABASE with locked-DB guard.
+- `scripts/pull_feedback.py`: SSH into Railway, query nyaya.db (post-m015) and ies.db (pre-migration), merge by `feedback_id`, save to `data/feedback_snapshot.json`.
+- `feedback_bp.py`: all read/write now uses `get_nyaya_conn()` only; direct JOIN on `users` (same DB, no cross-DB merge needed).
+
+**F1 — Sidebar toggle**
+- `base.html`: sidebar gets `id="sidebar"`, toggle button `‹/›` in sidebar-title flex row. Nav link text wrapped in `<span class="nav-text">`.
+- JS: `toggleSidebar()` toggles `body.sidebar-collapsed`, persists in `localStorage['sc']`. DOMContentLoaded restores state.
+- `style.css`: `.sidebar-collapsed .sidebar { width: 52px }`, `.nav-text { display:none }`, `main-content margin-left` collapses.
+- "Setup" renamed to "My Plan" in nav.
+
+**F3 — Button labels fixed**
+- Dashboard "✏️ IES Descriptive Quiz" and "📋 IES MCQ Quiz" (was ambiguous "Practice" labels).
+
+**F5 — Study plan banner removed**
+- `dashboard.html`: study_path banner removed entirely. Plan visible only via My Plan nav link.
+
+**F4/F8 — Progress architecture (macro vs micro)**
+- `progress_bp.py` + `progress.html`: rewritten as macro view — Exam Countdown (days left per exam), Today/Last 7 Days time-by-exam bars. No attempt history.
+- `dashboard.html` + `dashboard_bp.py`: IES micro-progress section at bottom — descriptive_attempts count, MCQ count, recent 5 attempts table (date, topic, words, self-rating badge).
+
+**F7 — Descriptive quiz: write → compare → rate**
+- `migrations/m016_descriptive_self_rating.py`: adds `self_rating TEXT` to `descriptive_attempts` in ies.db.
+- `ies_quiz_bp.py`: POST `/ies/quiz/submit` saves attempt, redirects with `attempt_id`. POST `/ies/quiz/rate` writes `self_rating`. GET `/ies/quiz?attempt_id=N` loads attempt.
+- `ies_quiz.html`: enabled textareas; `{% if attempt %}` branch shows 2-column side-by-side (YOUR ANSWER | MODEL ANSWER), each with INTRO / BODY / CONCLUSION sub-sections. Self-rating buttons (✅ Got it / 🟡 Partially / ❌ Missed it). Navigation: Try again / Next Question.
+
+**F9 — Per-topic MCQ Quiz links**
+- `dashboard.html` topic grid: added 6th column with `📝 Quiz` link → `/ies/return-quiz?paper=X&topic=Y` for each topic row.
+
+**F2 — Skeleton loading CSS (UX polish)**
+- `style.css`: `@keyframes skel-shimmer`, `.skel`, `.skel-line`, `.skel-badge`, `.skel-bar`, `.skel-btn` classes. `.dashboard-skeleton` hidden by default; `.dashboard-content` transitions opacity.
+- `base.html`: `<body class="page-loading">`. DOMContentLoaded removes `page-loading` — real content fades in at 0.25s.
+- `dashboard.html`: `.dashboard-skeleton` block with 3 shimmer focus cards + 6 shimmer topic rows appears instantly during load. Real content wrapped in `.dashboard-content`.
+
+**BUG-025 — Model answer panel empty**
+- Root cause: `get_questions()` selects `ma.answer_id` only — not `intro_text/body_text/conclusion_text`. Too expensive to load full text for all 1219 questions per page view.
+- Fix: in quiz GET handler, after `selected_q` resolved, call `get_answer(conn, qid)` for that single question and merge the 3 text fields. One indexed PK lookup.
+
+### Commits (S29/S30)
+| Commit | Description |
+|--------|-------------|
+| 7114b36 | feat(s28): feedback sync, quiz submit, macro progress, sidebar toggle |
+| 8aa00f5 | feat(ux): skeleton loading for dashboard (F2) |
+| 49d0d0e | fix(quiz): fetch model answer text for selected question (BUG-025) |
+
+### Key decisions
+- **DECIDE-S29-01**: `user_feedback` belongs in nyaya.db (canonical identity+events store), not ies.db. Pattern: all product-level user state in nyaya.db.
+- **DECIDE-S29-02**: Macro progress page = cross-exam time + countdowns only. Exam-specific attempt data stays on each dashboard (IES micro section at bottom).
+- **DECIDE-S29-03**: `get_questions()` must NOT include model answer text fields — too expensive at 1219 rows × ~3KB. Always fetch via `get_answer()` for the single selected question.
+- **DECIDE-S29-04**: Sidebar collapse at 52px — only icons visible. `.nav-text` spans enable clean toggle without two separate nav lists.
+
+### Watch For (S31)
+- Verify Railway deploy applied m015 (feedback→nyaya.db) and m016 (self_rating column) — run `python3 scripts/pull_feedback.py` after deploy confirms.
+- `track_page_time(exam_id=EXAM_ID)` only updated in dashboard_bp and ies_quiz_bp. Other blueprints (rbi_dashboard_bp, upsc_dashboard_bp, english_bp) still don't pass `exam_id` — macro progress time-by-exam will under-attribute RBI/UPSC/English study time until fixed.
+- If users report the "My Progress" page shows 0 for RBI/UPSC/English, that's the cause.
 
 ### Watch For (S28)
 - Railway deploy for `96f308e` — verify Economic Growth & Development "Study" button now lands on correct page with questions
