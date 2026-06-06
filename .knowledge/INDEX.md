@@ -40,6 +40,7 @@ Last updated: 2026-06-06 (Session 26)
 | ID | Date | Scope | Agents | Bugs Found | Fixed | Open |
 |----|------|-------|--------|------------|-------|------|
 | [AUDIT-001](audits/AUDIT-001.md) | 2026-06-05 | arch/auth/nav/data-isolation/quiz-integrity | 3 parallel | 12 | 6 | 6 |
+| [AUDIT-002](audits/AUDIT-002.md) | 2026-06-06 | performance/lag/multi-user | 4 parallel | 9 RC | 8 | 1 (RC-8 deferred) |
 
 ---
 

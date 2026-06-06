@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from flask import Blueprint, render_template, request
 
 from auth import login_required
-from db import get_conn, get_topics, get_questions, get_answer, jl, track_page_time
+from db import EXAM_ID, get_conn, get_topics, get_questions, jl, track_page_time
 
 ies_answers_bp = Blueprint("ies_answers", __name__)
 
@@ -83,20 +83,36 @@ def answers():
 
     from table_renderer import render_table
 
-    # Precompute answer data — no DB calls in template
+    # Batch-fetch all answers in one query instead of N individual queries
+    answer_qids = [q["question_id"] for q in filtered_qs if q.get("answer_id")]
+    answers_map: dict = {}
+    if answer_qids:
+        placeholders = ",".join("?" * len(answer_qids))
+        rows = conn.execute(
+            f"""SELECT ma.*, q.question_text, q.marks, q.year, q.paper_id,
+                       q.topic_id, q.answer_length,
+                       r.rubric_points, r.key_terms, r.diagram_expected, r.diagram_type
+                FROM model_answers ma
+                JOIN pyq_questions q ON ma.question_id=q.question_id AND ma.exam_id=q.exam_id
+                LEFT JOIN question_rubrics r ON q.question_id=r.question_id AND q.exam_id=r.exam_id
+                WHERE ma.question_id IN ({placeholders}) AND ma.exam_id=?""",
+            answer_qids + [EXAM_ID],
+        ).fetchall()
+        for row in rows:
+            answers_map[row["question_id"]] = dict(row)
+
     for q in filtered_qs:
         q["_key_terms"] = jl(q.get("key_terms"))
         q["_rubric_pts"] = jl(q.get("rubric_points"))
         q["_answer"] = None
         if q.get("answer_id"):
-            ans = get_answer(conn, q["question_id"])
+            ans = answers_map.get(q["question_id"])
             if ans:
                 ans["_data_points"] = jl(ans.get("data_points"))
                 ans["_schemes"] = jl(ans.get("schemes_referenced"))
                 ans["_key_terms_used"] = jl(ans.get("key_terms_used"))
                 ans["_labels"] = jl(ans.get("diagram_labels"))
                 ans["_norm_dtype"] = _norm_dtype(ans.get("diagram_type") or "")
-                # Pre-render table HTML so template can use | safe filter safely
                 if ans.get("diagram_type") == "table" and ans.get("diagram_description"):
                     ans["_table_html"] = render_table(ans["diagram_description"])
                 else:

@@ -88,24 +88,21 @@ def close_upsc(exc):
 
 
 def _init_user(conn, uid):
+    if conn.execute(
+        "SELECT 1 FROM gap_states WHERE user_id=? AND exam_id=? LIMIT 1",
+        (uid, UPSC_EXAM_ID),
+    ).fetchone():
+        return
     topics = conn.execute(
         "SELECT topic_id, paper_id FROM topics WHERE exam_id=? AND topic_level='topic'",
         (UPSC_EXAM_ID,),
     ).fetchall()
-    changed = False
     for t in topics:
-        exists = conn.execute(
-            "SELECT 1 FROM gap_states WHERE user_id=? AND topic_id=? AND exam_id=?",
-            (uid, t["topic_id"], UPSC_EXAM_ID),
-        ).fetchone()
-        if not exists:
-            conn.execute(
-                "INSERT INTO gap_states (user_id, topic_id, exam_id, paper_id, state, attempt_count) VALUES (?,?,?,?,?,0)",
-                (uid, t["topic_id"], UPSC_EXAM_ID, t["paper_id"], "UNVISITED"),
-            )
-            changed = True
-    if changed:
-        conn.commit()
+        conn.execute(
+            "INSERT OR IGNORE INTO gap_states (user_id, topic_id, exam_id, paper_id, state, attempt_count) VALUES (?,?,?,?,?,0)",
+            (uid, t["topic_id"], UPSC_EXAM_ID, t["paper_id"], "UNVISITED"),
+        )
+    conn.commit()
 
 
 def _get_topics(conn, uid, paper_id=None):
@@ -156,6 +153,9 @@ def upsc_dashboard_page():
     d = (datetime.strptime(UPSC_DATE, "%Y-%m-%d").date() - datetime.today().date()).days
 
     all_topics = _get_topics(conn, user_id)
+    topics_by_paper = {}
+    for t in all_topics:
+        topics_by_paper.setdefault(t["paper_id"], []).append(t)
     state_counts = {}
     for t in all_topics:
         s = t["state"] or "UNVISITED"
@@ -175,7 +175,7 @@ def upsc_dashboard_page():
 
     papers_data = []
     for paper_id, paper_label in PAPER_LABELS.items():
-        topics = _get_topics(conn, user_id, paper_id)
+        topics = topics_by_paper.get(paper_id, [])
         p_verified = sum(1 for t in topics if (t["state"] or "UNVISITED") == "VERIFIED")
         p_total = len(topics)
         p_pct = int(100 * p_verified / p_total) if p_total else 0

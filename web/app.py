@@ -210,7 +210,15 @@ def _run_content_migrations() -> None:
 
 def create_app() -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
-    app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
+    _secret = os.environ.get("FLASK_SECRET_KEY")
+    if not _secret:
+        _key_file = Path(__file__).parent.parent / ".secret_key"
+        if _key_file.exists():
+            _secret = _key_file.read_text().strip()
+        else:
+            _secret = secrets.token_hex(32)
+            _key_file.write_text(_secret)
+    app.secret_key = _secret
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 
     _boot_db("ies")

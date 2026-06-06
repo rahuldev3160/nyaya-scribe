@@ -155,9 +155,12 @@ def dashboard():
 
     # ── Paper tabs data ────────────────────────────────────────────────────────
     paper_cov = {p["paper_id"]: p for p in get_paper_coverage(conn)}
+    topics_by_paper = {}
+    for t in all_topics:
+        topics_by_paper.setdefault(t["paper_id"], []).append(t)
     papers_data = []
     for paper_id, paper_label in PAPERS:
-        topics = get_topics(conn, paper_id)
+        topics = topics_by_paper.get(paper_id, [])
         pc = paper_cov.get(paper_id, {})
         cov_pct = pc.get("coverage_pct", 0.0) or 0.0
         cov_color = "#F28B82" if cov_pct < 20 else "#FDD663" if cov_pct < 50 else "#81C995"

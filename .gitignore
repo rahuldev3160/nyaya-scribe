@@ -19,6 +19,7 @@ exports/prototype_diagrams.json
 
 # Secrets
 .env
+.secret_key
 .streamlit/credentials.toml
 
 # Python artifacts

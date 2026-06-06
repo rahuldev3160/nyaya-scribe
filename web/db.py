@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sqlite3
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
@@ -89,7 +90,12 @@ def get_nyaya_conn() -> sqlite3.Connection:
 
 
 def init_user(conn, user_id: str) -> None:
-    """Seed default rows for a new session user. Safe to call on every load (OR IGNORE)."""
+    """Seed default rows for a new user. No-op for existing users."""
+    if conn.execute(
+        "SELECT 1 FROM gap_states WHERE user_id=? AND exam_id=? LIMIT 1",
+        (user_id, EXAM_ID),
+    ).fetchone():
+        return
     topics = conn.execute(
         "SELECT topic_id, paper_id FROM topics WHERE exam_id=? AND topic_level='topic'",
         (EXAM_ID,)
@@ -144,12 +150,29 @@ def track_page_time(conn, page_name: str, exam_id: str | None = None) -> None:
     if not uid:
         return
     try:
-        from flask import g as flask_g
+        from flask import g as flask_g, session as flask_session
         elapsed = int(time.time() - getattr(flask_g, "request_start", time.time()))
+        session_id = flask_session.get("session_id") or uid
     except RuntimeError:
         elapsed = None
-    log_event(conn, "page_view", "page", page_name, exam_id,
-              {"duration_s": elapsed} if elapsed is not None else None)
+        session_id = uid
+    payload = json.dumps({"duration_s": elapsed}) if elapsed is not None else None
+
+    def _write():
+        try:
+            nc = _open_nyaya_conn()
+            nc.execute(
+                """INSERT INTO user_events
+                   (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload)
+                   VALUES (?,?,?,?,?,?,?)""",
+                (uid, session_id, "page_view", "page", page_name, exam_id, payload),
+            )
+            nc.commit()
+            nc.close()
+        except Exception:
+            pass
+
+    threading.Thread(target=_write, daemon=True).start()
 
 
 def get_study_path(conn, user_id: str) -> dict | None:
