@@ -1153,7 +1153,7 @@ ALL_QUESTIONS = [
 ]
 
 
-def _ensure_tables(conn) -> None:
+def ensure_tables(conn) -> None:
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS english_question_types (
             type_id              TEXT NOT NULL,
@@ -1226,8 +1226,8 @@ def _ensure_tables(conn) -> None:
     conn.commit()
 
 
-def _seed_into(conn) -> tuple[int, int]:
-    _ensure_tables(conn)
+def seed_into(conn) -> tuple[int, int]:
+    ensure_tables(conn)
     inserted = 0
     skipped = 0
     for q in ALL_QUESTIONS:
@@ -1292,7 +1292,7 @@ def main():
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys=ON")
         try:
-            ins, skp = _seed_into(conn)
+            ins, skp = seed_into(conn)
             print(f"  → {ins} inserted, {skp} skipped")
         finally:
             conn.close()

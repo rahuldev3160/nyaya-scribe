@@ -314,151 +314,167 @@ QUESTIONS = [
 ]
 
 
-def main():
-    conn = get_conn()
-    try:
-        # ── Create tables ──────────────────────────────────────────────────────
-        conn.executescript("""
-            CREATE TABLE IF NOT EXISTS english_question_types (
-                type_id              TEXT NOT NULL,
-                exam_id              TEXT NOT NULL DEFAULT 'english_practice',
-                type_name            TEXT NOT NULL,
-                description          TEXT,
-                section_labels_json  TEXT,
-                section_weights_json TEXT,
-                rubric_type          TEXT,
-                sort_order           INTEGER DEFAULT 0,
-                PRIMARY KEY (type_id, exam_id)
-            );
+def ensure_tables(conn) -> None:
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS english_question_types (
+            type_id              TEXT NOT NULL,
+            exam_id              TEXT NOT NULL DEFAULT 'english_practice',
+            type_name            TEXT NOT NULL,
+            description          TEXT,
+            section_labels_json  TEXT,
+            section_weights_json TEXT,
+            rubric_type          TEXT,
+            sort_order           INTEGER DEFAULT 0,
+            PRIMARY KEY (type_id, exam_id)
+        );
 
-            CREATE TABLE IF NOT EXISTS english_questions (
-                question_id          TEXT NOT NULL,
-                exam_id              TEXT NOT NULL DEFAULT 'english_practice',
-                type_id              TEXT NOT NULL,
-                prompt_text          TEXT NOT NULL,
-                marks                INTEGER,
-                word_guide_json      TEXT,
-                word_count_target    INTEGER,
-                section_weights_json TEXT,
-                intro_text           TEXT,
-                body_text            TEXT,
-                conclusion_text      TEXT,
-                difficulty           TEXT DEFAULT 'medium',
-                source_exam          TEXT,
-                created_at           TEXT DEFAULT (datetime('now')),
-                PRIMARY KEY (question_id, exam_id)
-            );
+        CREATE TABLE IF NOT EXISTS english_questions (
+            question_id          TEXT NOT NULL,
+            exam_id              TEXT NOT NULL DEFAULT 'english_practice',
+            type_id              TEXT NOT NULL,
+            prompt_text          TEXT NOT NULL,
+            marks                INTEGER,
+            word_guide_json      TEXT,
+            word_count_target    INTEGER,
+            section_weights_json TEXT,
+            intro_text           TEXT,
+            body_text            TEXT,
+            conclusion_text      TEXT,
+            difficulty           TEXT DEFAULT 'medium',
+            source_exam          TEXT,
+            created_at           TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (question_id, exam_id)
+        );
 
-            CREATE TABLE IF NOT EXISTS english_keywords (
-                keyword_id        TEXT NOT NULL,
-                question_id       TEXT NOT NULL,
-                exam_id           TEXT NOT NULL DEFAULT 'english_practice',
-                section           TEXT NOT NULL CHECK(section IN ('intro','body','conclusion')),
-                keyword           TEXT NOT NULL,
-                variants_json     TEXT,
-                weight            INTEGER DEFAULT 1,
-                keyword_type      TEXT DEFAULT 'required'
-                                  CHECK(keyword_type IN ('required','bonus','negative','phrase')),
-                fuzzy_threshold   REAL DEFAULT 0.82,
-                penalty           REAL,
-                PRIMARY KEY (keyword_id, exam_id)
-            );
+        CREATE TABLE IF NOT EXISTS english_keywords (
+            keyword_id        TEXT NOT NULL,
+            question_id       TEXT NOT NULL,
+            exam_id           TEXT NOT NULL DEFAULT 'english_practice',
+            section           TEXT NOT NULL CHECK(section IN ('intro','body','conclusion')),
+            keyword           TEXT NOT NULL,
+            variants_json     TEXT,
+            weight            INTEGER DEFAULT 1,
+            keyword_type      TEXT DEFAULT 'required'
+                              CHECK(keyword_type IN ('required','bonus','negative','phrase')),
+            fuzzy_threshold   REAL DEFAULT 0.82,
+            penalty           REAL,
+            PRIMARY KEY (keyword_id, exam_id)
+        );
 
-            CREATE TABLE IF NOT EXISTS english_attempts (
-                attempt_id               TEXT NOT NULL,
-                exam_id                  TEXT NOT NULL DEFAULT 'english_practice',
-                user_id                  TEXT NOT NULL,
-                question_id              TEXT NOT NULL,
-                user_answer_intro        TEXT,
-                user_answer_body         TEXT,
-                user_answer_conclusion   TEXT,
-                word_count_intro         INTEGER DEFAULT 0,
-                word_count_body          INTEGER DEFAULT 0,
-                word_count_conclusion    INTEGER DEFAULT 0,
-                score_intro              REAL DEFAULT 0.0,
-                score_body               REAL DEFAULT 0.0,
-                score_conclusion         REAL DEFAULT 0.0,
-                auto_score               REAL DEFAULT 0.0,
-                self_assess_score        REAL DEFAULT 0.0,
-                keywords_matched_json    TEXT,
-                keywords_missed_json     TEXT,
-                self_assess_json         TEXT,
-                session_id               TEXT,
-                created_at               TEXT DEFAULT (datetime('now')),
-                PRIMARY KEY (attempt_id, exam_id)
-            );
+        CREATE TABLE IF NOT EXISTS english_attempts (
+            attempt_id               TEXT NOT NULL,
+            exam_id                  TEXT NOT NULL DEFAULT 'english_practice',
+            user_id                  TEXT NOT NULL,
+            question_id              TEXT NOT NULL,
+            user_answer_intro        TEXT,
+            user_answer_body         TEXT,
+            user_answer_conclusion   TEXT,
+            word_count_intro         INTEGER DEFAULT 0,
+            word_count_body          INTEGER DEFAULT 0,
+            word_count_conclusion    INTEGER DEFAULT 0,
+            score_intro              REAL DEFAULT 0.0,
+            score_body               REAL DEFAULT 0.0,
+            score_conclusion         REAL DEFAULT 0.0,
+            auto_score               REAL DEFAULT 0.0,
+            self_assess_score        REAL DEFAULT 0.0,
+            keywords_matched_json    TEXT,
+            keywords_missed_json     TEXT,
+            self_assess_json         TEXT,
+            session_id               TEXT,
+            created_at               TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (attempt_id, exam_id)
+        );
 
-            CREATE INDEX IF NOT EXISTS idx_english_attempts_user
-                ON english_attempts(user_id, exam_id, created_at DESC);
-        """)
-        conn.commit()
-        print("Tables created.")
+        CREATE INDEX IF NOT EXISTS idx_english_attempts_user
+            ON english_attempts(user_id, exam_id, created_at DESC);
+    """)
+    conn.commit()
 
-        # ── Seed question types ────────────────────────────────────────────────
-        for qt in QUESTION_TYPES:
-            existing = conn.execute(
-                "SELECT 1 FROM english_question_types WHERE type_id=? AND exam_id=?",
-                (qt["type_id"], EXAM_ID)
-            ).fetchone()
-            if not existing:
-                conn.execute(
-                    "INSERT INTO english_question_types "
-                    "(type_id,exam_id,type_name,description,section_labels_json,section_weights_json,rubric_type,sort_order) "
-                    "VALUES (?,?,?,?,?,?,?,?)",
-                    (qt["type_id"], EXAM_ID, qt["type_name"], qt["description"],
-                     qt["section_labels_json"], qt["section_weights_json"],
-                     qt["rubric_type"], qt["sort_order"])
-                )
-                print(f"  + question type: {qt['type_id']}")
-        conn.commit()
 
-        # ── Seed questions + keywords ──────────────────────────────────────────
-        for q in QUESTIONS:
-            existing = conn.execute(
-                "SELECT 1 FROM english_questions WHERE question_id=? AND exam_id=?",
-                (q["question_id"], EXAM_ID)
-            ).fetchone()
-            if existing:
-                print(f"  ~ skipping existing: {q['question_id']}")
-                continue
+def seed_into(conn) -> tuple[int, int]:
+    ensure_tables(conn)
+    inserted = 0
+    skipped = 0
 
+    for qt in QUESTION_TYPES:
+        existing = conn.execute(
+            "SELECT 1 FROM english_question_types WHERE type_id=? AND exam_id=?",
+            (qt["type_id"], EXAM_ID)
+        ).fetchone()
+        if not existing:
             conn.execute(
-                "INSERT INTO english_questions "
-                "(question_id,exam_id,type_id,prompt_text,marks,word_guide_json,"
-                "word_count_target,section_weights_json,intro_text,body_text,conclusion_text,"
-                "difficulty,source_exam) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (q["question_id"], EXAM_ID, q["type_id"], q["prompt_text"],
-                 q.get("marks"), q.get("word_guide_json"), q.get("word_count_target"),
-                 q.get("section_weights_json"), q.get("intro_text"),
-                 q.get("body_text"), q.get("conclusion_text"),
-                 q.get("difficulty", "medium"), q.get("source_exam"))
+                "INSERT INTO english_question_types "
+                "(type_id,exam_id,type_name,description,section_labels_json,section_weights_json,rubric_type,sort_order) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (qt["type_id"], EXAM_ID, qt["type_name"], qt["description"],
+                 qt["section_labels_json"], qt["section_weights_json"],
+                 qt["rubric_type"], qt["sort_order"])
             )
+    conn.commit()
 
-            for section, kw_list in q.get("keywords", {}).items():
-                for kw in kw_list:
-                    if not kw.get("canonical"):
-                        continue
-                    conn.execute(
-                        "INSERT INTO english_keywords "
-                        "(keyword_id,question_id,exam_id,section,keyword,variants_json,"
-                        "weight,keyword_type,fuzzy_threshold,penalty) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                        (
-                            uuid.uuid4().hex[:12],
-                            q["question_id"], EXAM_ID, section,
-                            kw["canonical"],
-                            json.dumps(kw.get("variants", [kw["canonical"]])),
-                            kw.get("weight", 1),
-                            kw.get("keyword_type", "required"),
-                            kw.get("fuzzy_threshold", 0.82),
-                            kw.get("penalty"),
-                        )
+    for q in QUESTIONS:
+        existing = conn.execute(
+            "SELECT 1 FROM english_questions WHERE question_id=? AND exam_id=?",
+            (q["question_id"], EXAM_ID)
+        ).fetchone()
+        if existing:
+            skipped += 1
+            continue
+
+        conn.execute(
+            "INSERT INTO english_questions "
+            "(question_id,exam_id,type_id,prompt_text,marks,word_guide_json,"
+            "word_count_target,section_weights_json,intro_text,body_text,conclusion_text,"
+            "difficulty,source_exam) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (q["question_id"], EXAM_ID, q["type_id"], q["prompt_text"],
+             q.get("marks"), q.get("word_guide_json"), q.get("word_count_target"),
+             q.get("section_weights_json"), q.get("intro_text"),
+             q.get("body_text"), q.get("conclusion_text"),
+             q.get("difficulty", "medium"), q.get("source_exam"))
+        )
+
+        for section, kw_list in q.get("keywords", {}).items():
+            for kw in kw_list:
+                if not kw.get("canonical"):
+                    continue
+                conn.execute(
+                    "INSERT INTO english_keywords "
+                    "(keyword_id,question_id,exam_id,section,keyword,variants_json,"
+                    "weight,keyword_type,fuzzy_threshold,penalty) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        uuid.uuid4().hex[:12],
+                        q["question_id"], EXAM_ID, section,
+                        kw["canonical"],
+                        json.dumps(kw.get("variants", [kw["canonical"]])),
+                        kw.get("weight", 1),
+                        kw.get("keyword_type", "required"),
+                        kw.get("fuzzy_threshold", 0.82),
+                        kw.get("penalty"),
                     )
-            conn.commit()
-            print(f"  + question: {q['question_id']}")
+                )
+        conn.commit()
+        print(f"  + {q['question_id']}")
+        inserted += 1
 
-        print("Seed complete.")
-    finally:
-        conn.close()
+    return inserted, skipped
+
+
+def main():
+    import sqlite3 as _sqlite3
+    root = Path(__file__).parent.parent
+    for db_path in [root / "data" / "ies.db", root / "seeds" / "ies_seed.db"]:
+        if not db_path.exists():
+            print(f"  ! skipping {db_path.name} — not found")
+            continue
+        print(f"\n=== {db_path.name} ===")
+        conn = _sqlite3.connect(db_path)
+        conn.row_factory = _sqlite3.Row
+        conn.execute("PRAGMA foreign_keys=ON")
+        try:
+            ins, skp = seed_into(conn)
+            print(f"  → {ins} inserted, {skp} skipped")
+        finally:
+            conn.close()
 
 
 if __name__ == "__main__":
