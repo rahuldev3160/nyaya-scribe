@@ -1,6 +1,6 @@
 # HANDOFF — Descriptive Exams
 
-Last updated: 2026-06-07 (Session 30)
+Last updated: 2026-06-07 (Session 31)
 
 ---
 
@@ -182,9 +182,50 @@ Five files fixed:
 
 ---
 
+---
+
+## Session 31 — UX navigation pass: bucket model answers, back links, IES banner cleanup
+
+### What was done
+
+1. **English dashboard — Model Answers tab redesigned as bucket UI** (`english_dashboard.html`)
+   - Default view: grid of type tiles (Essay, Précis, RC, Letter, Report) — click to open
+   - Inside a bucket: type-specific model answers + `← Back` button at top and bottom
+   - JS show/hide (`openMaBucket` / `closeMaBucket`) — no route change, no page reload
+   - Matches the RBI prep tier2-quiz bucket pattern the user cited as reference
+
+2. **IES dashboard — removed redundant cross-exam banner** (`dashboard.html`)
+   - Deleted the `{% if other_exams %}` block that rendered `→ RBI DEPR Dashboard` / `→ UPSC Dashboard` buttons at the top of the IES dashboard
+   - Sidebar already has those links; the banner was duplicate navigation
+   - No data impact — route still computes `other_exams` (unused, harmless)
+
+3. **Back link audit — all exam tool pages** (6 templates)
+   - Added `← Dashboard` back links to every exam-specific tool page that had none:
+
+   | Template | Link added |
+   |---|---|
+   | `rbi_prep.html` | `← RBI Dashboard` → `/rbi` |
+   | `ies_answers.html` | `← IES Dashboard` → `/dashboard` |
+   | `ies_quiz.html` | `← IES Dashboard` → `/dashboard` |
+   | `ies_brief.html` | `← IES Dashboard` → `/dashboard` |
+   | `ies_return_quiz.html` | `← IES Dashboard` → `/dashboard` |
+   | `upsc_mains.html` | `← UPSC Dashboard` → `/upsc` |
+
+   Account pages (Profile, Progress, Feedback, Setup) deliberately excluded — they're accessed from any context and don't need a specific dashboard back link.
+
+### Commit and deploy
+- Commit `52145be` — pushed to `origin/main` → Railway auto-deploy triggered
+- All 8 modified templates validated with Jinja2 compiler before push (0 errors)
+
+### Key decisions
+- **DECIDE-S31-01**: Bucket navigation for model answers is pure front-end (JS show/hide). No Flask route change needed — all data already loaded in `model_questions` dict by the existing `english_dashboard` route.
+- **DECIDE-S31-02**: Back links use consistent styling (`font-size:0.82rem; color:#9AA0A6; text-decoration:none`) matching the existing `← English Dashboard` link in `english.html`.
+
+---
+
 ## Exact Next Step
 
-Resume here in S25:
+Resume here in S32:
 - **Open items from PLAN-011 (P2/P3):**
   1. Progress tab: "Avg Auto Score / Avg Self Score" columns always show 0 after scoring removal — replace with attempt count + word count stats
   2. Précis word count inconsistency: Insights tab says 150–170w; seed `word_count_target` = 140 — align to one standard
