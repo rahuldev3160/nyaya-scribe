@@ -185,38 +185,47 @@ def _run_nyaya_migrations() -> None:
         schema = conn.execute(
             "SELECT sql FROM sqlite_master WHERE type='table' AND name='user_events'"
         ).fetchone()
-        if schema and "REFERENCES users" in (schema[0] or ""):
-            return  # already migrated
+        if not (schema and "REFERENCES users" in (schema[0] or "")):
+            conn.executescript("""
+                PRAGMA foreign_keys = OFF;
+                BEGIN;
 
-        conn.executescript("""
-            PRAGMA foreign_keys = OFF;
-            BEGIN;
+                CREATE TABLE user_events_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                    session_id TEXT,
+                    event_type TEXT NOT NULL,
+                    entity_type TEXT,
+                    entity_id TEXT,
+                    exam_id TEXT,
+                    payload TEXT,
+                    created_at TEXT DEFAULT (datetime('now'))
+                );
 
-            CREATE TABLE user_events_new (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-                session_id TEXT,
-                event_type TEXT NOT NULL,
-                entity_type TEXT,
-                entity_id TEXT,
-                exam_id TEXT,
-                payload TEXT,
-                created_at TEXT DEFAULT (datetime('now'))
-            );
+                INSERT INTO user_events_new
+                    SELECT * FROM user_events
+                    WHERE user_id IN (SELECT user_id FROM users);
 
-            INSERT INTO user_events_new
-                SELECT * FROM user_events
-                WHERE user_id IN (SELECT user_id FROM users);
+                DROP TABLE user_events;
+                ALTER TABLE user_events_new RENAME TO user_events;
 
-            DROP TABLE user_events;
-            ALTER TABLE user_events_new RENAME TO user_events;
+                CREATE INDEX IF NOT EXISTS idx_ue_user ON user_events(user_id, created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_ue_type ON user_events(event_type, created_at DESC);
 
-            CREATE INDEX IF NOT EXISTS idx_ue_user ON user_events(user_id, created_at DESC);
-            CREATE INDEX IF NOT EXISTS idx_ue_type ON user_events(event_type, created_at DESC);
-
-            COMMIT;
-            PRAGMA foreign_keys = ON;
-        """)
+                COMMIT;
+                PRAGMA foreign_keys = ON;
+            """)
+        done = conn.execute(
+            "SELECT 1 FROM _migrations WHERE name='normalize_event_types'"
+        ).fetchone()
+        if not done:
+            conn.execute(
+                "UPDATE user_events SET event_type='page_view' WHERE event_type IN ('page_visit','page_time')"
+            )
+            conn.execute(
+                "INSERT INTO _migrations (name) VALUES ('normalize_event_types')"
+            )
+            conn.commit()
     finally:
         conn.close()
 

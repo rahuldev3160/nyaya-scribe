@@ -121,10 +121,8 @@ def save_attempt(conn: sqlite3.Connection, question_id: str, answer_given: str,
                 (uid, question_id, answer_given, int(is_correct), session_id),
             )
             _update_mastery(conn, topic, subject, is_correct)
-        # log to ies.db via g.conn
         try:
-            ies_conn = g.conn
-            log_event(ies_conn, "drill_attempt", entity_type="rbi_topic", entity_id=topic,
+            log_event("drill_attempt", entity_type="rbi_topic", entity_id=topic,
                       exam_id="rbi_depr_2026",
                       payload={"is_correct": int(is_correct), "question_id": question_id,
                                "session_id": session_id})

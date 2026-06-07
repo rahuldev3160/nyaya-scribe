@@ -49,7 +49,7 @@ def brief():
         years_asked = bs.get("distinct_years", 0) or 0
 
         log_event(
-            conn, "topic_opened",
+            "topic_opened",
             entity_type="topic", entity_id=topic_id, exam_id=EXAM_ID,
             payload={"paper_id": paper, "priority_score": round(score, 4)},
         )

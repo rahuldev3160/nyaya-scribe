@@ -191,13 +191,13 @@ def setup_page():
 
         try:
             if sorted(exam_focus) != sorted(old_exam_focus or []):
-                log_event(conn, "config_changed", payload={"field": "exam_focus", "old_value": old_exam_focus, "new_value": exam_focus})
+                log_event("config_changed", payload={"field": "exam_focus", "old_value": old_exam_focus, "new_value": exam_focus})
             if exam_date_str != old_exam_date:
-                log_event(conn, "config_changed", payload={"field": "exam_date", "old_value": old_exam_date, "new_value": exam_date_str})
+                log_event("config_changed", payload={"field": "exam_date", "old_value": old_exam_date, "new_value": exam_date_str})
             if prep_level != old_prep_level:
-                log_event(conn, "config_changed", payload={"field": "prep_level", "old_value": old_prep_level, "new_value": prep_level})
+                log_event("config_changed", payload={"field": "prep_level", "old_value": old_prep_level, "new_value": prep_level})
             if study_mode != old_study_mode:
-                log_event(conn, "config_changed", payload={"field": "study_mode", "old_value": old_study_mode, "new_value": study_mode})
+                log_event("config_changed", payload={"field": "study_mode", "old_value": old_study_mode, "new_value": study_mode})
         except Exception:
             pass
 

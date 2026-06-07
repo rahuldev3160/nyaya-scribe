@@ -12,6 +12,7 @@ from auth import (
     build_auth_url, exchange_code, get_user_info,
     upsert_user, create_session, is_oauth_configured,
 )
+from db import log_event
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -55,7 +56,7 @@ def callback():
     try:
         tokens = exchange_code(code)
         info = get_user_info(tokens["access_token"])
-        user_id = upsert_user(
+        user_id, is_new = upsert_user(
             g.nyaya_conn,
             google_sub=info["sub"],
             email=info["email"],
@@ -63,6 +64,9 @@ def callback():
             avatar_url=info.get("picture"),
         )
         session_token = create_session(g.nyaya_conn, user_id, remember_me=remember_me)
+        g.user_id = user_id
+        if is_new:
+            log_event("signed_up", payload={"email": info["email"]})
 
         session.clear()
         session["session_token"] = session_token

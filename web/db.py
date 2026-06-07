@@ -121,11 +121,14 @@ def init_user(conn, user_id: str) -> None:
     conn.commit()
 
 
-def log_event(conn, event_type: str, entity_type: str | None = None,
+def log_event(event_type: str, entity_type: str | None = None,
               entity_id: str | None = None, exam_id: str | None = None,
               payload: dict | None = None) -> None:
     """Append one row to user_events in nyaya.db. Silent no-op on any error."""
     uid = get_user_id()
+    _fallback = os.environ.get("IES_USER_ID", "rahul")
+    if not uid or uid == _fallback:
+        return
     try:
         from flask import session as flask_session
         session_id = flask_session.get("session_id") or uid

@@ -84,15 +84,12 @@ def dashboard():
     nyaya_conn = get_nyaya_conn()
     user_id = g.user_id
     init_user(conn, user_id)
-
-    # Redirect first-time users to setup
-    onb = nyaya_conn.execute(
-        "SELECT onboarding_completed FROM users WHERE user_id=?", (user_id,)
-    ).fetchone()
-    if onb and not onb["onboarding_completed"]:
-        return redirect("/setup")
-
     track_page_time(conn, "Dashboard", exam_id=EXAM_ID)
+
+    onb = nyaya_conn.execute(
+        "SELECT onboarding_completed, exam_focus FROM users WHERE user_id=?", (user_id,)
+    ).fetchone()
+    onboarding_incomplete = not onb or not onb["onboarding_completed"] or not onb["exam_focus"]
 
     # ── Metrics ────────────────────────────────────────────────────────────────
     d = _days_left()
@@ -117,10 +114,7 @@ def dashboard():
     r_color = "#F28B82" if r_pct < 20 else "#FDD663" if r_pct < 50 else "#81C995"
 
     # ── Cross-exam banner ──────────────────────────────────────────────────────
-    focus_row = nyaya_conn.execute(
-        "SELECT exam_focus FROM users WHERE user_id=?", (user_id,)
-    ).fetchone()
-    exam_focus = json.loads(focus_row["exam_focus"] or '["ies"]') if focus_row and focus_row["exam_focus"] else ["ies"]
+    exam_focus = json.loads(onb["exam_focus"] or '["ies"]') if onb and onb["exam_focus"] else ["ies"]
     other_exams = [e for e in exam_focus if e != "ies"]
     other_exam_links = {
         "rbi":  ("/rbi",  "🏦 RBI DEPR Dashboard (14th June)"),
@@ -248,6 +242,7 @@ def dashboard():
         micro_descriptive=micro_descriptive,
         micro_mcq=micro_mcq,
         micro_recent=micro_recent,
+        onboarding_incomplete=onboarding_incomplete,
     )
 
 

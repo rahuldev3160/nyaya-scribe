@@ -64,26 +64,28 @@ def get_user_info(access_token: str) -> dict:
 
 
 def upsert_user(conn: sqlite3.Connection, google_sub: str, email: str,
-                display_name: str | None, avatar_url: str | None) -> str:
-    """Create or update user, return internal user_id UUID."""
+                display_name: str | None, avatar_url: str | None) -> tuple[str, bool]:
+    """Create or update user, return (user_id, is_new)."""
     row = conn.execute(
         "SELECT user_id FROM users WHERE google_sub=?", (google_sub,)
     ).fetchone()
     now = datetime.now(timezone.utc).isoformat()
     if row:
         user_id = row["user_id"]
+        is_new = False
         conn.execute(
             "UPDATE users SET email=?, display_name=?, avatar_url=?, last_seen_at=? WHERE user_id=?",
             (email, display_name, avatar_url, now, user_id),
         )
     else:
         user_id = str(uuid.uuid4())
+        is_new = True
         conn.execute(
             "INSERT INTO users (user_id, google_sub, email, display_name, avatar_url) VALUES (?,?,?,?,?)",
             (user_id, google_sub, email, display_name, avatar_url),
         )
     conn.commit()
-    return user_id
+    return user_id, is_new
 
 
 def create_session(conn: sqlite3.Connection, user_id: str, remember_me: bool = False) -> str:

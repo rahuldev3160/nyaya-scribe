@@ -160,7 +160,7 @@ def submit():
         return redirect(url_for("ies_return_quiz.return_quiz", paper=paper, topic=topic_id))
 
     if result:
-        log_event(conn, "return_quiz_submitted", entity_type="topic", entity_id=topic_id,
+        log_event("return_quiz_submitted", entity_type="topic", entity_id=topic_id,
                   exam_id=EXAM_ID,
                   payload={"score": round(result["score"], 4), "correct": result["correct"],
                            "total": result["total"], "session_id": session_id})

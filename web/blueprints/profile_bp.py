@@ -46,7 +46,7 @@ def profile_page():
         conn.commit()
         try:
             if phone != (old_phone or ""):
-                log_event(conn, "config_changed", payload={"field": "phone_number", "old_value": old_phone, "new_value": phone})
+                log_event("config_changed", payload={"field": "phone_number", "old_value": old_phone, "new_value": phone})
         except Exception:
             pass
         flash("Contact details saved.", "success")
