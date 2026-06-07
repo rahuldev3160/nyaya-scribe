@@ -1,4 +1,5 @@
 import datetime
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -38,11 +39,35 @@ _EXAM_LINKS = {
     "UPSC Mains":  "/upsc",
     "English":     "/english/dashboard",
 }
-_EXAM_DATES = [
-    {"name": "RBI Grade B",  "date": datetime.date(2026, 6, 14), "link": "/rbi",       "color": "#81C995"},
-    {"name": "IES 2026",     "date": datetime.date(2026, 6, 19), "link": "/dashboard", "color": "#8AB4F8"},
-    {"name": "UPSC Eco Opt", "date": datetime.date(2026, 8, 1),  "link": "/upsc",      "color": "#FDD663"},
-]
+def _get_exam_dates() -> list[dict]:
+    _DATA = Path(__file__).parent.parent.parent / "data"
+    exams = [
+        {"exam_id": "ies_2026",    "name": "IES 2026",     "fallback": "2026-06-19", "link": "/dashboard", "color": "#8AB4F8", "db": "ies.db"},
+        {"exam_id": "rbi_depr",    "name": "RBI Grade B",  "fallback": "2026-06-14", "link": "/rbi",       "color": "#81C995", "db": "rbi.db"},
+        {"exam_id": "upsc_eco_opt","name": "UPSC Eco Opt", "fallback": "2026-08-22", "link": "/upsc",      "color": "#FDD663", "db": "upsc.db"},
+    ]
+    result = []
+    for e in exams:
+        date_str = e["fallback"]
+        try:
+            db_path = _DATA / e["db"]
+            if db_path.exists():
+                conn = sqlite3.connect(str(db_path))
+                row = conn.execute(
+                    "SELECT exam_date FROM exam_configurations WHERE exam_id=?", (e["exam_id"],)
+                ).fetchone()
+                conn.close()
+                if row and row[0]:
+                    date_str = row[0]
+        except Exception:
+            pass
+        result.append({
+            "name": e["name"],
+            "date": datetime.date.fromisoformat(date_str),
+            "link": e["link"],
+            "color": e["color"],
+        })
+    return result
 
 
 def _seconds_label(s: int) -> str:
@@ -96,13 +121,14 @@ def progress_page():
     week_buckets  = _to_exam_buckets(_time_rows(7))
 
     today_date = datetime.date.today()
+    exam_dates = _get_exam_dates()
     countdowns = [
         {**e,
          "days_left": max((e["date"] - today_date).days, 0),
          "past":      (e["date"] - today_date).days < 0,
          "urgent":    0 <= (e["date"] - today_date).days <= 7,
         }
-        for e in _EXAM_DATES
+        for e in exam_dates
     ]
 
     return render_template(

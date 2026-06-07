@@ -24,11 +24,17 @@ def clean_q(text: str) -> str:
 DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
 EXAM_ID = "ies_2026"
 USER_ID = os.environ.get("IES_USER_ID", "rahul")
-EXAM_DATE = "2026-06-19"
-
-
 def is_crunch_mode() -> bool:
-    exam = datetime.strptime(EXAM_DATE, "%Y-%m-%d").date()
+    try:
+        conn = _open_conn()
+        row = conn.execute(
+            "SELECT exam_date FROM exam_configurations WHERE exam_id='ies_2026'"
+        ).fetchone()
+        conn.close()
+        exam_str = row[0] if row else "2026-06-19"
+    except Exception:
+        exam_str = "2026-06-19"
+    exam = datetime.strptime(exam_str, "%Y-%m-%d").date()
     return (exam - datetime.today().date()).days <= 7
 
 
