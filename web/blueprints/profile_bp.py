@@ -9,7 +9,7 @@ _DATA = Path(__file__).parent.parent.parent / "data"
 
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
 from auth import login_required
-from db import get_conn, log_event, track_page_time
+from db import get_conn, get_nyaya_conn, log_event, track_page_time
 
 profile_bp = Blueprint("profile_bp", __name__)
 
@@ -24,26 +24,21 @@ EXAM_LABELS = {
 @login_required
 def profile_page():
     conn = get_conn()
+    nyaya_conn = get_nyaya_conn()
     user_id = g.user_id
     track_page_time(conn, "Profile")
 
-    try:
-        conn.execute("ALTER TABLE users ADD COLUMN phone_number TEXT")
-        conn.commit()
-    except Exception:
-        pass
-
     if request.method == "POST":
         phone = request.form.get("phone_number", "").strip()
-        old_row = conn.execute(
+        old_row = nyaya_conn.execute(
             "SELECT phone_number FROM users WHERE user_id=?", (user_id,)
         ).fetchone()
         old_phone = old_row["phone_number"] if old_row else None
-        conn.execute(
+        nyaya_conn.execute(
             "UPDATE users SET phone_number=? WHERE user_id=?",
             (phone, user_id),
         )
-        conn.commit()
+        nyaya_conn.commit()
         try:
             if phone != (old_phone or ""):
                 log_event("config_changed", payload={"field": "phone_number", "old_value": old_phone, "new_value": phone})
@@ -52,7 +47,7 @@ def profile_page():
         flash("Contact details saved.", "success")
         return redirect(url_for("profile_bp.profile_page"))
 
-    user = conn.execute(
+    user = nyaya_conn.execute(
         "SELECT display_name, email, avatar_url, created_at, subscription_tier, phone_number, "
         "exam_focus, exam_date, onboarding_completed FROM users WHERE user_id=?",
         (user_id,),
