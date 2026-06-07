@@ -82,7 +82,6 @@ def english_dashboard():
     conn = get_conn()
     user_id = g.user_id
     track_page_time(conn, "English Dashboard")
-    _ensure_types_seeded(conn)
 
     all_types = _load_types(conn)
     type_map = {t["type_id"]: t for t in all_types}
