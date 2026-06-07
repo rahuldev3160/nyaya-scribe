@@ -150,5 +150,5 @@ Implementation:
 ## Audit Findings Reference
 
 Full findings from S33 4-agent audit documented in:
-- AUDIT-004 (to be created) — architecture audit findings
+- [AUDIT-004](../audits/AUDIT-004.md) — architecture audit findings (8 problem classes, all file:line locations)
 - This plan synthesises those findings into actionable phases
