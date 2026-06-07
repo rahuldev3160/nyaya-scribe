@@ -11,7 +11,6 @@ from db import get_conn, track_page_time
 
 upsc_dashboard_bp = Blueprint("upsc_dashboard", __name__)
 
-UPSC_DATE = "2026-08-22"
 UPSC_EXAM_ID = "upsc_eco_opt"
 _UPSC_DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
 
@@ -150,7 +149,14 @@ def upsc_dashboard_page():
     conn = g.upsc_conn
     _init_user(conn, user_id)
 
-    d = (datetime.strptime(UPSC_DATE, "%Y-%m-%d").date() - datetime.today().date()).days
+    try:
+        row = g.upsc_conn.execute(
+            "SELECT exam_date FROM exam_configurations WHERE exam_id='upsc_eco_opt'"
+        ).fetchone()
+        upsc_date_str = row[0] if row else "2026-08-22"
+    except Exception:
+        upsc_date_str = "2026-08-22"
+    d = (datetime.strptime(upsc_date_str, "%Y-%m-%d").date() - datetime.today().date()).days
 
     all_topics = _get_topics(conn, user_id)
     topics_by_paper = {}
