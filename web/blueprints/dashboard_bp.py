@@ -9,10 +9,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
 from db import (
-    EXAM_DATE, EXAM_ID, get_conn, get_nyaya_conn, get_user_id, init_user,
+    EXAM_ID, get_conn, get_nyaya_conn, get_user_id, init_user,
     get_topics, get_true_readiness, get_paper_coverage,
     set_topic_state, is_crunch_mode, get_study_path,
-    track_page_time,
+    track_page_time, _open_conn,
 )
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -67,7 +67,16 @@ _FOCUS_LABEL = {
 
 
 def _days_left() -> int:
-    return (datetime.strptime(EXAM_DATE, "%Y-%m-%d").date() - datetime.today().date()).days
+    try:
+        conn = _open_conn()
+        row = conn.execute(
+            "SELECT exam_date FROM exam_configurations WHERE exam_id='ies_2026'"
+        ).fetchone()
+        conn.close()
+        exam_str = row[0] if row else "2026-06-19"
+    except Exception:
+        exam_str = "2026-06-19"
+    return (datetime.strptime(exam_str, "%Y-%m-%d").date() - datetime.today().date()).days
 
 
 def _priority_label(score: float) -> str:
