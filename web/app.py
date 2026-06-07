@@ -283,7 +283,6 @@ def create_app() -> Flask:
     _boot_db("upsc")
     _boot_db("nyaya")
     _run_migrations()
-    _run_rbi_migrations()
     _run_nyaya_migrations()
     _run_content_migrations()
 
