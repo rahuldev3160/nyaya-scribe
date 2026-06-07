@@ -45,21 +45,51 @@
   <!-- TAB 1 — Model Answers                                                -->
   <!-- ══════════════════════════════════════════════════════════════════════ -->
   <div id="eng-dash-model" class="tab-panel active">
-    <p style="color:#9AA0A6;font-size:0.85rem;margin-bottom:20px;">
-      Study structure, vocabulary, and length — not content verbatim. For précis and RC the source passage is shown first so you can verify the model answer against it.
-    </p>
 
+    <!-- ── Bucket grid (default view) ──────────────────────────────────── -->
+    <div id="ma-buckets">
+      <p style="color:#9AA0A6;font-size:0.85rem;margin-bottom:20px;">
+        Select a type to study model answers. For précis and RC the source passage is shown first.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:8px;">
+        {% for t in all_types %}
+        {% set qs = model_questions.get(t.type_id, []) %}
+        {% if qs %}
+        <button onclick="openMaBucket('{{ t.type_id }}')"
+                style="text-align:left;background:#1C1C1E;border:1px solid #3C3C3E;border-radius:10px;padding:16px;cursor:pointer;transition:border-color .15s;"
+                onmouseover="this.style.borderColor='#FDD663'" onmouseout="this.style.borderColor='#3C3C3E'">
+          <div style="font-weight:700;color:#FDD663;font-size:0.95rem;margin-bottom:6px;">{{ t.type_name }}</div>
+          <div style="color:#9AA0A6;font-size:0.78rem;line-height:1.5;margin-bottom:12px;">{{ t.description[:70] }}{% if t.description|length > 70 %}…{% endif %}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="chip chip-purple">{{ qs|length }} example{{ 's' if qs|length != 1 }}</span>
+            <span style="color:#8AB4F8;font-size:0.78rem;">Browse →</span>
+          </div>
+        </button>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Per-type detail views (hidden until bucket selected) ─────────── -->
     {% for t in all_types %}
     {% set qs = model_questions.get(t.type_id, []) %}
     {% if qs %}
-    <div style="margin-bottom:28px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #3C3C3E;">
+    {% set sec_labels = t.section_labels %}
+    <div id="ma-bucket-{{ t.type_id }}" style="display:none;">
+
+      <!-- Back + heading -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #3C3C3E;">
+        <button onclick="closeMaBucket()"
+                style="background:none;border:1px solid #3C3C3E;border-radius:6px;padding:5px 12px;color:#9AA0A6;cursor:pointer;font-size:0.82rem;flex-shrink:0;"
+                onmouseover="this.style.borderColor='#8AB4F8';this.style.color='#8AB4F8'"
+                onmouseout="this.style.borderColor='#3C3C3E';this.style.color='#9AA0A6'">
+          ← Back
+        </button>
         <span style="font-weight:700;color:#FDD663;font-size:1rem;">{{ t.type_name }}</span>
         <span class="chip chip-purple">{{ qs|length }} example{{ 's' if qs|length != 1 }}</span>
       </div>
 
       {% for q in qs %}
-      {% set sec_labels = t.section_labels %}
       <details class="gem-card" style="margin-bottom:10px;padding:0;" {% if loop.first %}open{% endif %}>
         <summary style="cursor:pointer;padding:14px 16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
           <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
@@ -72,38 +102,30 @@
         </summary>
         <div style="padding:0 16px 16px;">
 
-          <!-- Prompt / source passage -->
           <div style="margin-bottom:16px;">
             <div class="section-header" style="color:#9AA0A6;margin-bottom:8px;font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;">Prompt / Source Passage</div>
             <div style="background:#2C2C2E;border-radius:8px;padding:14px;font-size:0.86rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.prompt_text }}</div>
           </div>
 
-          <!-- Model answer sections -->
           <div class="section-header" style="color:#81C995;margin-bottom:10px;font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;">Model Answer</div>
 
           {% if q.intro_text %}
           <div style="margin-bottom:12px;">
-            <div style="font-size:0.75rem;color:#8AB4F8;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">
-              {{ sec_labels.get('intro', 'Introduction') }}
-            </div>
+            <div style="font-size:0.75rem;color:#8AB4F8;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">{{ sec_labels.get('intro', 'Introduction') }}</div>
             <div style="background:#1C1C1E;border-radius:8px;padding:12px 14px;font-size:0.88rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.intro_text }}</div>
           </div>
           {% endif %}
 
           {% if q.body_text %}
           <div style="margin-bottom:12px;">
-            <div style="font-size:0.75rem;color:#C084FC;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">
-              {{ sec_labels.get('body', 'Body') }}
-            </div>
+            <div style="font-size:0.75rem;color:#C084FC;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">{{ sec_labels.get('body', 'Body') }}</div>
             <div style="background:#1C1C1E;border-radius:8px;padding:12px 14px;font-size:0.88rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.body_text }}</div>
           </div>
           {% endif %}
 
           {% if q.conclusion_text %}
           <div style="margin-bottom:4px;">
-            <div style="font-size:0.75rem;color:#81C995;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">
-              {{ sec_labels.get('conclusion', 'Conclusion') }}
-            </div>
+            <div style="font-size:0.75rem;color:#81C995;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">{{ sec_labels.get('conclusion', 'Conclusion') }}</div>
             <div style="background:#1C1C1E;border-radius:8px;padding:12px 14px;font-size:0.88rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.conclusion_text }}</div>
           </div>
           {% endif %}
@@ -111,10 +133,35 @@
         </div>
       </details>
       {% endfor %}
+
+      <!-- Bottom back button for long lists -->
+      <div style="margin-top:16px;">
+        <button onclick="closeMaBucket()"
+                style="background:none;border:1px solid #3C3C3E;border-radius:6px;padding:5px 12px;color:#9AA0A6;cursor:pointer;font-size:0.82rem;"
+                onmouseover="this.style.borderColor='#8AB4F8';this.style.color='#8AB4F8'"
+                onmouseout="this.style.borderColor='#3C3C3E';this.style.color='#9AA0A6'">
+          ← Back to types
+        </button>
+      </div>
     </div>
     {% endif %}
     {% endfor %}
+
   </div>
+
+<script>
+function openMaBucket(typeId) {
+    document.getElementById('ma-buckets').style.display = 'none';
+    document.querySelectorAll('[id^="ma-bucket-"]').forEach(function(e) { e.style.display = 'none'; });
+    var el = document.getElementById('ma-bucket-' + typeId);
+    if (el) { el.style.display = 'block'; window.scrollTo(0,0); }
+}
+function closeMaBucket() {
+    document.querySelectorAll('[id^="ma-bucket-"]').forEach(function(e) { e.style.display = 'none'; });
+    document.getElementById('ma-buckets').style.display = 'block';
+    window.scrollTo(0,0);
+}
+</script>
 
   <!-- ══════════════════════════════════════════════════════════════════════ -->
   <!-- TAB 2 — Practice                                                     -->

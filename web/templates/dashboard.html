@@ -2,16 +2,6 @@
 {% block title %}Dashboard · IES 2026{% endblock %}
 
 {% block content %}
-<!-- ── Cross-exam banners ──────────────────────────────────────────────────── -->
-{% if other_exams %}
-<div class="grid-{{ other_exams|length }}" style="margin-bottom:16px;">
-  {% for exam in other_exams %}
-  {% set link, label = other_exam_links[exam] %}
-  <a href="{{ link }}" class="btn" style="justify-content:flex-start;">→ {{ label }}</a>
-  {% endfor %}
-</div>
-{% endif %}
-
 <!-- ── Header metrics ─────────────────────────────────────────────────────── -->
 <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
   <div style="flex:3;min-width:200px;">
