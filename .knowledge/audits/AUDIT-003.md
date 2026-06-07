@@ -28,26 +28,23 @@ Root cause: local DB ≠ production DB. Production is on Railway persistent volu
 
 ## Bugs Found
 
-### BUG-A: Mixed event types (HIGH) — analytics split across 3 labels
-- `page_view` (449), `page_visit` (269), `page_time` (50)
-- `get_time_breakdown()` only queries `page_view` → misses 319 historical events
-- Fix: normalise old types via migration OR expand WHERE clause in get_time_breakdown()
+### BUG-A: Mixed event types (HIGH) — FIXED S32 `203f8cf`
+- `page_view` (449), `page_visit` (269), `page_time` (50) — analytics split across 3 labels
+- Fix: `normalize_event_types` migration in `_run_nyaya_migrations()` — one-time UPDATE guarded by `_migrations` table
 
-### BUG-B: Dashboard visit never logged for new users (MEDIUM)
-- `dashboard_bp.py:89-95`: redirect to /setup fires BEFORE `track_page_time`
-- First dashboard visit for every new user is invisible in events
-- Fix: log `first_visit` event at line 87 (after init_user, before onboarding check)
+### BUG-B: Dashboard visit never logged for new users (MEDIUM) — FIXED S32 `203f8cf`
+- `dashboard_bp.py`: redirect to /setup fired BEFORE `track_page_time`
+- Fix: moved `track_page_time()` to immediately after `init_user()`, before any branching
 
-### BUG-C: `log_event()` conn parameter ignored + silent fallback (MEDIUM)
-- Function signature takes `conn` but internally uses `get_nyaya_conn()` — caller's conn ignored
-- `get_user_id()` falls back to `os.environ.get("IES_USER_ID", "rahul")` if g.user_id is None
-- FK violation swallowed by bare `except Exception: pass`
-- Fix: remove dead `conn` param from signature; validate uid before insert
+### BUG-C: `log_event()` conn parameter ignored + silent fallback (MEDIUM) — FIXED S32 `203f8cf`
+- Dead `conn` param removed from signature; early return when uid is falsy or matches env-var fallback
+- `upsert_user()` now returns `(user_id, is_new)`; `g.user_id` set before any `log_event()` call in auth_bp
+- `signed_up` event fires on first OAuth login only
 
-### BUG-D: track_page_time() daemon threads lost on gunicorn worker recycle (LOW)
-- `daemon=True` threads killed when worker is recycled
-- page_view events near worker restart silently dropped
-- Fix: write synchronously (SQLite write is ~1ms locally)
+### BUG-D: track_page_time() daemon threads lost on gunicorn worker recycle (LOW) — OPEN
+- `daemon=True` threads killed when worker is recycled; page_view events near restart silently dropped
+- Deferred per DECIDE-S27-01: fire-and-forget analytics loss acceptable for now
+- Fix if analytics completeness required: drop `daemon=True` flag
 
 ## Non-bugs (confirmed working)
 - Railway persistent volume at /app/data — survives redeploys ✓

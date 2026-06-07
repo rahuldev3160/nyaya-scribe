@@ -223,9 +223,73 @@ Five files fixed:
 
 ---
 
+---
+
+## Session 32 — Auth + Event Recording Audit + Onboarding Hard Gate Removal
+
+### What was done
+
+**AUDIT-003 — Full journey trace: sign-in → DB recording**
+- Confirmed production is healthy: 36 users, 945 events on Railway persistent volume
+- Local `data/nyaya.db` is a dev-only artifact — production DB is `/app/data/nyaya.db` on Railway
+- Traced full journey: GET / → POST /auth/login → Google → GET /auth/callback → GET /dashboard
+- Found 4 bugs (BUG-A through BUG-D), fixed 3 immediately
+
+**Bug fixes in commit `203f8cf`:**
+
+1. **BUG-A fixed — event type normalisation** (`web/app.py`)
+   - 269 `page_visit` + 50 `page_time` events sitting alongside 449 `page_view` — analytics split across 3 labels
+   - Added `normalize_event_types` migration in `_run_nyaya_migrations()`: one-time `UPDATE user_events SET event_type='page_view' WHERE event_type IN ('page_visit','page_time')`
+   - Guarded by `_migrations` table — idempotent
+
+2. **BUG-B fixed — dashboard visit logged before any branching** (`web/blueprints/dashboard_bp.py`)
+   - `track_page_time()` was called AFTER the onboarding redirect — new users' first dashboard visit was invisible
+   - Moved to immediately after `init_user()`, before any conditional logic
+
+3. **BUG-C fixed — log_event() silent failure** (`web/db.py`, `web/blueprints/auth_bp.py`, 5 other blueprints)
+   - `log_event()` took a dead `conn` param it never used — all callers passed wrong thing silently
+   - `get_user_id()` fell back to `os.environ.get("IES_USER_ID", "rahul")` → FK violation swallowed by bare except
+   - Fix: removed dead `conn` param; added early return when uid is falsy or matches env-var fallback
+   - `upsert_user()` now returns `tuple[str, bool]` — `(user_id, is_new)`. Fires `signed_up` event on first OAuth login.
+   - `g.user_id = user_id` set in `auth_bp.py` before `log_event()` call so uid is real, not fallback
+
+4. **BUG-D deferred — daemon thread writes** (LOW priority)
+   - `track_page_time()` uses `daemon=True` thread; writes can be lost on gunicorn worker recycle
+   - Not fixed — decision from S27 (DECIDE-S27-01): fire-and-forget analytics loss is acceptable
+   - Fix if analytics completeness becomes a requirement: drop `daemon=True` or write synchronously
+
+**Hard gate removal + setup banner** (`web/blueprints/dashboard_bp.py`, `web/templates/dashboard.html`)
+- Removed hard redirect to `/setup` for users with `onboarding_completed=0`
+- Added dismissable yellow banner: `onboarding_incomplete = True` when `onboarding_completed=0` OR `exam_focus IS NULL`
+- Banner dismiss: `sessionStorage.setItem('setup_dismissed','1')` — no DB write, no server round-trip
+- 4 stuck production users (onboarding_completed=0, permanently looped on /setup) unblocked via direct Railway SSH SQLite UPDATE before deploy
+
+**4 stuck users unblocked (pre-code fix):**
+```sql
+UPDATE users SET onboarding_completed=1 WHERE onboarding_completed=0;
+```
+Run via `railway ssh python3 -c "import sqlite3; ..."` — they can now reach the dashboard with the setup banner guiding them to complete their profile.
+
+### Key decisions
+- **DECIDE-S32-01**: Hard onboarding gate removed permanently. Dashboard always shows with defaults; setup is nudged via dismissable banner, not enforced via redirect.
+- **DECIDE-S32-02**: `log_event()` must never take a `conn` param — it owns its own nyaya connection via `get_nyaya_conn()`. Any call site that passes conn as first arg is a bug.
+- **DECIDE-S32-03**: `upsert_user()` contract: returns `(user_id: str, is_new: bool)`. Callers must unpack both values. The `signed_up` event is the only first-login marker — it fires once per user, at OAuth callback.
+- **DECIDE-S32-04**: `onboarding_incomplete` flag = `not onb or not onb["onboarding_completed"] or not onb["exam_focus"]`. Both conditions required — a user with `onboarding_completed=1` but NULL `exam_focus` is still incomplete.
+
+### Commit and deploy
+- Commit `203f8cf` — pushed to `origin/main` → Railway auto-deploy triggered
+- 13 files changed, 139 insertions, 57 deletions
+- Verification: app boots clean; dashboard 200 with correct banner state for both complete and incomplete users
+
+---
+
 ## Exact Next Step
 
-Resume here in S32:
+Resume here in S33:
+- **Phase 2 recording improvements (not urgent):**
+  1. Add `quiz_attempted` event after MCQ quiz submission
+  2. Add `answer_submitted` event after descriptive answer grading  
+  3. Add `user_streaks` table (one row per user per day of study activity)
 - **Open items from PLAN-011 (P2/P3):**
   1. Progress tab: "Avg Auto Score / Avg Self Score" columns always show 0 after scoring removal — replace with attempt count + word count stats
   2. Précis word count inconsistency: Insights tab says 150–170w; seed `word_count_target` = 140 — align to one standard

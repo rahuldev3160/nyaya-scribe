@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-07 (Session 31)
+Last updated: 2026-06-07 (Session 32)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -47,7 +47,7 @@ Last updated: 2026-06-07 (Session 31)
 |----|------|-------|--------|------------|-------|------|
 | [AUDIT-001](audits/AUDIT-001.md) | 2026-06-05 | arch/auth/nav/data-isolation/quiz-integrity | 3 parallel | 12 | 6 | 6 |
 | [AUDIT-002](audits/AUDIT-002.md) | 2026-06-06 | performance/lag/multi-user | 4 parallel | 9 RC | 8 | 1 (RC-8 deferred) |
-| [AUDIT-003](audits/AUDIT-003.md) | 2026-06-07 | auth+event recording flow — full journey trace | inline | 4 | 0 | 4 (BUG-A/B/C/D) |
+| [AUDIT-003](audits/AUDIT-003.md) | 2026-06-07 | auth+event recording flow — full journey trace | inline | 4 | 3 | 1 (BUG-D: daemon thread writes, LOW) |
 
 ---
 
