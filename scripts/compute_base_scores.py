@@ -1,24 +1,26 @@
 """
 Stage 8: Compute topic base priority scores from PYQ data.
-Run: python3 scripts/compute_base_scores.py
+Run: python3 scripts/compute_base_scores.py [--exam ies_2026|upsc_eco_opt]
 
 Computes w1 (recurrence), w2 (recency), w3 (persistence), w5 (syllabus weight).
 Stores in topic_base_scores. Skips w4 (CA relevance) and w6 (graph centrality)
 which require additional data sources.
 """
-import math
+import argparse
 import sqlite3
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
-EXAM_ID = "ies_2026"
+EXAM_DB_MAP = {
+    "ies_2026": "ies.db",
+    "upsc_eco_opt": "upsc.db",
+}
 CURRENT_YEAR = date.today().year
 
 
-def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+def get_connection(db_path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
@@ -34,11 +36,11 @@ def normalize(values: dict) -> dict:
     return {k: (v - min_v) / spread for k, v in values.items()}
 
 
-def compute_scores(conn: sqlite3.Connection) -> list[dict]:
+def compute_scores(conn: sqlite3.Connection, exam_id: str) -> list[dict]:
     # Load exam config
     cfg = conn.execute(
         "SELECT pyq_decay_factor, w5_syllabus_weight FROM exam_configurations WHERE exam_id=?",
-        (EXAM_ID,)
+        (exam_id,)
     ).fetchone()
     decay_factor = cfg[0] if cfg else 0.9
 
@@ -48,7 +50,7 @@ def compute_scores(conn: sqlite3.Connection) -> list[dict]:
         FROM pyq_questions q
         JOIN topics t ON q.topic_id = t.topic_id AND q.exam_id = t.exam_id
         WHERE q.exam_id = ? AND t.topic_level = 'topic'
-    """, (EXAM_ID,)).fetchall()
+    """, (exam_id,)).fetchall()
 
     # Bucket by topic
     topic_years = defaultdict(list)
@@ -64,7 +66,7 @@ def compute_scores(conn: sqlite3.Connection) -> list[dict]:
     all_topics = conn.execute("""
         SELECT topic_id, paper_id, syllabus_weight FROM topics
         WHERE exam_id=? AND topic_level='topic'
-    """, (EXAM_ID,)).fetchall()
+    """, (exam_id,)).fetchall()
 
     for tid, pid, sw in all_topics:
         topic_paper[tid] = pid
@@ -125,7 +127,7 @@ def compute_scores(conn: sqlite3.Connection) -> list[dict]:
     wrow = conn.execute("""
         SELECT w1_pyq_recurrence, w2_pyq_recency, w3_concept_persistence, w5_syllabus_weight
         FROM exam_configurations WHERE exam_id=?
-    """, (EXAM_ID,)).fetchone()
+    """, (exam_id,)).fetchone()
     W1, W2, W3, W5 = wrow if wrow else (0.22, 0.20, 0.10, 0.12)
 
     results = []
@@ -154,7 +156,7 @@ def compute_scores(conn: sqlite3.Connection) -> list[dict]:
     return results
 
 
-def upsert_scores(conn: sqlite3.Connection, scores: list[dict]) -> None:
+def upsert_scores(conn: sqlite3.Connection, scores: list[dict], exam_id: str) -> None:
     for s in scores:
         conn.execute("""
             INSERT OR REPLACE INTO topic_base_scores
@@ -164,7 +166,7 @@ def upsert_scores(conn: sqlite3.Connection, scores: list[dict]) -> None:
                  computed_at)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,datetime('now'))
         """, (
-            s["topic_id"], EXAM_ID, s["paper_id"],
+            s["topic_id"], exam_id, s["paper_id"],
             s["pyq_count"], s["distinct_years"],
             s["pyq_recurrence_score"], s["pyq_recency_score"],
             s["concept_persistence_score"],
@@ -174,7 +176,7 @@ def upsert_scores(conn: sqlite3.Connection, scores: list[dict]) -> None:
     conn.commit()
 
 
-def verify(conn: sqlite3.Connection, scores: list[dict]) -> None:
+def verify(conn: sqlite3.Connection, scores: list[dict], exam_id: str) -> None:
     by_paper = {}
     for s in sorted(scores, key=lambda x: -x["base_priority_score"]):
         pid = s["paper_id"]
@@ -195,24 +197,42 @@ def verify(conn: sqlite3.Connection, scores: list[dict]) -> None:
             )
 
     total = conn.execute(
-        "SELECT COUNT(*) FROM topic_base_scores WHERE exam_id=?", (EXAM_ID,)
+        "SELECT COUNT(*) FROM topic_base_scores WHERE exam_id=?", (exam_id,)
     ).fetchone()[0]
     top3 = sorted(scores, key=lambda x: -x["base_priority_score"])[:3]
-    print(f"\nTotal scored topics : {total}/30")
+    n_topics = len(scores)
+    print(f"\nTotal scored topics : {total}/{n_topics}")
     print(f"Top 3 by priority   : {', '.join(s['topic_id'] for s in top3)}")
-    assert total == 30, f"Expected 30 scored topics, got {total}"
+    assert total == n_topics, f"Expected {n_topics} scored topics, got {total}"
     print("\n✓ Base scores computed")
     print("──────────────────────────────────────────────────\n")
 
 
-if __name__ == "__main__":
-    if not DB_PATH.exists():
-        print("DB not found")
+def main():
+    parser = argparse.ArgumentParser(description="Compute topic base priority scores")
+    parser.add_argument(
+        "--exam",
+        default="ies_2026",
+        choices=list(EXAM_DB_MAP.keys()),
+        help="Exam ID to compute scores for (default: ies_2026)",
+    )
+    args = parser.parse_args()
+
+    exam_id = args.exam
+    db_filename = EXAM_DB_MAP[exam_id]
+    db_path = Path(__file__).parent.parent / "data" / db_filename
+
+    if not db_path.exists():
+        print(f"DB not found: {db_path}")
         raise SystemExit(1)
 
-    conn = get_connection()
-    print("Computing base priority scores...")
-    scores = compute_scores(conn)
-    upsert_scores(conn, scores)
-    verify(conn, scores)
+    conn = get_connection(db_path)
+    print(f"Computing base priority scores for {exam_id} ({db_filename})...")
+    scores = compute_scores(conn, exam_id)
+    upsert_scores(conn, scores, exam_id)
+    verify(conn, scores, exam_id)
     conn.close()
+
+
+if __name__ == "__main__":
+    main()
