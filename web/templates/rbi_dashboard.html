@@ -67,7 +67,7 @@
 </p>
 
 <!-- ── Key Data + My Progress (side by side) ──────────────────────────────── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+<div class="dash-2col" style="gap:16px;margin-bottom:20px;">
 
   <!-- Left: Key Data Points -->
   <div class="dash-panel">
@@ -124,7 +124,7 @@
   <!-- Right: My Progress -->
   <div class="dash-panel">
     <div class="dash-panel-title">📈 My Progress</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+    <div class="dash-2col" style="gap:8px;margin-bottom:4px;">
       <div style="text-align:center;padding:10px;background:#1C1C1E;border-radius:8px;">
         <div style="font-size:1.4rem;font-weight:700;color:{{ r_color }};">{{ (formula_score * 100)|round|int }}%</div>
         <div style="font-size:0.7rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Mastery Score</div>
@@ -167,7 +167,7 @@
 </div>
 
 <!-- ── Subject Coverage + Top Gaps (side by side) ─────────────────────────── -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+<div class="dash-2col" style="gap:16px;margin-bottom:20px;">
 
   <!-- Left: Subject Coverage -->
   <div class="dash-panel">

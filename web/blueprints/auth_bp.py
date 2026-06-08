@@ -39,6 +39,10 @@ def login():
 
 @auth_bp.route("/callback")
 def callback():
+    # Already authenticated (e.g. mobile browser replaying callback URL) — go straight to app
+    if getattr(g, "user_id", None):
+        return redirect(url_for("index"))
+
     code = request.args.get("code")
     state = request.args.get("state", "")
 

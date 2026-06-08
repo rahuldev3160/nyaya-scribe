@@ -134,11 +134,17 @@ function toggleSidebar() {
 document.addEventListener('DOMContentLoaded', () => {
     // Remove skeleton loading state — real content fades in
     document.body.classList.remove('page-loading');
-    // Restore sidebar collapsed state
-    if (localStorage.getItem('sc') === '1') {
+    // Sidebar collapsed state is desktop-only — never apply on mobile
+    if (window.innerWidth > 600 && localStorage.getItem('sc') === '1') {
         document.body.classList.add('sidebar-collapsed');
         const btn = document.getElementById('sidebar-toggle-btn');
         if (btn) btn.textContent = '›';
+    }
+});
+// Handle orientation change: strip collapsed state if viewport shrinks to mobile
+window.addEventListener('resize', () => {
+    if (window.innerWidth <= 600) {
+        document.body.classList.remove('sidebar-collapsed');
     }
 });
 </script>

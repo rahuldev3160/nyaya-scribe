@@ -297,6 +297,9 @@ body.sidebar-collapsed .sidebar-toggle { margin-left: 0; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+/* Responsive 2-col used in dashboard panels — collapses to 1-col on mobile */
+.dash-2col { display: grid; grid-template-columns: 1fr 1fr; }
+@media (max-width: 600px) { .dash-2col { grid-template-columns: 1fr; } }
 @media (max-width: 900px) {
     .grid-3 { grid-template-columns: repeat(2, 1fr); }
     .grid-4 { grid-template-columns: repeat(2, 1fr); }
@@ -304,8 +307,12 @@ body.sidebar-collapsed .sidebar-toggle { margin-left: 0; }
     .main-content { padding: 1.5rem; }
 }
 @media (max-width: 600px) {
-    .sidebar { display: none; }
-    .main-content { margin-left: 0; padding: 1rem 1rem 5rem; }
+    /* sidebar — override collapsed-state rules (same specificity, later = wins) */
+    .sidebar,
+    body.sidebar-collapsed .sidebar { display: none; }
+    /* main content — always full-width on mobile regardless of collapsed state */
+    .main-content,
+    body.sidebar-collapsed .main-content { margin-left: 0; padding: 1rem 1rem 5rem; }
     .grid-2, .grid-3, .grid-4, .grid-6 { grid-template-columns: 1fr; }
     .btn { min-height: 44px; }
     .btn-sm { min-height: 36px; padding: 6px 10px; }
@@ -442,6 +449,9 @@ details.expand-section[open] > summary { color: #C084FC; }
     max-width: 380px;
 }
 .login-card h2 { font-size: 1.5rem; color: #E8EAED; margin-bottom: 0.5rem; }
+@media (max-width: 600px) {
+    .login-wrap { align-items: flex-start; padding-top: 12vh; }
+}
 .login-card p { color: #9AA0A6; font-size: 0.88rem; margin-bottom: 1.5rem; }
 .login-card .caption { font-size: 0.78rem; color: #6E6E73; margin-top: 1rem; text-align: center; }
 
