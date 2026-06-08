@@ -4,7 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Nyaya Scribe{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4">
+    <!-- Critical mobile layout: inline so it survives browser CSS cache; !important wins all specificity -->
+    <style>
+    @media (max-width: 600px) {
+        .sidebar { display: none !important; }
+        .main-content {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+            padding: 1rem 1rem 5rem !important;
+        }
+        body.sidebar-collapsed .main-content { margin-left: 0 !important; }
+        .mobile-nav { display: flex !important; }
+    }
+    </style>
     <!-- MathJax: renders $...$ LaTeX inline and $$...$$ display -->
     <script>
         window.MathJax = {
@@ -132,16 +145,18 @@ function toggleSidebar() {
     localStorage.setItem('sc', collapsed ? '1' : '0');
 }
 document.addEventListener('DOMContentLoaded', () => {
-    // Remove skeleton loading state — real content fades in
     document.body.classList.remove('page-loading');
-    // Sidebar collapsed state is desktop-only — never apply on mobile
-    if (window.innerWidth > 600 && localStorage.getItem('sc') === '1') {
+    if (window.innerWidth <= 600) {
+        // Mobile: remove sidebar from DOM entirely — eliminates all margin/layout interference
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.remove();
+        document.body.classList.remove('sidebar-collapsed');
+    } else if (localStorage.getItem('sc') === '1') {
         document.body.classList.add('sidebar-collapsed');
         const btn = document.getElementById('sidebar-toggle-btn');
         if (btn) btn.textContent = '›';
     }
 });
-// Handle orientation change: strip collapsed state if viewport shrinks to mobile
 window.addEventListener('resize', () => {
     if (window.innerWidth <= 600) {
         document.body.classList.remove('sidebar-collapsed');
