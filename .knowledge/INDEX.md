@@ -73,6 +73,7 @@ Last updated: 2026-06-08 (Session 35 continued)
 | [PLAN-013](plans/PLAN-013.md) | 2026-06-06 | S25: nyaya.db — 4th canonical DB for identity+events; Phase 1+2 complete (commit 9a26646) | PHASE 2 COMPLETE |
 | [PLAN-014](plans/PLAN-014.md) | 2026-06-07 | S33: Single-source architecture refactor — kill INSERT OR IGNORE drift, eliminate KEY_SECTIONS/BUCKETS, centralise metadata, English to own DB | PHASES 4+1+2+3+8+9 COMPLETE (S34) |
 | PLAN-015 | 2026-06-08 | S35: Mobile-first UI — bottom tab nav, responsive grids, sidebar DOM removal, full-screen login, CSS-MOB-001 fix | COMPLETE (commit ca37f51) |
+| PLAN-016 | 2026-06-13 | S36: Engagement activation — post-setup routing, smart login, button redesign, first-action cards, nav cleanup | COMPLETE (commit e51b27a) |
 
 ---
 

@@ -1,7 +1,73 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-07 (Session 29 — COMPLETE)
+2026-06-13 (Session 36 — COMPLETE)
+
+---
+
+## Session 36 Summary (2026-06-13) — Production analytics + PLAN-016 Engagement Activation
+
+### What was investigated
+Pulled live production analytics from Railway via `railway ssh "python3 -" << PYEOF`:
+- **95 users** total · **46 completed onboarding** (setup form) · **~0 content engagement** from 44 of those 46
+- RBI Prep: 407 page views (most visited) — yet most RBI users land on IES dashboard on login
+- My Setup: 280 views, 226 `config_changed` events — users ARE engaging, but have no exit CTA
+- ~20 users have ONLY "My Setup" page views: completed setup, found nothing to do, left
+- Answer Review: 25 views, 0 actions — dead end for users with no past answers
+
+### Three root causes confirmed
+1. **Post-setup dead end**: `setup POST → redirect("/setup")` — plan view showed text "Today's Action: Open RBI Prep" with no button. Only CTA was "Update my preferences" (loops back).
+2. **Wrong default landing**: All users land on IES dashboard. RBI-focus users (dominant cohort) see irrelevant content every login.
+3. **Nav dead ends**: Answer Review in nav (useless for new users). No "Start Studying" anywhere.
+
+### What shipped — PLAN-016 (commit e51b27a, 8 files, 104 insertions, 49 deletions)
+
+**`web/blueprints/setup_bp.py`**
+- POST now redirects to primary exam content (`/rbi`, `/dashboard`, or `/upsc`) based on `exam_focus` + `?welcome=1`
+- GET passes `primary_exam_url` derived from stored `exam_focus` to template
+
+**`web/templates/setup.html`**
+- Plan view: "Start Studying →" full-width primary CTA + "⚙️ Change Setup" small secondary
+- Form submit: "Generate My Study Path →" → "Set Up My Plan →"
+
+**`web/app.py`** — `index()` route
+- Smart login routing: if `exam_focus` doesn't include "ies", redirect RBI users → `/rbi`, UPSC → `/upsc`
+- Falls back to `/dashboard` on any exception
+
+**`web/templates/base.html`**
+- Sidebar: "My Plan" → "Study Plan"; Answer Review removed from Track & Account group
+- Mobile bottom nav: UPSC slot → "⚡ Quick Drill" → `/rbi/prep?tab=phase1_drill&mode=smart&start=1`
+- Mobile labels: "IES" → "IES Prep", "RBI" → "RBI Prep"
+- Mobile More sheet: Answer Review removed; "My Plan" → "Study Plan"
+
+**`web/templates/dashboard.html`**
+- `?welcome=1` banner: "You're all set ✓" with green border
+- First Action card (shown when `micro_mcq == 0 and micro_descriptive == 0`): quiz CTA for top focus topic
+- CTA hierarchy: full-width primary "Test Myself — MCQ" + secondary row (Write Answer, Model Answers, Topic Summaries)
+- Model Answers link passes top focus topic params: `?paper=...&topic=...`
+
+**`web/blueprints/dashboard_bp.py`**
+- `_FOCUS_LABEL["UNVISITED"]`: "Begin Study" → "→ Begin Topic"
+
+**`web/templates/rbi_dashboard.html`**
+- `?welcome=1` banner (RBI-specific text)
+- Section reorder: Must-Know Facts moved ABOVE metrics grid (facts always populated; metrics show zeros for new users)
+- "🧠 Priority 1 MCQs — Smart Session" → "🎯 Start RBI Drill"
+- "❓ Priority 2 MCQs" → "📰 Current Affairs Quiz"
+
+**`web/templates/rbi_prep.html`**
+- "🎯 Smart Serve" → "🎯 Auto-Pick (Recommended)"
+- "🔍 Filter" → "🔍 Choose Topic"
+
+### Next session
+1. **Deploy to Railway** — push main branch; verify `?welcome=1` banners + Quick Drill tab on mobile
+2. **Monitor engagement** — check `user_events` after a few days for `drill_attempt` and `return_quiz_submitted` events increasing
+3. **Device tracking (not yet done)** — add `user_agent` to `user_events` table so mobile vs desktop is measurable. Currently only `page_view` events exist with no device column.
+4. **PLAN-014 Phases 5+6+7** (deferred from S34): shared DB helpers, English to own DB, migration audit
+
+### Watch for
+- `index()` smart routing falls back to `/dashboard` for any exception — ensure `g.nyaya_conn` is available at index route (it is — opened in app-level `before_request`)
+- `?welcome=1` banner is purely query-param based — no cookie, so browser back won't re-show it
 
 ---
 
