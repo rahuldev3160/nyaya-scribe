@@ -1,4 +1,3 @@
-import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -12,7 +11,6 @@ from db import get_conn, track_page_time
 upsc_dashboard_bp = Blueprint("upsc_dashboard", __name__)
 
 UPSC_EXAM_ID = "upsc_eco_opt"
-_UPSC_DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
 
 PAPER_LABELS = {
     "upsc_p1": "Paper I · Theory",
@@ -65,25 +63,6 @@ STATE_EMOJI = {
     "VERIFIED": "✓",
     "DECAYING": "↓",
 }
-
-
-@upsc_dashboard_bp.before_request
-def open_upsc():
-    if not _UPSC_DB_PATH.exists():
-        g.upsc_conn = None
-        return
-    c = sqlite3.connect(str(_UPSC_DB_PATH), check_same_thread=False)
-    c.row_factory = sqlite3.Row
-    c.execute("PRAGMA journal_mode=WAL")
-    c.execute("PRAGMA busy_timeout=5000")
-    g.upsc_conn = c
-
-
-@upsc_dashboard_bp.teardown_request
-def close_upsc(exc):
-    c = g.pop("upsc_conn", None)
-    if c:
-        c.close()
 
 
 def _init_user(conn, uid):

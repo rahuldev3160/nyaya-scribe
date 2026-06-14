@@ -7,6 +7,7 @@ data/audio/
 data/ies.db
 data/rbi.db
 data/upsc.db
+data/english.db
 data/answers_batch.txt
 
 # SQLite WAL runtime files (generated at runtime, never committed)

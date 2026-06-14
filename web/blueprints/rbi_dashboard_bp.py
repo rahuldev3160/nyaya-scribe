@@ -1,5 +1,4 @@
 """RBI Dashboard blueprint — GET /rbi"""
-import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -13,7 +12,6 @@ from db import get_conn, track_page_time
 rbi_dashboard_bp = Blueprint("rbi_dashboard", __name__)
 
 RBI_DATE = "2026-06-14"
-_RBI_DB_PATH = Path(__file__).parent.parent.parent / "data" / "rbi.db"
 
 SUBJECT_LABELS = {
     "macro": "Macroeconomics",
@@ -26,25 +24,6 @@ SUBJECT_LABELS = {
     "rbi_banking": "RBI / Banking",
     "indian_econ": "Indian Economy",
 }
-
-
-@rbi_dashboard_bp.before_request
-def open_rbi():
-    if not _RBI_DB_PATH.exists():
-        g.rbi_conn = None
-        return
-    c = sqlite3.connect(str(_RBI_DB_PATH), check_same_thread=False)
-    c.row_factory = sqlite3.Row
-    c.execute("PRAGMA journal_mode=WAL")
-    c.execute("PRAGMA busy_timeout=5000")
-    g.rbi_conn = c
-
-
-@rbi_dashboard_bp.teardown_request
-def close_rbi(exc):
-    c = g.pop("rbi_conn", None)
-    if c:
-        c.close()
 
 
 @rbi_dashboard_bp.route("/rbi")

@@ -79,7 +79,7 @@ def _ensure_types_seeded(conn):
 @english_bp.route("/english/dashboard", methods=["GET"])
 @login_required
 def english_dashboard():
-    conn = get_conn()
+    conn = g.english_conn if g.english_conn else get_conn()
     user_id = g.user_id
     track_page_time(conn, "English Dashboard")
 
@@ -162,7 +162,7 @@ def english_dashboard():
 @english_bp.route("/practice/english", methods=["GET"])
 @login_required
 def english_page():
-    conn = get_conn()
+    conn = g.english_conn if g.english_conn else get_conn()
     user_id = g.user_id
     track_page_time(conn, "English Practice")
 
@@ -238,7 +238,7 @@ def english_page():
 @english_bp.route("/practice/english/score", methods=["POST"])
 @login_required
 def english_score():
-    conn = get_conn()
+    conn = g.english_conn if g.english_conn else get_conn()
     curr_type = request.form.get("type_id", "essay")
     curr_qid = request.form.get("qid", "")
     intro = request.form.get("intro", "").strip()

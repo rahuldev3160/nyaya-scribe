@@ -16,28 +16,6 @@ from db import get_user_id, log_event, track_page_time
 rbi_prep_bp = Blueprint("rbi_prep", __name__)
 
 RBI_DATE = "2026-06-14"
-_DB_PATH = Path(__file__).parent.parent.parent / "data" / "rbi.db"
-
-
-# ── DB lifecycle ───────────────────────────────────────────────────────────────
-
-@rbi_prep_bp.before_request
-def open_rbi_db():
-    if not _DB_PATH.exists():
-        g.rbi_conn = None
-        return
-    conn = sqlite3.connect(str(_DB_PATH), check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=5000")
-    g.rbi_conn = conn
-
-
-@rbi_prep_bp.teardown_request
-def close_rbi_db(exc):
-    conn = g.pop("rbi_conn", None)
-    if conn:
-        conn.close()
 
 
 # ── Countdown helper ───────────────────────────────────────────────────────────

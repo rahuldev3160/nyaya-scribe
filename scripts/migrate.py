@@ -14,14 +14,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 DB_PATHS = {
-    "ies":  ROOT / "data" / "ies.db",
-    "rbi":  ROOT / "data" / "rbi.db",
-    "upsc": ROOT / "data" / "upsc.db",
-    "nyaya": ROOT / "data" / "nyaya.db",
+    "ies":     ROOT / "data" / "ies.db",
+    "rbi":     ROOT / "data" / "rbi.db",
+    "upsc":    ROOT / "data" / "upsc.db",
+    "nyaya":   ROOT / "data" / "nyaya.db",
+    "english": ROOT / "data" / "english.db",
 }
 
 # DBs created on first migration run (no seed file needed)
-BOOTSTRAP_DBS = {"nyaya"}
+BOOTSTRAP_DBS = {"nyaya", "english"}
 MIGRATIONS_DIR = ROOT / "migrations"
 
 
@@ -92,6 +93,23 @@ def main() -> None:
             if c:
                 c.close()
         sys.exit(1)
+
+    # Phase 7 deploy check: warn if any DB has fewer applied migrations than files targeting it
+    file_counts: dict[str, int] = {}
+    for path in migration_files:
+        spec2 = importlib.util.spec_from_file_location(path.stem, path)
+        mod2 = importlib.util.module_from_spec(spec2)
+        spec2.loader.exec_module(mod2)
+        db_key2 = getattr(mod2, "DB", "ies")
+        file_counts[db_key2] = file_counts.get(db_key2, 0) + 1
+
+    for db_key2, expected in file_counts.items():
+        applied_count = len(done.get(db_key2, set()))
+        if applied_count < expected:
+            print(
+                f"migrate: WARNING — {db_key2}: {applied_count}/{expected} migrations applied",
+                file=sys.stderr,
+            )
 
     for c in conns.values():
         if c:

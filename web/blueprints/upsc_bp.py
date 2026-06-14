@@ -1,6 +1,5 @@
 """UPSC blueprint — /upsc/mains"""
 import json
-import sqlite3
 import sys
 from pathlib import Path
 
@@ -11,32 +10,12 @@ from auth import login_required
 
 upsc_bp = Blueprint("upsc", __name__)
 
-_DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
 _EXAM_ID = "upsc_eco_opt"
 
 _PAPER_LABELS = {
     "upsc_p1": "Paper I — Theory",
     "upsc_p2": "Paper II — Indian Economy",
 }
-
-
-@upsc_bp.before_request
-def open_upsc_db():
-    if not _DB_PATH.exists():
-        g.upsc_conn = None
-        return
-    conn = sqlite3.connect(str(_DB_PATH), check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=5000")
-    g.upsc_conn = conn
-
-
-@upsc_bp.teardown_request
-def close_upsc_db(exc):
-    conn = g.pop("upsc_conn", None)
-    if conn:
-        conn.close()
 
 
 def _jl(s) -> list:

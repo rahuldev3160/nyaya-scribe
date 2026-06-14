@@ -1,3 +1,4 @@
+# IES-specific helpers — for RBI use rbi_db.py, for UPSC use upsc_db.py
 """Shared DB helpers — works in Flask request context and standalone scripts."""
 import json
 import os
@@ -127,6 +128,14 @@ def init_user(conn, user_id: str) -> None:
     conn.commit()
 
 
+def _get_user_agent() -> str | None:
+    try:
+        from flask import request as flask_request
+        return flask_request.user_agent.string or None
+    except RuntimeError:
+        return None
+
+
 def log_event(event_type: str, entity_type: str | None = None,
               entity_id: str | None = None, exam_id: str | None = None,
               payload: dict | None = None) -> None:
@@ -144,10 +153,10 @@ def log_event(event_type: str, entity_type: str | None = None,
         nc = get_nyaya_conn()
         nc.execute(
             """INSERT INTO user_events
-               (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload)
-               VALUES (?,?,?,?,?,?,?)""",
+               (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload, user_agent)
+               VALUES (?,?,?,?,?,?,?,?)""",
             (uid, session_id, event_type, entity_type, entity_id, exam_id,
-             json.dumps(payload) if payload else None)
+             json.dumps(payload) if payload else None, _get_user_agent())
         )
         nc.commit()
     except Exception:
@@ -159,12 +168,14 @@ def track_page_time(conn, page_name: str, exam_id: str | None = None) -> None:
     if not uid:
         return
     try:
-        from flask import g as flask_g, session as flask_session
+        from flask import g as flask_g, session as flask_session, request as flask_request
         elapsed = int(time.time() - getattr(flask_g, "request_start", time.time()))
         session_id = flask_session.get("session_id") or uid
+        ua = flask_request.user_agent.string or None
     except RuntimeError:
         elapsed = None
         session_id = uid
+        ua = None
     payload = json.dumps({"duration_s": elapsed}) if elapsed is not None else None
 
     def _write():
@@ -172,9 +183,9 @@ def track_page_time(conn, page_name: str, exam_id: str | None = None) -> None:
             nc = _open_nyaya_conn()
             nc.execute(
                 """INSERT INTO user_events
-                   (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload)
-                   VALUES (?,?,?,?,?,?,?)""",
-                (uid, session_id, "page_view", "page", page_name, exam_id, payload),
+                   (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload, user_agent)
+                   VALUES (?,?,?,?,?,?,?,?)""",
+                (uid, session_id, "page_view", "page", page_name, exam_id, payload, ua),
             )
             nc.commit()
             nc.close()
