@@ -1,6 +1,6 @@
 # MASTER_INDEX — Descriptive Exams (Nyaya Scribe)
 Created: 2026-06-16 (Session 39)
-Updated: 2026-06-16 (Session 40)
+Updated: 2026-06-16 (Session 41)
 
 ---
 
@@ -32,6 +32,11 @@ Updated: 2026-06-16 (Session 40)
 | DECIDE-15 | Photo evaluation (handwritten → Claude Vision OCR + eval) built in Phase 2 alongside freemium | Biggest moat vs SuperKalam/Prayas.ai (UPSC is pen-paper exam); premium feature, natural pairing | Next session separate sprint | Planned route: POST /practice/submit-photo |
 | DECIDE-16 | Current quiz has NO live AI evaluation; submit stores answer, user self-compares vs model answer | Discovery during audit: scores_json/weighted_score columns exist but never populated in web routes | Assumed AI eval was already live | web/blueprints/ies_quiz_bp.py (quiz_submit writes no AI score) |
 | DECIDE-17 | cache.db (cross-exam stats aggregation) deferred to Phase 1 | Not needed until dashboard readiness score is built; Phase 0 is foundation only | Build cache.db in Phase 0 | Planned: data/cache.db migration m038 |
+| DECIDE-18 | `self_rating` is TEXT ('got_it'/'partial'/'missed'), not numeric — all SQL must use CASE expression | SQLite silently coerces TEXT * 2.0 → 0; discovered S41 when readiness scores were always 0 | Use `self_rating * 2.0` (returns 0) | web/db.py, dashboard_bp.py, upsc_dashboard_bp.py, compute_inferred_states.py |
+| DECIDE-19 | `inferred_state` uses canonical gap_states taxonomy (UNVISITED/FLAGGED/IN_STUDY/VERIFIED/DECAYING) | Planning agent caught mismatch before code shipped; non-canonical values (READY/CRUNCH/SHAKY) have no display map | Separate inferred taxonomy with its own display map | compute_inferred_states.py infer_state() |
+| DECIDE-20 | Phase 2a = text AI scoring only; photo eval deferred to Phase 2b | Prevents 3-feature session that ships none cleanly; photo eval needs Pillow + new blueprint | Build photo + text scoring together in Phase 2 | ies_quiz_bp.py (Phase 2a done); photo_eval_bp.py (pending Phase 2b) |
+| DECIDE-21 | AI scoring uses `claude-haiku-4-5-20251001` (not Sonnet) | Fastest, cheapest, sufficient for structured tool-use 5-dimension scoring; Sonnet overkill at 15 free evals/month | claude-sonnet-4-6 for quality | web/blueprints/ies_quiz_bp.py _score_answer() |
+| DECIDE-22 | `can_use_feature(user_id, gate_id)` wraps has_feature + quota check — the atomic gate call | has_feature() checks boolean only; quota enforcement was missing entirely (planning agent caught this) | Check has_feature + get_monthly_usage inline at each callsite | web/db.py can_use_feature() |
 
 ---
 
@@ -45,7 +50,8 @@ Updated: 2026-06-16 (Session 40)
 | SCHEMA-04 | gs4_keywords — 123 canonical ethics keywords + 430 synonym expansions | upsc_gs.db | setup_upsc_gs.py seed | categories: core_value/ethical_theory/governance_ethics/etc. |
 | SCHEMA-05 | pyq_questions — 221 rows seeded (GS4: 93, GS1: 62, GS2: 29, GS3: 37) | upsc_gs.db | scripts/seed_upsc_gs_pyqs.py | GS1-3 coverage gap; needs official PDFs |
 | SCHEMA-06 | feature_gates + user_feature_overrides + user_feature_usage — freemium gating tables | nyaya.db | m035_feature_gates.py | 5 gates seeded; admin toggles is_enabled_for_free/quota_free without redeploy |
-| SCHEMA-07 | gap_states.inferred_state + gap_states.inferred_at — implicit tracking columns | ies.db, upsc.db | m036, m037 | Replaces manual state; populated by compute_inferred_states.py batch script (not yet written) |
+| SCHEMA-07 | gap_states.inferred_state + gap_states.inferred_at — implicit tracking columns | ies.db, upsc.db | m036, m037 | Populated by compute_inferred_states.py (written S41); canonical taxonomy UNVISITED/FLAGGED/IN_STUDY/VERIFIED/DECAYING |
+| SCHEMA-08 | descriptive_attempts.scores_json (TEXT) + weighted_score (REAL) — AI evaluation output | ies.db | In original CREATE TABLE (no dedicated migration) | Populated by _score_answer() in ies_quiz_bp.py since S41; format: {dimensions:{5 keys}, weighted_score, feedback, model} |
 
 ---
 
@@ -67,7 +73,7 @@ Updated: 2026-06-16 (Session 40)
 | METHOD-03 | Migration variable: `DB = "db_key"` (not TARGET_DB, not db_name) | scripts/migrate.py | migrate.py reads `getattr(mod, "DB", "ies")` — wrong name → defaults to ies silently |
 | METHOD-04 | PYQ ingestion: parse → JSON cache → seed (3-step idempotent) | scripts/parse_mrunal_pyqs.py + seed | Cache JSONs in data/cache/; re-run seed is safe (INSERT OR IGNORE + question_hash UNIQUE) |
 | METHOD-05 | has_feature(user_id, gate_id) — freemium gate check | web/db.py | Checks subscription_tier + user_feature_overrides; returns True if tables missing (safe during migration) |
-| METHOD-06 | Implicit state inference rules: UNVISITED=0 attempts, LEARNING=avg<5, PARTIAL=5-7, MASTERED=≥2+avg≥7+≤14d, DECAYING=was MASTERED+>14d gap | .knowledge/plans/UI-REDESIGN-001.md | Computed by batch script compute_inferred_states.py (to be written Phase 1) |
+| METHOD-06 | Implicit state inference rules: UNVISITED=0 attempts, FLAGGED=avg<4, IN_STUDY=avg 4–6.9, VERIFIED=avg≥7+recent(<14d), DECAYING=avg≥5+old(>14d) | scripts/compute_inferred_states.py infer_state() | Canonical taxonomy matches gap_states.state CHECK constraint; self_rating mapped via CASE ('got_it'→8, 'partial'→5, 'missed'→2) |
 
 ---
 
