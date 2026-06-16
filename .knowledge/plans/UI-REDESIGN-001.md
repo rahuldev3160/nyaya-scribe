@@ -1,6 +1,6 @@
-# UI-REDESIGN-001 — Clean Navigation & Noise Reduction
-**Date:** 2026-06-16
-**Status:** PHASE 1 COMPLETE (S39) — Items 1,2,4,5,6,7,9,10,12,13,15 implemented; Items 3 (GS toggle), 8 (ref-tools position), 11 (English Insights tab) pending
+# UI-REDESIGN-001 — Nyaya Scribe Product Redesign (formerly: Clean Navigation & Noise Reduction)
+**Date:** 2026-06-16 (S39 original) → EXPANDED S40
+**Status:** PHASE 0 COMPLETE (S40, commit afe431e) — Phase 1 next
 **Scope:** Cross-exam UI audit: reduce visual noise, flatten navigation flow, add UPSC GS toggle, equalize all four exam tabs, remove dead/pro-gated routes
 
 ---
@@ -266,3 +266,48 @@ Priority order for a single session:
 10. Add UPSC GS toggle stub (change 3 — 1 session, depends on PLAN-017 implementation)
 
 Changes 11–14 can wait until a polish pass.
+
+---
+
+## S40 Expansion: Full Product Redesign
+
+### Product Decisions Locked (S40)
+- **Tracking:** Implicit only — behavior inferred, no manual buttons
+- **Core value props:** All 4 (AI scoring, PYQ priority, MCQ drill, model answers + rubrics)
+- **Template exam:** UPSC GS Mains → replicate to IES/RBI/Eco Opt
+- **Freemium:** Partial-free: model answers 2022-2024 free, pre-2022 premium; 15 AI evals/month free
+- **Photo eval:** Handwritten → Claude Vision, Phase 2 this session
+
+### Phase 0 Complete (afe431e)
+- m035: feature_gates + user_feature_overrides + user_feature_usage (nyaya.db)
+- m036/m037: inferred_state + inferred_at on gap_states (ies.db, upsc.db)
+- has_feature() + get_monthly_usage() + increment_feature_usage() in web/db.py
+- Removed all manual state buttons (dashboard.html, upsc_dashboard.html)
+- Removed Got It/Partial/Missed from ies_quiz.html
+- Added live word count bar to ies_quiz.html
+- Added "View Model Answer" collapsible before submission (note-taker mode)
+- Removed state badges, state_summary sections, self-rating column from templates
+
+### Phase 1 — Core UX (PENDING)
+1. Dashboard: single recommended question card + behavior-inferred readiness + exam countdown
+2. scripts/compute_inferred_states.py batch script
+3. Topic browser: attempt count + avg score + "Refresh recommended" color coding
+4. Backport word count bar + model answer panel to UPSC/RBI quiz templates
+
+### Phase 2 — Freemium + Photo Eval (PENDING)
+1. Claude API evaluation on submit (premium gate via has_feature('ai_scoring'))
+2. 5-dimension rubric breakdown display in feedback screen
+3. POST /practice/submit-photo: PIL compress → Claude Vision OCR + eval
+4. Upgrade prompt component (Jinja2 macro) + /upgrade route
+5. Monthly quota tracking via increment_feature_usage()
+
+### Phase 3 — Public Launch Basics (FUTURE SESSION)
+1. Fix feedback_bp.py privacy (filter own submissions only)
+2. Admin skeleton (/admin/flags, /admin/users, /admin/feedback)
+3. Exam selector on first login
+4. Rate limiting (Flask-Limiter on submit routes)
+
+### Key Discovery (S40)
+The current quiz has NO live AI evaluation. Submit stores answer text only.
+User self-compares vs model answer (self-rating buttons now removed).
+AI evaluation is a new premium feature to build in Phase 2.
