@@ -8,11 +8,22 @@ data/ies.db
 data/rbi.db
 data/upsc.db
 data/english.db
+data/nyaya.db
+data/upsc_gs.db
 data/answers_batch.txt
 
 # SQLite WAL runtime files (generated at runtime, never committed)
 data/*.db-shm
 data/*.db-wal
+seeds/*.db-shm
+seeds/*.db-wal
+
+# Ephemeral / intermediate files
+docs/SESSION_CLOSE.json
+data/cache/
+cache/
+logs/
+.claude/worktrees/
 
 # API batch job IDs
 exports/answers_batch.txt

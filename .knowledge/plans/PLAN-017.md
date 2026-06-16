@@ -1,6 +1,20 @@
 # PLAN-017 — UPSC GS Mains Expansion
-**Date:** 2026-06-16 (Session 38)
-**Status:** PLANNING COMPLETE — implementation not yet started
+**Date:** 2026-06-16 (Session 38–39)
+**Status:** PHASE 1 COMPLETE (S39) — Phase 2 PYQ ingestion in progress
+
+### Phase 1 Completion Record (S39 — 2026-06-16)
+- migrations/m026–m034 applied to data/upsc_gs.db ✅
+  - m034: widened gs4_keywords.keyword_category CHECK constraint (was 7 values, now covers full taxonomy)
+- scripts/setup_upsc_gs.py: seeded 15 GS4 thinkers + 123 canonical keywords + 430 synonym expansions ✅
+- web/upsc_gs_db.py ✅ | web/app.py upsc_gs_conn plumbing ✅ | scripts/migrate.py ✅
+- config/topics_upsc_gs.json: 33 L1 + 131 L2 topics ✅
+- Confirmed DB counts: 41 tables, 4 exam configs, 163 topics, 6 ethical frameworks seeded ✅
+
+### Phase 2: PYQ Ingestion (PARTIAL — S39)
+Scripts written + fixed: scripts/fetch_upsc_gs_pdfs.py, parse_upsc_gs_pdfs.py, parse_mrunal_pyqs.py, seed_upsc_gs_pyqs.py ✅
+Seeded: 221 questions (GS4: 93 ✅, GS1: 62, GS2: 29, GS3: 37)
+Coverage gap: GS1-3 missing several years — Mrunal pages are topic samples not year banks
+**To complete Phase 2**: Download official UPSC PDFs manually from upsc.gov.in → drop in data/cache/upsc_gs_pdfs/ → run parse_upsc_gs_pdfs.py + seed_upsc_gs_pyqs.py
 **Scope:** New `upsc_gs.db` covering all 4 UPSC Mains GS papers + Ethics keyword index + cross-subject linking + CA integration
 
 ---

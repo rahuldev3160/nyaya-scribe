@@ -234,4 +234,4 @@ def upsc_topic_state(topic_id):
         ).fetchone() if g.upsc_conn else None
         paper_param = f"&paper={paper_row['paper_id']}" if paper_row else ""
         return redirect(url_for("upsc.mains") + f"?topic={topic_id}{paper_param}")
-    return redirect(url_for("upsc_dashboard.upsc_dashboard_page") + "#topics")
+    return redirect(url_for("upsc_dashboard.upsc_dashboard_page") + "#upsc-papers")

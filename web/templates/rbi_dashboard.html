@@ -151,30 +151,17 @@
 
 </div>
 
-<!-- ── Metrics grid ───────────────────────────────────────────────────────── -->
-<div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
-  <div class="gem-card" style="flex:1;min-width:90px;text-align:center;">
+<!-- ── Phase 1 drill metrics (unique to this section — Mastery/Readiness shown in My Progress above) -->
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
     <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ answered_p1 }}</div>
     <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">P1 Answered</div>
     <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ p1_pct }}% of {{ total_p1 }}</div>
   </div>
-  <div class="gem-card" style="flex:1;min-width:90px;text-align:center;border-color:{{ acc_color }}33;">
+  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;border-color:{{ acc_color }}33;">
     <div style="font-size:2rem;font-weight:700;color:{{ acc_color }};">{{ (accuracy * 100)|round|int }}%</div>
     <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">P1 Accuracy</div>
     <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ total_correct }}/{{ total_attempts }}</div>
-  </div>
-  <div class="gem-card" style="flex:1;min-width:90px;text-align:center;border-color:{{ r_color }}33;">
-    <div style="font-size:2rem;font-weight:700;color:{{ r_color }};">{{ (formula_score * 100)|round|int }}%</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Mastery</div>
-  </div>
-  <div class="gem-card" style="flex:1;min-width:90px;text-align:center;border-color:{{ tr_color }}33;">
-    <div style="font-size:2rem;font-weight:700;color:{{ tr_color }};">{{ (true_readiness * 100)|round|int }}%</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Readiness</div>
-  </div>
-  <div class="gem-card" style="flex:1;min-width:90px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#C084FC;">{{ well_covered }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Topics ≥50%</div>
-    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">of {{ total_topics }}</div>
   </div>
 </div>
 

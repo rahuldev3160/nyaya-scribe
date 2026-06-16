@@ -53,22 +53,6 @@
 </div>
 
 <!-- ── Primary actions ─────────────────────────────────────────────────────── -->
-{% if micro_mcq == 0 and micro_descriptive == 0 %}
-<div class="gem-card" style="border:1px solid rgba(138,180,248,0.4);margin-bottom:20px;">
-  <div style="color:#8AB4F8;font-weight:700;margin-bottom:8px;">👋 Start here</div>
-  <div style="color:#E8EAED;margin-bottom:12px;font-size:0.92rem;">Take a quick 5-question quiz on your top priority topic to see where you stand.</div>
-  {% if focus_topics %}
-  <a href="/ies/return-quiz?paper={{ focus_topics[0].paper_id }}&amp;topic={{ focus_topics[0].topic_id }}"
-     class="btn btn-primary" style="width:100%;padding:12px 20px;font-size:0.95rem;font-weight:700;">
-    📋 Test Myself on {{ focus_topics[0].topic_id | replace('_', ' ') | title }} →
-  </a>
-  {% else %}
-  <a href="/ies/return-quiz" class="btn btn-primary" style="width:100%;padding:12px 20px;font-size:0.95rem;font-weight:700;">
-    📋 Test Myself →
-  </a>
-  {% endif %}
-</div>
-{% endif %}
 <a href="/ies/return-quiz" class="btn btn-primary"
    style="display:block;width:100%;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;margin-bottom:10px;box-sizing:border-box;">
   📋 Test Myself — MCQ
@@ -226,12 +210,6 @@
                 style="width:100%;" {% if t._state == 'VERIFIED' %}disabled{% endif %}>
           Verify
         </button>
-      </form>
-      <!-- Reset button -->
-      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state">
-        <input type="hidden" name="state" value="UNVISITED">
-        <input type="hidden" name="trigger" value="ui_reset">
-        <button type="submit" class="btn btn-sm btn-danger" style="width:100%;">Reset</button>
       </form>
     </div>
     {% endfor %}

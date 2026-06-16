@@ -43,7 +43,7 @@
 {% if current_user_id %}
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-title">
-        📚 <span class="nav-text">Exam Prep</span>
+        📚 <span class="nav-text">Nyaya Scribe</span>
         <button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse sidebar">‹</button>
     </div>
 
@@ -58,10 +58,10 @@
     <div class="nav-group">
         <div class="nav-group-label nav-text">Track &amp; Account</div>
         <a href="/progress"         class="nav-link {% if active_page == 'progress' %}active{% endif %}">📈 <span class="nav-text">My Progress</span></a>
-        <a href="/feedback"         class="nav-link {% if active_page == 'feedback' %}active{% endif %}">💬 <span class="nav-text">Feedback</span></a>
-        <a href="/setup"            class="nav-link {% if active_page == 'setup' %}active{% endif %}">📋 <span class="nav-text">Study Plan</span></a>
         <a href="/profile"          class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 <span class="nav-text">Profile</span></a>
         <a href="/auth/logout"      class="nav-link">🚪 <span class="nav-text">Sign Out</span></a>
+        <a href="/setup"            class="nav-link {% if active_page == 'setup' %}active{% endif %}" style="font-size:0.75rem;opacity:0.7;">📋 <span class="nav-text">Redo Study Plan</span></a>
+        <a href="/feedback"         class="nav-link {% if active_page == 'feedback' %}active{% endif %}" style="font-size:0.75rem;opacity:0.7;">💬 <span class="nav-text">Send Feedback</span></a>
     </div>
 </nav>
 {% endif %}
@@ -92,9 +92,9 @@
         <span class="mobile-nav-icon">🏦</span>
         <span class="mobile-nav-label">RBI Prep</span>
     </a>
-    <a href="/rbi/prep?tab=phase1_drill&amp;mode=smart&amp;start=1" class="mobile-nav-item">
-        <span class="mobile-nav-icon">⚡</span>
-        <span class="mobile-nav-label">Quick Drill</span>
+    <a href="/upsc" class="mobile-nav-item {% if active_page in ['upsc_dashboard','upsc_mains'] %}active{% endif %}">
+        <span class="mobile-nav-icon">🎓</span>
+        <span class="mobile-nav-label">UPSC</span>
     </a>
     <a href="/progress" class="mobile-nav-item {% if active_page == 'progress' %}active{% endif %}">
         <span class="mobile-nav-icon">📈</span>
@@ -111,6 +111,7 @@
     <div class="mobile-more-sheet" onclick="event.stopPropagation()">
         <div class="mobile-more-title">More</div>
         <a href="/english/dashboard" class="mobile-more-item {% if active_page == 'english_dashboard' %}active{% endif %}">✏️ English</a>
+        <a href="/rbi/prep?tab=phase1_drill&amp;mode=smart&amp;start=1" class="mobile-more-item">⚡ Quick Drill</a>
         <a href="/feedback"          class="mobile-more-item {% if active_page == 'feedback' %}active{% endif %}">💬 Feedback</a>
         <a href="/setup"             class="mobile-more-item {% if active_page == 'setup' %}active{% endif %}">📋 Study Plan</a>
         <a href="/profile"           class="mobile-more-item {% if active_page == 'profile' %}active{% endif %}">👤 Profile</a>

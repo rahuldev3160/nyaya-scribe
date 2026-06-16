@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-16 (Session 38)
+Last updated: 2026-06-16 (Session 39)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -74,7 +74,8 @@ Last updated: 2026-06-16 (Session 38)
 | [PLAN-014](plans/PLAN-014.md) | 2026-06-07 | S33: Single-source architecture refactor — kill INSERT OR IGNORE drift, eliminate KEY_SECTIONS/BUCKETS, centralise metadata, English to own DB | ALL PHASES COMPLETE (S37 — commit bc90ab4) |
 | PLAN-015 | 2026-06-08 | S35: Mobile-first UI — bottom tab nav, responsive grids, sidebar DOM removal, full-screen login, CSS-MOB-001 fix | COMPLETE (commit ca37f51) |
 | PLAN-016 | 2026-06-13 | S36: Engagement activation — post-setup routing, smart login, button redesign, first-action cards, nav cleanup | COMPLETE (commit e51b27a) |
-| [PLAN-017](plans/PLAN-017.md) | 2026-06-16 | S38: UPSC GS Mains expansion — upsc_gs.db, all 4 GS papers, Ethics keyword index, CA integration, cross-paper linking | PLANNING COMPLETE — implementation not started |
+| [PLAN-017](plans/PLAN-017.md) | 2026-06-16 | S38: UPSC GS Mains expansion — upsc_gs.db, all 4 GS papers, Ethics keyword index, CA integration, cross-paper linking | PHASE 1 COMPLETE (S39) — Phase 2 PYQ ingestion in progress |
+| UI-REDESIGN-001 | 2026-06-16 | S39: All-exam UI cleanup — better visual grouping, noise removal, guide users to main content | PLANNING (S39) |
 
 ---
 

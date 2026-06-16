@@ -11,8 +11,8 @@
 
 <!-- Header -->
 <div style="margin-bottom: 1.75rem;">
-  <h1 style="font-size: 1.5rem; font-weight: 700; color: #E8EAED; margin-bottom: 4px;">UPSC Eco Optional</h1>
-  <div style="font-size: 0.85rem; color: #9AA0A6;">Mains 2026 · August 22 · GS Paper + Optional</div>
+  <h2 style="font-size: 1.5rem; font-weight: 700; color: #E8EAED; margin-bottom: 4px;">🎓 UPSC Mains Dashboard</h2>
+  <div style="font-size: 0.85rem; color: #9AA0A6;">Mains 2026 · August 22 · Economics Optional</div>
 </div>
 
 <!-- Metric row: 5 cols -->
@@ -54,7 +54,7 @@
 </div>
 
 <!-- Paper tabs -->
-<div id="upsc-papers" style="margin-bottom: 2rem;" id="topics">
+<div id="upsc-papers" style="margin-bottom: 2rem;">
   <div class="tab-bar">
     {% for paper in papers_data %}
     <button class="tab-btn {% if loop.first %}active{% endif %}"
@@ -131,10 +131,6 @@
             </button>
           </form>
 
-          <form method="POST" action="/upsc/topics/{{ t.topic_id }}/state" style="display:inline;">
-            <input type="hidden" name="new_state" value="UNVISITED">
-            <button type="submit" class="btn btn-sm btn-danger">Reset</button>
-          </form>
         </div>
 
       </div>

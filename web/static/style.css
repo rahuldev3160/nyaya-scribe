@@ -507,7 +507,7 @@ body.page-loading .dashboard-content  { opacity: 0; height: 0; overflow: hidden;
 /* ── Topic table row ─────────────────────────────────────────── */
 .topic-row {
     display: grid;
-    grid-template-columns: 4fr 2fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 4fr 2fr 1fr 1fr 1fr;
     gap: 8px;
     align-items: center;
     padding: 8px 0;
@@ -515,7 +515,7 @@ body.page-loading .dashboard-content  { opacity: 0; height: 0; overflow: hidden;
 }
 @media (max-width: 600px) {
     .topic-row {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 6px;
         padding: 12px 0;
     }
