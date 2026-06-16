@@ -1,10 +1,67 @@
 # HANDOFF — Nyaya Scribe / Descriptive Exams
 
-Last updated: 2026-06-14 (Session 37)
+Last updated: 2026-06-16 (Session 38)
 
 ---
 
+## S38 — What was done
+
+**Pure planning session. No code written.**
+
+### UPSC GS Mains expansion — PLAN-017 complete
+
+6 parallel sub-agents researched all 4 GS papers (GS1 History/Geo/Culture/Society, GS2 Polity/Governance/IR, GS3 Economy/Environment/Tech/Security, GS4 Ethics/Integrity/Aptitude). Full plan written to `.knowledge/plans/PLAN-017.md`.
+
+**Architecture decision:** New `upsc_gs.db` (not expanding `upsc.db`). `exam_id='upsc_gs_mains'`, `paper_id` values: gs1/gs2/gs3/gs4. New Flask connection `g.upsc_gs_conn` + `web/upsc_gs_db.py`. Three new blueprints: `gs_dashboard_bp`, `gs_quiz_bp`, `gs4_ethics_bp`. GS accessed under UPSC nav tab (toggle EO / GS Mains) — no 5th tab (CSS-MOB-001).
+
+**Content pipeline:** ~935 PYQs across 4 papers. Migrations m020-m026. AI cost estimate ~$4.54 ($9-10 with buffer). Sources confirmed: 2019-2024 from upsc.gov.in (text PDFs), 2013-2018 from Mrunal.org.
+
+**Key decisions:**
+- GS4 Ethics: concept frequency not question recurrence for w1; concept dependency graph; 3-tier mastery (Tier 3 mini case study mandatory for VERIFIED); self-assess only (no AI descriptive scoring)
+- Disaster Management: `floor_priority=0.40` + `w5=0.40` (section_weight_overrides table) — only 16 PYQs in 12 years
+- GS3 Economy / Economics Optional: `eco_opt_bridges` table; Python-merge (SYNC-001 pattern); no priority transfer from opt mastery
+- IR model answers: 180-day auto-stale; pending legislation stale in 30d
+- GS3 Economy model answers: placeholder tokens (`[FISCAL_DEFICIT_FY26]`) filled at render from `economic_indicators` table
+- 2013-2018 OCR: pdftotext first → pytesseract fallback if <50 words/page
+- Technology recurrence: scored at L2 level (policy structure), not L3 (specific missions)
+- Cross-paper linking: 9 link types, 30 critical links; materialised in `bridge_topic_scores`
+- Ethics thinkers top 5: Gandhi(0.97), Vivekananda(0.93), Kant(0.90), Aristotle(0.88), Ambedkar(0.88)
+- Taxonomy: GS1 9L1/47L2/182L3; GS2 7L1/40L2/145L3; GS3 7L1/42L2/148L3; GS4 6L1/42 concepts
+
+---
+
+## Current DB connection map
+
+| Flask var | File | Contents |
+|---|---|---|
+| `g.conn` | `data/ies.db` | IES questions, rubrics, model answers, attempts, mastery |
+| `g.rbi_conn` | `data/rbi.db` | RBI MCQs, attempts, gap state |
+| `g.upsc_conn` | `data/upsc.db` | UPSC Economics Optional questions, rubrics, model answers, attempts |
+| `g.nyaya_conn` | `data/nyaya.db` | users, sessions, user_events (identity + events) |
+| `g.english_conn` | `data/english.db` | English question types, questions, keywords, attempts |
+| `g.upsc_gs_conn` | `data/upsc_gs.db` | **PENDING** — GS Mains: all 4 papers questions, rubrics, model answers, ethics concepts |
+
+---
+
+## S38 — Exact next step
+
+**Start implementation of PLAN-017 Phase 1:**
+
+1. Write `web/upsc_gs_db.py` — copy `web/upsc_db.py` exactly, swap all `upsc` references to `upsc_gs`
+2. Write `migrations/m020_upsc_gs_core_tables.py` — creates `topics`, `pyq_questions`, `model_answers`, `question_rubrics`, `gap_states`, `gap_state_events`, `user_mastery`, `return_quiz_questions`, `descriptive_attempts`, `topic_base_scores`, `_migrations` with the GS-specific ALTER TABLE additions from PLAN-017
+3. Add `"upsc_gs"` to `scripts/migrate.py` → DB_PATHS
+4. Add `g.upsc_gs_conn` open/close to `web/app.py` before_request + teardown_appcontext
+5. Write `scripts/setup_upsc_gs.py` to create seed DB with taxonomy
+
+Full implementation order and file list in `.knowledge/plans/PLAN-017.md`.
+
+---
+
+## Previous sessions
+
 ## S37 — What was done
+
+**RBI DEPR exam day. IES June 19-21 (5 days away).**
 
 **RBI DEPR exam day. IES June 19-21 (5 days away).**
 
