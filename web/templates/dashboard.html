@@ -15,28 +15,47 @@
 </div>
 <script>if(sessionStorage.getItem('setup_dismissed')==='1')document.getElementById('setup-banner').style.display='none';</script>
 {% endif %}
-<!-- ── Header metrics ─────────────────────────────────────────────────────── -->
-<div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
-  <div style="flex:3;min-width:200px;">
-    <h2 style="margin-bottom:4px;">📚 IES 2026 Study Dashboard</h2>
-    <span style="color:#9AA0A6;font-size:0.85rem;">Exam 19–21 June 2026 · GE-01 to GE-04</span>
+<!-- ── Page title ─────────────────────────────────────────────────────────── -->
+<div style="margin-bottom:16px;">
+  <h2 style="margin-bottom:4px;">📚 IES 2026 Study Dashboard</h2>
+  <span style="color:#9AA0A6;font-size:0.85rem;">Exam 19–21 June 2026 · GE-01 to GE-04</span>
+</div>
+
+<!-- ── Hero strip ─────────────────────────────────────────────────────────── -->
+<div class="hero-strip" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:stretch;">
+  <!-- Recommended question card -->
+  {% if rec_question %}
+  <div class="rec-card gem-card" style="flex:3;min-width:220px;display:flex;flex-direction:column;gap:6px;">
+    <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Recommended Next</div>
+    <div style="font-size:0.92rem;font-weight:700;color:#E8EAED;">{{ rec_question.topic_label }}</div>
+    <div style="font-size:0.82rem;color:#BDC1C6;line-height:1.4;flex:1;">{{ rec_question.question_text[:150] }}{% if rec_question.question_text|length > 150 %}…{% endif %}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;">{{ rec_question.year }} · {{ rec_question.marks }} marks · {{ rec_question.attempt_count }}x attempted</div>
+    <a href="/ies/quiz?topic={{ rec_question.topic_id }}" class="btn btn-primary btn-sm" style="text-align:center;margin-top:4px;">Write Now →</a>
   </div>
-  <!-- Days left -->
-  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;border-color:{{ day_color }}33;">
-    <div style="font-size:2rem;font-weight:700;color:{{ day_color }};">{{ d }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Days Left</div>
+  {% else %}
+  <div class="rec-card gem-card" style="flex:3;min-width:220px;display:flex;align-items:center;justify-content:center;">
+    <span style="color:#9AA0A6;font-size:0.85rem;">No questions available yet.</span>
   </div>
-  <!-- Answers ready -->
-  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ total_a }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Answers Ready</div>
-    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ ans_pct }}% of {{ total_q }} PYQs</div>
-  </div>
-  <!-- Topics attempted -->
-  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#81C995;">{{ micro_descriptive }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Answers Written</div>
-    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">of {{ total_t }} topics</div>
+  {% endif %}
+  <!-- Stat pills -->
+  <div class="stat-pills" style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+    <div class="gem-card" style="text-align:center;padding:10px 12px;">
+      <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Readiness</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#81C995;">{{ readiness_score }}<span style="font-size:0.8rem;font-weight:400;color:#9AA0A6;">/100</span></div>
+    </div>
+    <div class="gem-card" style="text-align:center;padding:10px 12px;border-color:{{ day_color }}33;">
+      <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Exam In</div>
+      <div style="font-size:1.5rem;font-weight:700;color:{{ day_color }};">{{ d }}<span style="font-size:0.8rem;font-weight:400;color:#9AA0A6;"> days</span></div>
+    </div>
+    <div class="gem-card" style="text-align:center;padding:10px 12px;">
+      <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Today</div>
+      <div style="font-size:1.1rem;letter-spacing:4px;">
+        {%- for i in range(3) -%}
+          {%- if i < daily_done -%}●{%- else -%}○{%- endif -%}
+        {%- endfor -%}
+      </div>
+      <div style="font-size:0.68rem;color:#9AA0A6;margin-top:2px;">{{ daily_done }}/3 answers</div>
+    </div>
   </div>
 </div>
 
@@ -155,11 +174,12 @@
         </div>
         <div style="font-size:0.68rem;color:#9AA0A6;margin-top:2px;">{{ t.answers_ready or 0 }}/{{ t.total_q or 0 }} answers ready</div>
       </div>
-      <!-- Priority info -->
-      <div style="font-size:0.78rem;color:#9AA0A6;">
-        {{ t.pyq_count or 0 }} past questions ·
-        <strong style="color:#8AB4F8;">{{ t._priority_label }}</strong>
-      </div>
+      <!-- Attempt stat + color indicator -->
+      <span class="attempt-stat" style="font-size:0.78rem;color:#9AA0A6;white-space:nowrap;">
+        {{ t._attempt_count }}x
+        {% if t._avg_score is not none %}&middot; {{ "%.1f"|format(t._avg_score) }}{% endif %}
+        <span style="color:{{'#F28B82' if t._color_indicator=='red' else '#81C995' if t._color_indicator=='green' else '#9AA0A6'}};">●</span>
+      </span>
       <!-- Per-topic MCQ Quiz -->
       <a href="/ies/return-quiz?paper={{ pd.paper_id }}&topic={{ t.topic_id }}"
          class="btn btn-sm"

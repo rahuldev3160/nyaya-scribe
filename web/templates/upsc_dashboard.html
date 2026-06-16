@@ -48,6 +48,24 @@
   </a>
 </div>
 
+<!-- Hero strip -->
+<div class="hero-strip">
+  {% if rec_question %}
+  <div class="rec-card">
+    <div class="rec-label">{{ rec_question.topic_label }} · {{ rec_question.year }} · {{ rec_question.marks }}m</div>
+    <div class="rec-text">{{ rec_question.question_text[:150] }}…</div>
+    <a href="/upsc/quiz?topic={{ rec_question.topic_id }}" class="btn-primary">Write Now →</a>
+  </div>
+  {% endif %}
+  <div class="stat-pills">
+    <div>Readiness <strong>{{ readiness_score }}/100</strong></div>
+    <div>UPSC Eco Optional <strong>~Aug 2026</strong></div>
+    <div>Today
+      {% for i in range(3) %}<span>{{ "●" if i < daily_done else "○" }}</span>{% endfor %}
+    </div>
+  </div>
+</div>
+
 <!-- Paper tabs -->
 <div id="upsc-papers" style="margin-bottom: 2rem;">
   <div class="tab-bar">
@@ -103,8 +121,13 @@
           {% endif %}
         </div>
 
-        <!-- Right: action links -->
+        <!-- Right: attempt stat + action links -->
         <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; padding-top: 2px;">
+          <span class="attempt-stat">
+            {{ t._attempt_count }}x
+            {% if t._avg_score is not none %}· {{ "%.1f"|format(t._avg_score) }}{% endif %}
+            <span style="color:{{'#F28B82' if t._color_indicator=='red' else '#81C995' if t._color_indicator=='green' else '#9AA0A6'}}">●</span>
+          </span>
           <a href="/upsc/mains?topic={{ t.topic_id }}" class="btn btn-sm">Study</a>
           <a href="/upsc/mains?topic={{ t.topic_id }}" class="btn btn-sm btn-primary">Write</a>
         </div>

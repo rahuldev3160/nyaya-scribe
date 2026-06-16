@@ -86,6 +86,108 @@ def _priority_label(score: float) -> str:
     return "Lower priority"
 
 
+def _get_topic_attempt_stats(conn, user_id: str) -> dict:
+    """Returns {topic_id: {cnt, avg_score, last_at}} for ies_2026."""
+    rows = conn.execute(
+        "SELECT q.topic_id, COUNT(*) as cnt, "
+        "AVG(COALESCE(da.weighted_score, CASE da.self_rating WHEN 'got_it' THEN 8.0 WHEN 'partial' THEN 5.0 WHEN 'missed' THEN 2.0 ELSE NULL END)) as avg_score, "
+        "MAX(da.created_at) as last_at "
+        "FROM descriptive_attempts da "
+        "JOIN pyq_questions q ON da.question_id=q.question_id AND da.exam_id=q.exam_id "
+        "WHERE da.exam_id='ies_2026' AND da.user_id=? "
+        "GROUP BY q.topic_id",
+        (user_id,)
+    ).fetchall()
+    return {r["topic_id"]: {"cnt": r["cnt"], "avg_score": r["avg_score"], "last_at": r["last_at"]} for r in rows}
+
+
+def _get_recommended_question(conn, user_id: str, topic_stats: dict) -> dict | None:
+    topics = conn.execute(
+        "SELECT topic_id, paper_id, base_priority_score "
+        "FROM topic_base_scores WHERE exam_id='ies_2026' "
+        "ORDER BY base_priority_score DESC"
+    ).fetchall()
+
+    chosen_topic = None
+    for row in topics:
+        tid = row["topic_id"]
+        st = topic_stats.get(tid)
+        if st is None or (st["avg_score"] is not None and st["avg_score"] < 6.0):
+            chosen_topic = row
+            break
+
+    if not chosen_topic:
+        return None
+
+    q = conn.execute(
+        "SELECT question_id, question_text, marks, year FROM pyq_questions "
+        "WHERE topic_id=? AND exam_id='ies_2026' ORDER BY year DESC LIMIT 1",
+        (chosen_topic["topic_id"],)
+    ).fetchone()
+    if not q:
+        return None
+
+    st = topic_stats.get(chosen_topic["topic_id"])
+    return {
+        "topic_id": chosen_topic["topic_id"],
+        "topic_label": chosen_topic["topic_id"].replace("_", " ").title(),
+        "paper_id": chosen_topic["paper_id"],
+        "question_id": q["question_id"],
+        "question_text": q["question_text"][:200] if q["question_text"] else "",
+        "marks": q["marks"],
+        "year": q["year"],
+        "base_priority_score": chosen_topic["base_priority_score"],
+        "attempt_count": st["cnt"] if st else 0,
+    }
+
+
+def _compute_readiness_score(conn, user_id: str, topic_stats: dict) -> int:
+    total_topics = conn.execute(
+        "SELECT COUNT(DISTINCT topic_id) FROM topic_base_scores WHERE exam_id='ies_2026'"
+    ).fetchone()[0]
+    if not total_topics:
+        return 0
+
+    topics_with_attempts = len(topic_stats)
+    breadth = (topics_with_attempts / total_topics) * 50
+
+    all_scores = conn.execute(
+        "SELECT COALESCE(weighted_score, CASE self_rating WHEN 'got_it' THEN 8.0 WHEN 'partial' THEN 5.0 WHEN 'missed' THEN 2.0 ELSE NULL END) as score "
+        "FROM descriptive_attempts WHERE exam_id='ies_2026' AND user_id=? "
+        "AND (weighted_score IS NOT NULL OR self_rating IS NOT NULL)",
+        (user_id,)
+    ).fetchall()
+    if all_scores:
+        avg = sum(r["score"] for r in all_scores) / len(all_scores)
+        quality = (avg / 10.0) * 50
+    else:
+        quality = 0
+
+    return max(0, min(100, int(breadth + quality)))
+
+
+def _daily_attempts(conn, user_id: str) -> int:
+    return conn.execute(
+        "SELECT COUNT(*) FROM descriptive_attempts "
+        "WHERE exam_id='ies_2026' AND user_id=? AND date(created_at)=date('now')",
+        (user_id,)
+    ).fetchone()[0]
+
+
+def _topic_color_indicator(topic_id: str, base_priority_score: float, topic_stats: dict) -> tuple:
+    """Returns (_attempt_count, _avg_score, _color_indicator)."""
+    st = topic_stats.get(topic_id)
+    if st is None:
+        color = "red" if (base_priority_score or 0) >= 0.7 else "grey"
+        return 0, None, color
+    avg = st["avg_score"]
+    if avg is not None and avg < 4.0:
+        return st["cnt"], avg, "red"
+    if avg is not None and avg >= 7.0:
+        return st["cnt"], avg, "green"
+    return st["cnt"], avg, "grey"
+
+
 @dashboard_bp.route("/dashboard")
 @login_required
 def dashboard():
@@ -99,6 +201,12 @@ def dashboard():
         "SELECT onboarding_completed, exam_focus FROM users WHERE user_id=?", (user_id,)
     ).fetchone()
     onboarding_incomplete = not onb or not onb["onboarding_completed"] or not onb["exam_focus"]
+
+    # ── New hero data ──────────────────────────────────────────────────────────
+    topic_stats = _get_topic_attempt_stats(conn, user_id)
+    rec_question = _get_recommended_question(conn, user_id, topic_stats)
+    readiness_score = _compute_readiness_score(conn, user_id, topic_stats)
+    daily_done = _daily_attempts(conn, user_id)
 
     # ── Metrics ────────────────────────────────────────────────────────────────
     d = _days_left()
@@ -177,6 +285,10 @@ def dashboard():
             btn_label, next_state = _NEXT_STATE.get(s, ("Begin Study", "IN_STUDY"))
             t["_btn_label"] = btn_label
             t["_next_state"] = next_state
+            cnt, avg, color = _topic_color_indicator(t["topic_id"], t["base_priority_score"] or 0, topic_stats)
+            t["_attempt_count"] = cnt
+            t["_avg_score"] = avg
+            t["_color_indicator"] = color
         papers_data.append({
             "paper_id": paper_id,
             "label": paper_label,
@@ -239,6 +351,7 @@ def dashboard():
         verified_count=verified_count,
         total_t=total_t,
         readiness=readiness,
+        readiness_score=readiness_score,
         r_color=r_color,
         crunch_mode=is_crunch_mode(),
         other_exams=other_exams,
@@ -252,6 +365,8 @@ def dashboard():
         micro_mcq=micro_mcq,
         micro_recent=micro_recent,
         onboarding_incomplete=onboarding_incomplete,
+        rec_question=rec_question,
+        daily_done=daily_done,
     )
 
 
