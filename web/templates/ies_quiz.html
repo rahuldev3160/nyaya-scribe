@@ -130,7 +130,7 @@
 {% if attempt %}
 <div style="background:#81C99515;border:1px solid #81C99544;border-radius:8px;padding:10px 16px;margin-bottom:16px;">
   <span style="color:#81C995;font-weight:700;">✓ Answer submitted</span>
-  <span style="color:#9AA0A6;font-size:0.85rem;margin-left:8px;">Compare below and rate yourself</span>
+  <span style="color:#9AA0A6;font-size:0.85rem;margin-left:8px;">Compare below</span>
 </div>
 
 <div class="dash-2col" style="gap:16px;margin-bottom:16px;">
@@ -172,6 +172,35 @@
   </div>
 </div>
 
+
+{% if attempt and attempt._scores %}
+<div class="ai-score-block" style="margin-top:16px;padding:14px;background:#1e2127;border-radius:8px;border-left:3px solid #8AB4F8;">
+  <div style="font-size:0.8rem;color:#9AA0A6;margin-bottom:8px;">AI Evaluation · {{ attempt._scores.weighted_score }}/10</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+    {% set dim_labels = {"content_accuracy":"Content","structure":"Structure","analytical_depth":"Depth","evidence":"Evidence","language":"Language"} %}
+    {% for key, label in dim_labels.items() %}
+    {% set score = attempt._scores.dimensions[key] %}
+    <div style="flex:1;min-width:90px;text-align:center;padding:6px 8px;background:#2a2d35;border-radius:6px;">
+      <div style="font-size:1rem;font-weight:700;color:{{'#81C995' if score>=7 else '#FDD663' if score>=5 else '#F28B82'}}">{{ score }}</div>
+      <div style="font-size:0.65rem;color:#9AA0A6">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if attempt._scores.feedback %}
+  <div style="font-size:0.78rem;color:#BDC1C6;font-style:italic;">{{ attempt._scores.feedback }}</div>
+  {% endif %}
+</div>
+{% elif attempt and not attempt._scores %}
+<div style="font-size:0.75rem;color:#9AA0A6;margin-top:10px;">
+  {% if quota_reason == 'quota_exhausted' %}
+  AI evaluation quota used (15/month). <a href="/upgrade" style="color:#8AB4F8;">Upgrade</a> for unlimited.
+  {% elif quota_reason == 'not_enabled' %}
+  AI evaluation not available on your plan.
+  {% else %}
+  AI evaluation unavailable — answer may be too short or API key missing.
+  {% endif %}
+</div>
+{% endif %}
 
 <!-- Navigation after submission -->
 <div style="display:flex;gap:8px;margin-top:8px;">

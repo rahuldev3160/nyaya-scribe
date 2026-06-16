@@ -1,4 +1,6 @@
 """IES Quiz blueprint — /ies/quiz (descriptive with model answer comparison)."""
+import json
+import os
 import random
 import re
 import sys
@@ -7,11 +9,81 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import anthropic
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
-from db import EXAM_ID, get_answer, get_conn, get_questions, get_topics, jl, track_page_time
+from db import (
+    EXAM_ID, get_answer, get_conn, get_nyaya_conn, get_questions, get_topics, jl,
+    track_page_time, can_use_feature, increment_feature_usage, get_monthly_usage,
+)
 
 ies_quiz_bp = Blueprint("ies_quiz", __name__)
+
+_ANTHROPIC_CLIENT = None
+
+
+def _get_client():
+    global _ANTHROPIC_CLIENT
+    if _ANTHROPIC_CLIENT is None:
+        key = os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            return None
+        _ANTHROPIC_CLIENT = anthropic.Anthropic(api_key=key)
+    return _ANTHROPIC_CLIENT
+
+
+_SCORE_TOOL = {
+    "name": "score_answer",
+    "description": "Score an IES descriptive answer across 5 dimensions",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "content_accuracy": {"type": "number", "description": "Correct economic theory, 0-10"},
+            "structure":        {"type": "number", "description": "Intro/body/conclusion flow, 0-10"},
+            "analytical_depth": {"type": "number", "description": "Beyond definitions, applies theory, 0-10"},
+            "evidence":         {"type": "number", "description": "Examples, data, real-world, 0-10"},
+            "language":         {"type": "number", "description": "Clarity, conciseness, 0-10"},
+            "feedback":         {"type": "string", "description": "One sentence of specific feedback"},
+        },
+        "required": ["content_accuracy", "structure", "analytical_depth", "evidence", "language", "feedback"],
+    },
+}
+
+
+def _score_answer(question_text: str, marks: int, rubric_pts: list, intro: str, body: str, conclusion: str) -> dict | None:
+    """Call Claude to score the answer. Returns dict with dimension scores + weighted_score, or None on failure."""
+    client = _get_client()
+    if not client:
+        return None
+    answer = "\n\n".join(filter(None, [intro, body, conclusion]))
+    if not answer.strip():
+        return None
+    rubric_str = "\n".join(f"- {p}" for p in (rubric_pts or [])) or "No rubric provided."
+    prompt = (
+        f"Question ({marks}m): {question_text}\n\n"
+        f"Rubric points:\n{rubric_str}\n\n"
+        f"Student answer:\n{answer}"
+    )
+    try:
+        resp = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            system="You are an IES Economics exam evaluator. Score concisely and fairly.",
+            messages=[{"role": "user", "content": prompt}],
+            tools=[_SCORE_TOOL],
+            tool_choice={"type": "tool", "name": "score_answer"},
+        )
+        for block in resp.content:
+            if block.type == "tool_use" and block.name == "score_answer":
+                inp = block.input
+                dims = {k: round(float(inp.get(k, 0)), 1) for k in
+                        ["content_accuracy", "structure", "analytical_depth", "evidence", "language"]}
+                weighted = round(sum(dims.values()) / len(dims), 2)
+                return {"dimensions": dims, "weighted_score": weighted,
+                        "feedback": inp.get("feedback", ""), "model": "claude-haiku-4-5-20251001"}
+    except Exception:
+        pass
+    return None
 
 DEFAULT_QID = "ge_01_0001"
 
@@ -65,6 +137,11 @@ def quiz():
         ).fetchone()
         if row:
             attempt = dict(row)
+            if attempt.get("scores_json"):
+                try:
+                    attempt["_scores"] = json.loads(attempt["scores_json"])
+                except (ValueError, TypeError):
+                    attempt["_scores"] = None
 
     # All answered questions, sorted year DESC
     all_qs = sorted(
@@ -158,6 +235,9 @@ def quiz():
                           "body_text": ma.get("body_text") or "",
                           "conclusion_text": ma.get("conclusion_text") or ""}
 
+    _, quota_reason = can_use_feature(g.user_id, "ai_scoring") if g.user_id else (False, "not_enabled")
+    ai_usage = get_monthly_usage(g.user_id, "ai_scoring") if g.user_id else 0
+
     return render_template(
         "ies_quiz.html",
         active_page="quiz",
@@ -177,6 +257,8 @@ def quiz():
         rubric_pts=rubric_pts,
         total_qs=len(all_qs),
         attempt=attempt,
+        quota_reason=quota_reason,
+        ai_usage=ai_usage,
     )
 
 
@@ -210,6 +292,30 @@ def quiz_submit():
     )
     conn.commit()
     attempt_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    allowed, reason = can_use_feature(g.user_id, "ai_scoring")
+    if allowed:
+        rubric_pts_row = conn.execute(
+            "SELECT rubric_points FROM pyq_questions WHERE question_id=? AND exam_id=?",
+            (qid, EXAM_ID),
+        ).fetchone()
+        q_row = conn.execute(
+            "SELECT question_text, marks FROM pyq_questions WHERE question_id=? AND exam_id=?",
+            (qid, EXAM_ID),
+        ).fetchone()
+        rubric_pts = jl(rubric_pts_row["rubric_points"]) if rubric_pts_row else []
+        result = _score_answer(
+            q_row["question_text"] if q_row else "",
+            q_row["marks"] if q_row else 0,
+            rubric_pts, intro, body, conclusion,
+        )
+        if result:
+            conn.execute(
+                "UPDATE descriptive_attempts SET scores_json=?, weighted_score=? WHERE attempt_id=?",
+                (json.dumps(result), result["weighted_score"], attempt_id),
+            )
+            conn.commit()
+            increment_feature_usage(g.user_id, "ai_scoring")
 
     return redirect(url_for(
         "ies_quiz.quiz",

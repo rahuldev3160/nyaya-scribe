@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Upgrade · Nyaya Scribe{% endblock %}
+
+{% block content %}
+<div style="max-width:520px;margin:0 auto;">
+  <div class="gem-card" style="text-align:center;padding:40px 32px;">
+
+    <div style="font-size:2rem;margin-bottom:16px;">⚡</div>
+    <h1 style="font-size:1.4rem;font-weight:700;color:#E8EAED;margin:0 0 10px;">
+      Nyaya Scribe Pro — Coming Soon
+    </h1>
+    <p style="color:#9AA0A6;font-size:0.92rem;margin:0 0 28px;line-height:1.6;">
+      AI evaluations, unlimited practice, photo submissions.<br>
+      Enter your email to be notified when it launches.
+    </p>
+
+    {% if submitted %}
+    <div style="background:#1C3A2A;border:1px solid #2D6A4F;border-radius:8px;
+                padding:14px 20px;color:#6FCF97;font-size:0.9rem;">
+      You're on the list. We'll reach out when Pro goes live.
+    </div>
+    {% else %}
+    <form method="POST" action="/upgrade/interest"
+          style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <input type="email" name="email" required
+             placeholder="you@example.com"
+             style="flex:1;min-width:200px;max-width:300px;">
+      <button type="submit" class="btn btn-primary">Notify me</button>
+    </form>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

@@ -158,6 +158,30 @@ def increment_feature_usage(user_id: str, gate_id: str) -> int:
         return 1
 
 
+def can_use_feature(user_id: str, gate_id: str) -> tuple[bool, str]:
+    """Check feature access AND quota. Returns (allowed, reason).
+    reason: 'ok' | 'not_enabled' | 'quota_exhausted'
+    """
+    if not has_feature(user_id, gate_id):
+        return False, "not_enabled"
+    try:
+        nc = get_nyaya_conn()
+        user = nc.execute(
+            "SELECT subscription_tier FROM users WHERE user_id=?", (user_id,)
+        ).fetchone()
+        tier = user["subscription_tier"] if user else "free"
+        quota_col = "quota_pro" if tier == "pro" else "quota_free"
+        gate = nc.execute(
+            f"SELECT {quota_col} FROM feature_gates WHERE gate_id=?", (gate_id,)
+        ).fetchone()
+        quota = gate[0] if gate else None
+        if quota is not None and get_monthly_usage(user_id, gate_id) >= quota:
+            return False, "quota_exhausted"
+    except Exception:
+        pass
+    return True, "ok"
+
+
 def init_user(conn, user_id: str) -> None:
     """Seed default rows for a new user. No-op for existing users."""
     if conn.execute(

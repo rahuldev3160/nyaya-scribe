@@ -111,3 +111,23 @@ def profile_page():
         exam_focus_list=exam_focus_list,
         exam_labels=EXAM_LABELS,
     )
+
+
+@profile_bp.route("/upgrade")
+@login_required
+def upgrade():
+    return render_template("upgrade.html", active_page="upgrade")
+
+
+@profile_bp.route("/upgrade/interest", methods=["POST"])
+@login_required
+def upgrade_interest():
+    nc = get_nyaya_conn()
+    email = request.form.get("email", "").strip()[:200]
+    nc.execute(
+        "INSERT INTO user_events (user_id, event_type, event_data, created_at) "
+        "VALUES (?, 'upgrade_interest', ?, datetime('now'))",
+        (g.user_id, json.dumps({"email": email})),
+    )
+    nc.commit()
+    return render_template("upgrade.html", active_page="upgrade", submitted=True)
