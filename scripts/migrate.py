@@ -14,15 +14,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 DB_PATHS = {
-    "ies":     ROOT / "data" / "ies.db",
-    "rbi":     ROOT / "data" / "rbi.db",
-    "upsc":    ROOT / "data" / "upsc.db",
-    "nyaya":   ROOT / "data" / "nyaya.db",
-    "english": ROOT / "data" / "english.db",
+    "ies":      ROOT / "data" / "ies.db",
+    "rbi":      ROOT / "data" / "rbi.db",
+    "upsc":     ROOT / "data" / "upsc.db",
+    "nyaya":    ROOT / "data" / "nyaya.db",
+    "english":  ROOT / "data" / "english.db",
+    "upsc_gs":  ROOT / "data" / "upsc_gs.db",
 }
 
 # DBs created on first migration run (no seed file needed)
-BOOTSTRAP_DBS = {"nyaya", "english"}
+BOOTSTRAP_DBS = {"nyaya", "english", "upsc_gs"}
 MIGRATIONS_DIR = ROOT / "migrations"
 
 

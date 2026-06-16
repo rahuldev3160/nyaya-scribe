@@ -17,6 +17,7 @@ _SEEDS = Path(__file__).parent.parent / "seeds"
 _RBI_DB_PATH     = _DATA / "rbi.db"
 _UPSC_DB_PATH    = _DATA / "upsc.db"
 _ENGLISH_DB_PATH = _DATA / "english.db"
+_UPSC_GS_DB_PATH = _DATA / "upsc_gs.db"
 
 _FEEDBACK_TABLE_SQL = """
     CREATE TABLE IF NOT EXISTS user_feedback (
@@ -299,6 +300,7 @@ def create_app() -> Flask:
         from rbi_db import _open_rbi_conn
         from upsc_db import _open_upsc_conn
         from english_db import _open_english_conn
+        from upsc_gs_db import _open_upsc_gs_conn
         from auth import validate_session
         g.request_start = time.time()
         g.conn = _open_conn()
@@ -306,6 +308,7 @@ def create_app() -> Flask:
         g.rbi_conn = _open_rbi_conn() if _RBI_DB_PATH.exists() else None
         g.upsc_conn = _open_upsc_conn() if _UPSC_DB_PATH.exists() else None
         g.english_conn = _open_english_conn() if _ENGLISH_DB_PATH.exists() else None
+        g.upsc_gs_conn = _open_upsc_gs_conn() if _UPSC_GS_DB_PATH.exists() else None
         g.user_id = None
         token = session.get("session_token")
         if token:
@@ -330,6 +333,9 @@ def create_app() -> Flask:
         english_conn = g.pop("english_conn", None)
         if english_conn is not None:
             english_conn.close()
+        upsc_gs_conn = g.pop("upsc_gs_conn", None)
+        if upsc_gs_conn is not None:
+            upsc_gs_conn.close()
 
     from blueprints.auth_bp import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")

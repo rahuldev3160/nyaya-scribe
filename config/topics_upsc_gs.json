@@ -1,0 +1,376 @@
+{
+  "exam_id": "upsc_gs_mains",
+  "papers": [
+    {
+      "paper_id": "gs1",
+      "paper_name": "GS Paper I — History, Geography, Art & Culture, Society",
+      "syllabus_weight_default": 1.0,
+      "topics": [
+        {
+          "topic_id": "gs1_culture",
+          "topic_name": "Indian Heritage, Art & Culture",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "gs1_culture_art",         "topic_name": "Visual Arts: Painting, Sculpture, Handicrafts"},
+            {"topic_id": "gs1_culture_arch",         "topic_name": "Architecture: Temple, Cave, Indo-Islamic, Colonial"},
+            {"topic_id": "gs1_culture_performing",   "topic_name": "Performing Arts: Music, Dance, Theatre"},
+            {"topic_id": "gs1_culture_lit",          "topic_name": "Literature: Sanskrit, Regional, Modern Indian"},
+            {"topic_id": "gs1_culture_religion",     "topic_name": "Philosophical-Religious Traditions & Influence on Culture"}
+          ]
+        },
+        {
+          "topic_id": "gs1_modern_history",
+          "topic_name": "Modern Indian History (1757–1947)",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "gs1_mh_colonial",          "topic_name": "British Expansion: Policies, Administration & Land Revenue"},
+            {"topic_id": "gs1_mh_1857",              "topic_name": "Revolt of 1857: Causes, Course, Consequences"},
+            {"topic_id": "gs1_mh_socioreligious",    "topic_name": "Socio-Religious Reform Movements (19th–early 20th c.)"},
+            {"topic_id": "gs1_mh_economic",          "topic_name": "Economic Impact of British Rule (Drain, De-industrialisation)"},
+            {"topic_id": "gs1_mh_education",         "topic_name": "Education, Press & Rise of Nationalism"}
+          ]
+        },
+        {
+          "topic_id": "gs1_freedom_struggle",
+          "topic_name": "The National Movement & Freedom Struggle",
+          "syllabus_weight": 1.3,
+          "subtopics": [
+            {"topic_id": "gs1_fs_early_nationalism", "topic_name": "Early Nationalism: Moderates, Extremists & Swadeshi"},
+            {"topic_id": "gs1_fs_gandhi",            "topic_name": "Gandhian Phase: NCM, CDM, Quit India"},
+            {"topic_id": "gs1_fs_women",             "topic_name": "Role of Women, Workers & Peasants in Freedom Struggle"},
+            {"topic_id": "gs1_fs_revolutionary",     "topic_name": "Revolutionary Nationalism (Bhagat Singh, INA)"},
+            {"topic_id": "gs1_fs_communalism",       "topic_name": "Communal Question, Partition & Transfer of Power"}
+          ]
+        },
+        {
+          "topic_id": "gs1_post1947",
+          "topic_name": "Post-Independence Consolidation & Reorganization",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "gs1_post_integration",    "topic_name": "Integration of Princely States"},
+            {"topic_id": "gs1_post_reorganization", "topic_name": "Linguistic Reorganization of States"},
+            {"topic_id": "gs1_post_nehruvian",      "topic_name": "Nehruvian Era: Planning, Foreign Policy, Non-Alignment"},
+            {"topic_id": "gs1_post_emergency",      "topic_name": "Emergency, JP Movement & Return to Democracy"}
+          ]
+        },
+        {
+          "topic_id": "gs1_world_history",
+          "topic_name": "World History (18th–20th Century)",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "gs1_wh_industrial",       "topic_name": "Industrial Revolution & Capitalism"},
+            {"topic_id": "gs1_wh_colonialism",      "topic_name": "Colonialism, Imperialism & Decolonisation"},
+            {"topic_id": "gs1_wh_world_wars",       "topic_name": "World Wars: Causes, Events, Consequences"},
+            {"topic_id": "gs1_wh_cold_war",         "topic_name": "Cold War, Bipolarity & Non-Alignment"},
+            {"topic_id": "gs1_wh_ideologies",       "topic_name": "Political Ideologies: Fascism, Communism, Liberalism"}
+          ]
+        },
+        {
+          "topic_id": "gs1_indian_geo",
+          "topic_name": "Indian Physical Geography",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "gs1_geo_physiography",    "topic_name": "Physiographic Divisions & Landforms"},
+            {"topic_id": "gs1_geo_climate",         "topic_name": "Climate, Monsoon & Seasons"},
+            {"topic_id": "gs1_geo_drainage",        "topic_name": "Drainage Systems: Himalayan & Peninsular Rivers"},
+            {"topic_id": "gs1_geo_soils_veg",       "topic_name": "Soils, Natural Vegetation & Wildlife"},
+            {"topic_id": "gs1_geo_disasters",       "topic_name": "Earthquakes, Cyclones & Vulnerability Zones"}
+          ]
+        },
+        {
+          "topic_id": "gs1_eco_geo",
+          "topic_name": "Economic Geography & Natural Resources",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "gs1_egeo_resources",      "topic_name": "Distribution of Minerals & Energy Resources"},
+            {"topic_id": "gs1_egeo_industries",     "topic_name": "Location & Spread of Industries"},
+            {"topic_id": "gs1_egeo_agriculture",    "topic_name": "Cropping Patterns, Agricultural Regions"},
+            {"topic_id": "gs1_egeo_transport",      "topic_name": "Transport Networks & Trade Corridors"}
+          ]
+        },
+        {
+          "topic_id": "gs1_world_geo",
+          "topic_name": "World Physical Geography",
+          "syllabus_weight": 0.8,
+          "subtopics": [
+            {"topic_id": "gs1_wgeo_geomorphology",  "topic_name": "Geomorphology (Plate Tectonics, Erosion Landforms)"},
+            {"topic_id": "gs1_wgeo_climate",        "topic_name": "World Climate Systems & Biomes"},
+            {"topic_id": "gs1_wgeo_ocean",          "topic_name": "Oceanography: Currents, Tides, Coral Reefs"},
+            {"topic_id": "gs1_wgeo_distribution",   "topic_name": "Distribution of Key Resources & Geo-strategic Regions"}
+          ]
+        },
+        {
+          "topic_id": "gs1_society",
+          "topic_name": "Indian Society, Social Issues & Women",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs1_soc_diversity",       "topic_name": "Diversity, Multiculturalism & Communal Harmony"},
+            {"topic_id": "gs1_soc_caste",           "topic_name": "Caste System, Social Mobility & Reservation"},
+            {"topic_id": "gs1_soc_women",           "topic_name": "Women: Status, Empowerment & Gender Issues"},
+            {"topic_id": "gs1_soc_poverty_urban",   "topic_name": "Poverty, Urbanisation & Population Dynamics"},
+            {"topic_id": "gs1_soc_globalisation",   "topic_name": "Globalisation: Effects on Indian Society & Culture"}
+          ]
+        }
+      ]
+    },
+    {
+      "paper_id": "gs2",
+      "paper_name": "GS Paper II — Polity, Governance, Constitution & IR",
+      "syllabus_weight_default": 1.0,
+      "topics": [
+        {
+          "topic_id": "gs2_constitution",
+          "topic_name": "Indian Constitution: Features, Amendments & Basic Structure",
+          "syllabus_weight": 1.3,
+          "subtopics": [
+            {"topic_id": "gs2_const_features",       "topic_name": "Salient Features & Philosophy of the Constitution"},
+            {"topic_id": "gs2_const_fr_dpsp",        "topic_name": "Fundamental Rights, DPSP & Fundamental Duties"},
+            {"topic_id": "gs2_const_federal",        "topic_name": "Federal Structure: Union vs. State Legislative Powers"},
+            {"topic_id": "gs2_const_amendment",      "topic_name": "Amendment Procedure (Art. 368) & Key Amendments"},
+            {"topic_id": "gs2_const_basic_structure","topic_name": "Basic Structure Doctrine & Judicial Review"}
+          ]
+        },
+        {
+          "topic_id": "gs2_parliament_exec",
+          "topic_name": "Parliament, Legislature & Executive",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "gs2_parl_structure",       "topic_name": "Structure & Powers of Parliament (Lok Sabha & Rajya Sabha)"},
+            {"topic_id": "gs2_parl_process",         "topic_name": "Legislative Process, Budget & Money Bills"},
+            {"topic_id": "gs2_parl_committees",      "topic_name": "Parliamentary Committees & DRSCs"},
+            {"topic_id": "gs2_exec_pmo",             "topic_name": "President, PM, Cabinet & Executive Accountability"},
+            {"topic_id": "gs2_exec_coalitions",      "topic_name": "Coalition Politics, Anti-Defection & Floor Tests"}
+          ]
+        },
+        {
+          "topic_id": "gs2_judiciary",
+          "topic_name": "Judiciary, Tribunals & ADR",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs2_jud_sc",               "topic_name": "Supreme Court: Powers, PIL & Landmark Judgements"},
+            {"topic_id": "gs2_jud_independence",     "topic_name": "Judicial Independence, Appointment & Accountability"},
+            {"topic_id": "gs2_jud_tribunals",        "topic_name": "Tribunals, NGT & Quasi-Judicial Bodies"},
+            {"topic_id": "gs2_jud_adr",              "topic_name": "Alternate Dispute Resolution: Lok Adalats, Arbitration"}
+          ]
+        },
+        {
+          "topic_id": "gs2_federalism",
+          "topic_name": "Centre-State Relations & Federalism",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "gs2_fed_legislative",      "topic_name": "Legislative Relations: Union, State & Concurrent Lists"},
+            {"topic_id": "gs2_fed_financial",        "topic_name": "Financial Relations: Finance Commission & GST Council"},
+            {"topic_id": "gs2_fed_governor",         "topic_name": "Role of Governor, President's Rule & Art. 356"},
+            {"topic_id": "gs2_fed_cooperative",      "topic_name": "Cooperative Federalism: Zonal Councils, ISC, NITI Aayog"},
+            {"topic_id": "gs2_fed_panchayati",       "topic_name": "Panchayati Raj & Urban Local Bodies (73rd & 74th)"}
+          ]
+        },
+        {
+          "topic_id": "gs2_governance",
+          "topic_name": "Governance, Transparency & Accountability",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs2_gov_civil_services",   "topic_name": "Civil Services: Recruitment, Training & Conduct Rules"},
+            {"topic_id": "gs2_gov_rti",              "topic_name": "RTI, Whistleblower Protection & Grievance Redressal"},
+            {"topic_id": "gs2_gov_e_gov",            "topic_name": "E-Governance: Digital India, DBT & Service Delivery"},
+            {"topic_id": "gs2_gov_regulatory",       "topic_name": "Statutory & Regulatory Bodies (CEC, CVC, CAG, CBI)"},
+            {"topic_id": "gs2_gov_ngo",              "topic_name": "SHG, NGO, Cooperatives & Civil Society"}
+          ]
+        },
+        {
+          "topic_id": "gs2_social_justice",
+          "topic_name": "Welfare Schemes, Social Sector & Social Justice",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs2_sj_schemes",           "topic_name": "Government Welfare Schemes: MGNREGA, PM-KISAN, etc."},
+            {"topic_id": "gs2_sj_health",            "topic_name": "Health: Ayushman Bharat, NHP, Mental Health, NHM"},
+            {"topic_id": "gs2_sj_education",         "topic_name": "Education: NEP 2020, Midday Meal, Samagra Shiksha"},
+            {"topic_id": "gs2_sj_vulnerable",        "topic_name": "Vulnerable Sections: SC/ST, Minorities, Disabled, Women"},
+            {"topic_id": "gs2_sj_poverty",           "topic_name": "Poverty Measurement, Food Security & PDS"}
+          ]
+        },
+        {
+          "topic_id": "gs2_ir",
+          "topic_name": "International Relations",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "gs2_ir_neighbours",        "topic_name": "India's Relations with Neighbours (China, Pak, BD, Nepal)"},
+            {"topic_id": "gs2_ir_major_powers",      "topic_name": "India & Major Powers (USA, Russia, EU, Japan, Australia)"},
+            {"topic_id": "gs2_ir_south_asia",        "topic_name": "South Asia: SAARC, BIMSTEC & Indian Ocean Geopolitics"},
+            {"topic_id": "gs2_ir_global_institutions","topic_name": "Global Institutions: UN, WTO, IMF, World Bank, G20, SCO"},
+            {"topic_id": "gs2_ir_india_policy",      "topic_name": "India's Foreign Policy: Neighbourhood First, Act East, Indo-Pacific"}
+          ]
+        }
+      ]
+    },
+    {
+      "paper_id": "gs3",
+      "paper_name": "GS Paper III — Economy, Environment, Technology & Security",
+      "syllabus_weight_default": 1.0,
+      "topics": [
+        {
+          "topic_id": "gs3_economy",
+          "topic_name": "Indian Economy: Growth, Employment & Planning",
+          "syllabus_weight": 1.3,
+          "subtopics": [
+            {"topic_id": "gs3_eco_planning",         "topic_name": "Planning, NITI Aayog & Vision 2047"},
+            {"topic_id": "gs3_eco_fiscal",           "topic_name": "Fiscal Policy: Budget, Deficit, FRBM & Taxation"},
+            {"topic_id": "gs3_eco_monetary",         "topic_name": "Monetary Policy: RBI, Inflation Targeting & Banking"},
+            {"topic_id": "gs3_eco_inclusive",        "topic_name": "Inclusive Growth: Employment, Poverty & Inequality"},
+            {"topic_id": "gs3_eco_external",         "topic_name": "External Sector: Balance of Payments, Exchange Rate, FDI"}
+          ]
+        },
+        {
+          "topic_id": "gs3_agriculture",
+          "topic_name": "Agriculture: Production, Supply Chain & Food Security",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "gs3_agri_patterns",        "topic_name": "Cropping Patterns, Green Revolution & Diversification"},
+            {"topic_id": "gs3_agri_irrigation",      "topic_name": "Irrigation: Major, Minor, Watershed & Micro-Irrigation"},
+            {"topic_id": "gs3_agri_msp",             "topic_name": "MSP, Procurement, Subsidies & Farm Input Reforms"},
+            {"topic_id": "gs3_agri_marketing",       "topic_name": "APMC, e-NAM, FPOs & Agricultural Marketing"},
+            {"topic_id": "gs3_agri_food_security",   "topic_name": "Food Security: PDS, Buffer Stock, NFSA, Zero Hunger"},
+            {"topic_id": "gs3_agri_tech",            "topic_name": "Agricultural Technology: Precision Farming, Drones, Agri-Fintech"}
+          ]
+        },
+        {
+          "topic_id": "gs3_infrastructure",
+          "topic_name": "Infrastructure: Energy, Transport & Urban",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs3_infra_energy",         "topic_name": "Energy Sector: Power, Renewable, Coal & Nuclear"},
+            {"topic_id": "gs3_infra_transport",      "topic_name": "Transport: Roads, Railways, Ports & Civil Aviation"},
+            {"topic_id": "gs3_infra_urban",          "topic_name": "Urban Infrastructure: Smart Cities, AMRUT, Housing"},
+            {"topic_id": "gs3_infra_investment",     "topic_name": "Investment Models: PPP, NIP, NIF, DFIs"}
+          ]
+        },
+        {
+          "topic_id": "gs3_science_tech",
+          "topic_name": "Science & Technology (Space, Bio, IT, IPR)",
+          "syllabus_weight": 1.1,
+          "subtopics": [
+            {"topic_id": "gs3_st_space",             "topic_name": "Space Technology: ISRO, Chandrayaan, Gaganyaan, Commercialisation"},
+            {"topic_id": "gs3_st_biotech",           "topic_name": "Biotechnology: GMO, CRISPR, Vaccines, Biosafety"},
+            {"topic_id": "gs3_st_it_ai",             "topic_name": "IT & AI: Machine Learning, Deepfake, DPDP Act, Surveillance"},
+            {"topic_id": "gs3_st_defence",           "topic_name": "Defence Technology: Missiles, Submarines, Indigenous Dev."},
+            {"topic_id": "gs3_st_ipr",               "topic_name": "Intellectual Property Rights: Patents, Compulsory Licensing"},
+            {"topic_id": "gs3_st_nuclear",           "topic_name": "Nuclear & Emerging Tech: Quantum Computing, Nanotechnology"}
+          ]
+        },
+        {
+          "topic_id": "gs3_environment",
+          "topic_name": "Environment, Ecology & Climate Change",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "gs3_env_biodiversity",     "topic_name": "Biodiversity: Conservation, Species, Hotspots, Protected Areas"},
+            {"topic_id": "gs3_env_climate",          "topic_name": "Climate Change: Paris Agreement, NDCs, Carbon Markets"},
+            {"topic_id": "gs3_env_conventions",      "topic_name": "Environmental Conventions: CBD, CITES, Ramsar, Basel"},
+            {"topic_id": "gs3_env_pollution",        "topic_name": "Pollution: Air, Water, Solid Waste & Regulatory Frameworks"},
+            {"topic_id": "gs3_env_eia",              "topic_name": "EIA, Forest Laws & Tribal Rights (Forest Rights Act)"}
+          ]
+        },
+        {
+          "topic_id": "gs3_disaster_mgmt",
+          "topic_name": "Disaster Management",
+          "syllabus_weight": 0.8,
+          "subtopics": [
+            {"topic_id": "gs3_dm_ndma",              "topic_name": "NDMA, SDMA & DM Act 2005 Framework"},
+            {"topic_id": "gs3_dm_types",             "topic_name": "Natural Disasters: Floods, Droughts, Cyclones, Earthquakes"},
+            {"topic_id": "gs3_dm_early_warning",     "topic_name": "Early Warning Systems, Response & Recovery"},
+            {"topic_id": "gs3_dm_international",     "topic_name": "Sendai Framework, UNDRR & International Cooperation"}
+          ]
+        },
+        {
+          "topic_id": "gs3_internal_security",
+          "topic_name": "Internal Security",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs3_sec_lwe",              "topic_name": "Left Wing Extremism (Naxalism): Causes, Spread, Response"},
+            {"topic_id": "gs3_sec_terrorism",        "topic_name": "Terrorism: Cross-border, Domestic, Counter-Terrorism"},
+            {"topic_id": "gs3_sec_border",           "topic_name": "Border Management: ITBP, BSF, Smart Fencing, LAC/LoC"},
+            {"topic_id": "gs3_sec_cyber",            "topic_name": "Cyber Security: Critical Infrastructure, CERT-In, Threats"},
+            {"topic_id": "gs3_sec_organized",        "topic_name": "Organised Crime, Money Laundering, PMLA & FATF"}
+          ]
+        }
+      ]
+    },
+    {
+      "paper_id": "gs4",
+      "paper_name": "GS Paper IV — Ethics, Integrity & Aptitude",
+      "syllabus_weight_default": 1.0,
+      "topics": [
+        {
+          "topic_id": "gs4_ethics_foundations",
+          "topic_name": "Ethics: Foundations, Theories & Applied Ethics",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "gs4_ef_consequentialism", "topic_name": "Consequentialism: Utilitarianism (Bentham, Mill, Singer)"},
+            {"topic_id": "gs4_ef_deontology",       "topic_name": "Deontological Ethics: Kant's Categorical Imperative, Duties"},
+            {"topic_id": "gs4_ef_virtue",           "topic_name": "Virtue Ethics: Aristotle, Eudaimonia, Character"},
+            {"topic_id": "gs4_ef_applied",          "topic_name": "Applied Ethics: Environmental, Professional, Biomedical"}
+          ]
+        },
+        {
+          "topic_id": "gs4_human_values",
+          "topic_name": "Human Values, Family, Society & Education",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "gs4_hv_values",           "topic_name": "Human Values: Honesty, Compassion, Integrity, Service"},
+            {"topic_id": "gs4_hv_family_society",   "topic_name": "Family, Society & Values Formation"},
+            {"topic_id": "gs4_hv_role_models",      "topic_name": "Role Models, Educational Institutions & Value Education"}
+          ]
+        },
+        {
+          "topic_id": "gs4_attitude",
+          "topic_name": "Attitude: Content, Structure, Function & Influence",
+          "syllabus_weight": 0.9,
+          "subtopics": [
+            {"topic_id": "gs4_att_formation",       "topic_name": "Attitude Formation, Change & Social Influence"},
+            {"topic_id": "gs4_att_cognitive_bias",  "topic_name": "Cognitive Biases, Moral Disengagement & Groupthink"},
+            {"topic_id": "gs4_att_persuasion",      "topic_name": "Persuasion, Propaganda & Media Influence"}
+          ]
+        },
+        {
+          "topic_id": "gs4_ei",
+          "topic_name": "Emotional Intelligence",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs4_ei_concepts",         "topic_name": "EI Concepts: Goleman's Model, Self-Awareness, Empathy"},
+            {"topic_id": "gs4_ei_governance",       "topic_name": "EI in Governance, Conflict Resolution & Leadership"}
+          ]
+        },
+        {
+          "topic_id": "gs4_civil_services",
+          "topic_name": "Civil Service Values, Probity & Accountability",
+          "syllabus_weight": 1.3,
+          "subtopics": [
+            {"topic_id": "gs4_cs_values",           "topic_name": "Civil Service Values: SPIRIT (Simplicity, Probity, Integrity, etc.)"},
+            {"topic_id": "gs4_cs_probity",          "topic_name": "Probity in Governance: Transparency, Accountability, Vigilance"},
+            {"topic_id": "gs4_cs_codes",            "topic_name": "Codes of Ethics, AIS Conduct Rules & Discretion"},
+            {"topic_id": "gs4_cs_corruption",       "topic_name": "Corruption: Causes, Types, Prevention (Lok Pal, CVC, RTI)"}
+          ]
+        },
+        {
+          "topic_id": "gs4_thinkers",
+          "topic_name": "Contributions of Moral Thinkers",
+          "syllabus_weight": 1.0,
+          "subtopics": [
+            {"topic_id": "gs4_th_gandhi",           "topic_name": "Gandhi: Satyagraha, Non-violence, Trusteeship, Means-Ends"},
+            {"topic_id": "gs4_th_indian",           "topic_name": "Indian Thinkers: Vivekananda, Ambedkar, Kautilya, Tagore"},
+            {"topic_id": "gs4_th_western",          "topic_name": "Western Thinkers: Plato, Aristotle, Kant, Mill, Rawls"}
+          ]
+        },
+        {
+          "topic_id": "gs4_case_studies",
+          "topic_name": "Case Studies in Administrative Ethics",
+          "syllabus_weight": 1.2,
+          "subtopics": [
+            {"topic_id": "gs4_case_dilemmas",       "topic_name": "Ethical Dilemmas: Hierarchy vs. Conscience, Whistleblowing"},
+            {"topic_id": "gs4_case_frameworks",     "topic_name": "Applying Ethical Frameworks to Administrative Scenarios"},
+            {"topic_id": "gs4_case_stakeholders",   "topic_name": "Stakeholder Analysis, Rights-Duties Balance, Public Trust"}
+          ]
+        }
+      ]
+    }
+  ]
+}
