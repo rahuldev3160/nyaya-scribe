@@ -96,6 +96,68 @@ def get_nyaya_conn() -> sqlite3.Connection:
     return _open_nyaya_conn()
 
 
+def has_feature(user_id: str, gate_id: str) -> bool:
+    """Return True if user can access a gated feature (tier + per-user override)."""
+    try:
+        nc = get_nyaya_conn()
+        user = nc.execute(
+            "SELECT subscription_tier FROM users WHERE user_id=?", (user_id,)
+        ).fetchone()
+        if not user:
+            return False
+        override = nc.execute(
+            "SELECT 1 FROM user_feature_overrides"
+            " WHERE user_id=? AND gate_id=?"
+            " AND (expires_at IS NULL OR expires_at > datetime('now'))",
+            (user_id, gate_id),
+        ).fetchone()
+        if override:
+            return True
+        tier_col = "is_enabled_for_pro" if user["subscription_tier"] == "pro" else "is_enabled_for_free"
+        gate = nc.execute(
+            f"SELECT {tier_col} FROM feature_gates WHERE gate_id=?", (gate_id,)
+        ).fetchone()
+        return bool(gate and gate[0])
+    except Exception:
+        return True  # tables may not exist during migration; default allow
+
+
+def get_monthly_usage(user_id: str, gate_id: str) -> int:
+    """Return how many times user has used a quota-gated feature this calendar month."""
+    try:
+        nc = get_nyaya_conn()
+        period = __import__("datetime").date.today().strftime("%Y-%m")
+        row = nc.execute(
+            "SELECT usage_count FROM user_feature_usage WHERE user_id=? AND gate_id=? AND period=?",
+            (user_id, gate_id, period),
+        ).fetchone()
+        return row["usage_count"] if row else 0
+    except Exception:
+        return 0
+
+
+def increment_feature_usage(user_id: str, gate_id: str) -> int:
+    """Increment monthly usage counter; returns new count."""
+    try:
+        nc = get_nyaya_conn()
+        period = __import__("datetime").date.today().strftime("%Y-%m")
+        nc.execute(
+            "INSERT INTO user_feature_usage (user_id, gate_id, period, usage_count, last_used_at)"
+            " VALUES (?,?,?,1,datetime('now'))"
+            " ON CONFLICT(user_id, gate_id, period) DO UPDATE SET"
+            " usage_count=usage_count+1, last_used_at=datetime('now')",
+            (user_id, gate_id, period),
+        )
+        nc.commit()
+        row = nc.execute(
+            "SELECT usage_count FROM user_feature_usage WHERE user_id=? AND gate_id=? AND period=?",
+            (user_id, gate_id, period),
+        ).fetchone()
+        return row["usage_count"] if row else 1
+    except Exception:
+        return 1
+
+
 def init_user(conn, user_id: str) -> None:
     """Seed default rows for a new user. No-op for existing users."""
     if conn.execute(

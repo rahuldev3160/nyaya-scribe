@@ -32,23 +32,11 @@
     <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Answers Ready</div>
     <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ ans_pct }}% of {{ total_q }} PYQs</div>
   </div>
-  <!-- Topics verified -->
+  <!-- Topics attempted -->
   <div class="gem-card" style="flex:1;min-width:100px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#81C995;">{{ verified_count }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Topics Verified</div>
+    <div style="font-size:2rem;font-weight:700;color:#81C995;">{{ micro_descriptive }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Answers Written</div>
     <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">of {{ total_t }} topics</div>
-  </div>
-  <!-- Readiness now -->
-  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;border-color:{{ r_color }}33;">
-    <div style="font-size:2rem;font-weight:700;color:{{ r_color }};">{{ readiness.formula_pct|round|int }}%</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Readiness Now</div>
-    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ readiness.covered_count }}/{{ readiness.topic_count }} topics ≥50%</div>
-  </div>
-  <!-- Projected -->
-  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;border-color:#8AB4F833;">
-    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ readiness.projected_pct|round|int }}%</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">If Top 10 Done</div>
-    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">projected if top gaps filled</div>
   </div>
 </div>
 
@@ -117,29 +105,15 @@
 <div class="grid-3" style="margin-bottom:24px;">
   {% for t in focus_topics %}
   <div class="focus-card">
-    <span class="badge badge-{{ t._state|lower }}">{{ t._state_display }}</span>
     <h4>{{ t._display_name }}</h4>
     <div class="meta">{{ t._paper_label }} · {{ t.pyq_count or 0 }} past questions · {{ t._priority_label }}</div>
-    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ t._state_meta }}</div>
     <div class="prog-bar-bg" style="margin-top:8px;">
       <div class="prog-bar-fill" style="width:{{ t._mastery_pct }}%;"></div>
     </div>
     <div style="font-size:0.7rem;color:#9AA0A6;margin-top:4px;">{{ t._mastery_pct }}% mastered · {{ t.answers_ready or 0 }}/{{ t.total_q or 0 }} answers ready</div>
     <div style="display:flex;gap:6px;margin-top:10px;">
-      {% if t._state != 'VERIFIED' %}
-      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state" style="flex:1;">
-        <input type="hidden" name="state" value="{{ {'UNVISITED':'IN_STUDY','FLAGGED':'IN_STUDY','DECAYING':'IN_STUDY','IN_STUDY':'PARTIAL','PARTIAL':'VERIFIED'}.get(t._state, 'IN_STUDY') }}">
-        <input type="hidden" name="trigger" value="ui_focus_start">
-        <button type="submit" class="btn btn-sm" style="width:100%;">{{ t._focus_label }}</button>
-      </form>
-      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state" style="flex:1;">
-        <input type="hidden" name="state" value="VERIFIED">
-        <input type="hidden" name="trigger" value="ui_focus_done">
-        <button type="submit" class="btn btn-sm btn-primary" style="width:100%;">Mark Verified</button>
-      </form>
-      {% else %}
-      <span class="btn btn-sm" style="flex:1;text-align:center;opacity:0.4;cursor:default;">Verified ✓</span>
-      {% endif %}
+      <a href="/ies/brief?topic={{ t.topic_id }}" class="btn btn-sm" style="flex:1;text-align:center;">Study</a>
+      <a href="/ies/quiz?mode=by-topic&paper={{ t.paper_id }}&topic={{ t.topic_id }}" class="btn btn-sm btn-primary" style="flex:1;text-align:center;">Write</a>
     </div>
   </div>
   {% endfor %}
@@ -175,8 +149,7 @@
     <div class="topic-row">
       <!-- Name + answers bar -->
       <div>
-        <span class="badge badge-{{ t._state|lower }}">{{ t._state_display }}</span>
-        <span style="font-size:0.92rem;font-weight:500;margin-left:6px;">{{ t._display_name }}</span>
+        <span style="font-size:0.92rem;font-weight:500;">{{ t._display_name }}</span>
         <div class="prog-bar-bg" style="margin-top:4px;">
           <div class="prog-bar-fill" style="width:{{ (100 * (t.answers_ready or 0) / (t.total_q or 1))|round|int }}%;"></div>
         </div>
@@ -193,24 +166,10 @@
          style="width:100%;text-align:center;border-color:rgba(192,132,252,0.4);color:#C084FC;">
         📝 Quiz
       </a>
-      <!-- Advance button -->
-      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state">
-        <input type="hidden" name="state" value="{{ t._next_state }}">
-        <input type="hidden" name="trigger" value="ui_advance">
-        <button type="submit" class="btn btn-sm"
-                style="width:100%;" {% if t._state == 'VERIFIED' %}disabled{% endif %}>
-          {{ t._btn_label }}
-        </button>
-      </form>
-      <!-- Quick verify button -->
-      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state">
-        <input type="hidden" name="state" value="VERIFIED">
-        <input type="hidden" name="trigger" value="ui_verify">
-        <button type="submit" class="btn btn-sm btn-primary"
-                style="width:100%;" {% if t._state == 'VERIFIED' %}disabled{% endif %}>
-          Verify
-        </button>
-      </form>
+      <!-- Study brief -->
+      <a href="/ies/brief?topic={{ t.topic_id }}" class="btn btn-sm" style="width:100%;text-align:center;">Study</a>
+      <!-- Write answer -->
+      <a href="/ies/quiz?mode=by-topic&paper={{ pd.paper_id }}&topic={{ t.topic_id }}" class="btn btn-sm btn-primary" style="width:100%;text-align:center;">Write</a>
     </div>
     {% endfor %}
   </div>
@@ -219,33 +178,8 @@
 
 <br><hr>
 
-<!-- ── State summary ──────────────────────────────────────────────────────── -->
-<div class="section-header" style="margin-bottom:10px;">Overview</div>
-<div class="grid-6">
-  {% for s in state_summary %}
-  <div class="gem-card" style="text-align:center;border-color:{{ s.color }}33;">
-    <div style="font-size:1.8rem;font-weight:700;color:{{ s.color }};">{{ s.count }}</div>
-    <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">{{ s.emoji }} {{ s.display }}</div>
-  </div>
-  {% endfor %}
-</div>
-
-<br><hr>
-
 <!-- ── IES Micro-Progress ─────────────────────────────────────────────────── -->
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-  <div class="section-header">My IES Progress</div>
-</div>
-<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
-  <div class="gem-card" style="flex:1;min-width:110px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ micro_descriptive }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Descriptive Attempts</div>
-  </div>
-  <div class="gem-card" style="flex:1;min-width:110px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#C084FC;">{{ micro_mcq }}</div>
-    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">MCQ Attempts</div>
-  </div>
-</div>
+<div class="section-header" style="margin-bottom:10px;">Recent Answers</div>
 
 {% if micro_recent %}
 <div class="gem-card" style="padding:0;overflow:hidden;margin-bottom:8px;">
@@ -256,7 +190,6 @@
         <th style="text-align:left;padding:6px 16px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Date</th>
         <th style="text-align:left;padding:6px 12px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Topic</th>
         <th style="text-align:center;padding:6px 16px 6px 12px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Words</th>
-        <th style="text-align:center;padding:6px 16px 6px 12px;color:#9AA0A6;font-weight:500;font-size:0.75rem;text-transform:uppercase;">Self-rating</th>
       </tr>
     </thead>
     <tbody>
@@ -265,12 +198,6 @@
         <td style="padding:8px 16px;color:#9AA0A6;white-space:nowrap;">{{ r.created_at[:10] if r.created_at else '—' }}</td>
         <td style="padding:8px 12px;color:#E8EAED;">{{ (r.topic_id or '').replace('_',' ').title() or '—' }}</td>
         <td style="padding:8px 16px 8px 12px;text-align:center;color:#9AA0A6;">{{ r.words or '—' }}</td>
-        <td style="padding:8px 16px 8px 12px;text-align:center;">
-          {% if r.self_rating == 'got_it' %}<span style="color:#81C995;">✅ Got it</span>
-          {% elif r.self_rating == 'partial' %}<span style="color:#FDD663;">🟡 Partial</span>
-          {% elif r.self_rating == 'missed' %}<span style="color:#F28B82;">❌ Missed</span>
-          {% else %}<span style="color:#6E6E73;">—</span>{% endif %}
-        </td>
       </tr>
       {% endfor %}
     </tbody>

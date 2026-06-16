@@ -23,14 +23,9 @@
     <div class="metric-label" style="margin-top: 4px;">Days Left</div>
   </div>
 
-  <div class="gem-card" style="text-align: center; border-color: {{ r_color }}33;">
-    <div style="font-size: 1.9rem; font-weight: 700; color: {{ r_color }}; line-height: 1.1;">{{ verified }}<span style="font-size: 1rem; color: #9AA0A6;">/{{ total_t }}</span></div>
-    <div class="metric-label" style="margin-top: 4px;">Verified</div>
-  </div>
-
-  <div class="gem-card" style="text-align: center; border-color: {{ ip_color }}33;">
-    <div style="font-size: 1.9rem; font-weight: 700; color: {{ ip_color }}; line-height: 1.1;">{{ in_progress }}</div>
-    <div class="metric-label" style="margin-top: 4px;">In Progress</div>
+  <div class="gem-card" style="text-align: center; border-color: #8AB4F833;">
+    <div style="font-size: 1.9rem; font-weight: 700; color: #8AB4F8; line-height: 1.1;">{{ total_t }}</div>
+    <div class="metric-label" style="margin-top: 4px;">Topics</div>
   </div>
 
   <div class="gem-card" style="text-align: center; border-color: #8AB4F833;">
@@ -88,11 +83,7 @@
         <div style="flex: 1; min-width: 180px;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
             <span style="font-size: 0.92rem; font-weight: 600; color: #E8EAED;">{{ t._name }}</span>
-            <span class="badge badge-{{ t._state | lower }}">{{ t._state }}</span>
           </div>
-          {% if t._state_meta %}
-          <div style="font-size: 0.76rem; color: #9AA0A6; margin-bottom: 6px;">{{ t._state_meta }}</div>
-          {% endif %}
 
           <!-- Answers progress bar -->
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -112,25 +103,10 @@
           {% endif %}
         </div>
 
-        <!-- Right: action buttons -->
+        <!-- Right: action links -->
         <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; padding-top: 2px;">
-          <form method="POST" action="/upsc/topics/{{ t.topic_id }}/state" style="display:inline;">
-            <input type="hidden" name="new_state" value="{{ t._next_state }}">
-            <button type="submit" class="btn btn-sm btn-primary"
-                    {% if t._state == 'VERIFIED' %}disabled{% endif %}>
-              {{ t._btn_label }}
-            </button>
-          </form>
-
-          <form method="POST" action="/upsc/topics/{{ t.topic_id }}/state" style="display:inline;">
-            <input type="hidden" name="new_state" value="VERIFIED">
-            <button type="submit" class="btn btn-sm"
-                    style="color: #81C995; border-color: rgba(129,201,149,0.35);"
-                    {% if t._state == 'VERIFIED' %}disabled{% endif %}>
-              Quick Verify
-            </button>
-          </form>
-
+          <a href="/upsc/mains?topic={{ t.topic_id }}" class="btn btn-sm">Study</a>
+          <a href="/upsc/mains?topic={{ t.topic_id }}" class="btn btn-sm btn-primary">Write</a>
         </div>
 
       </div>
@@ -141,19 +117,6 @@
   {% endfor %}
 </div>
 
-<!-- State overview -->
-<div style="margin-bottom: 0.5rem;">
-  <div class="section-header">State Overview</div>
-  <div class="grid-6">
-    {% for s in state_overview %}
-    <div class="gem-card" style="text-align: center; border-color: {{ s.color }}33;">
-      <div style="font-size: 1.4rem; color: {{ s.color }}; line-height: 1;">{{ s.emoji }}</div>
-      <div style="font-size: 1.5rem; font-weight: 700; color: {{ s.color }}; margin: 4px 0;">{{ s.count }}</div>
-      <div style="font-size: 0.7rem; color: #9AA0A6; text-transform: uppercase; letter-spacing: 0.04em;">{{ s.label }}</div>
-    </div>
-    {% endfor %}
-  </div>
-</div>
 
 {% endif %}
 {% endblock %}

@@ -172,39 +172,6 @@
   </div>
 </div>
 
-<!-- Self-rating -->
-{% if not attempt.self_rating %}
-<div class="gem-card" style="padding:14px 16px;margin-bottom:16px;">
-  <div style="font-size:0.85rem;color:#9AA0A6;margin-bottom:10px;">How did you do compared to the model answer?</div>
-  <form method="POST" action="/ies/quiz/rate" style="display:flex;gap:8px;flex-wrap:wrap;">
-    <input type="hidden" name="attempt_id" value="{{ attempt.attempt_id }}">
-    <input type="hidden" name="mode" value="{{ mode }}">
-    <input type="hidden" name="qid" value="{{ qid }}">
-    <input type="hidden" name="year_str" value="{{ year_str }}">
-    <input type="hidden" name="paper" value="{{ paper }}">
-    <input type="hidden" name="topic_id" value="{{ topic_id }}">
-    <button type="submit" name="rating" value="got_it"
-            class="btn btn-primary" style="flex:1;min-width:120px;border-color:#81C99544;color:#81C995;background:#81C99515;">
-      ✅ Got it
-    </button>
-    <button type="submit" name="rating" value="partial"
-            class="btn btn-primary" style="flex:1;min-width:120px;border-color:#FDD66344;color:#FDD663;background:#FDD66315;">
-      🟡 Partially
-    </button>
-    <button type="submit" name="rating" value="missed"
-            class="btn btn-primary" style="flex:1;min-width:120px;border-color:#F28B8244;color:#F28B82;background:#F28B8215;">
-      ❌ Missed it
-    </button>
-  </form>
-</div>
-{% else %}
-<div style="margin-bottom:16px;padding:10px 16px;background:#2A2F3A;border-radius:8px;font-size:0.88rem;">
-  Self-rated:
-  {% if attempt.self_rating == 'got_it' %}<span style="color:#81C995;font-weight:600;">✅ Got it</span>
-  {% elif attempt.self_rating == 'partial' %}<span style="color:#FDD663;font-weight:600;">🟡 Partially</span>
-  {% else %}<span style="color:#F28B82;font-weight:600;">❌ Missed it</span>{% endif %}
-</div>
-{% endif %}
 
 <!-- Navigation after submission -->
 <div style="display:flex;gap:8px;margin-top:8px;">
@@ -219,8 +186,31 @@
 </div>
 
 {% else %}
+<!-- ── Model answer (browse / note-taker mode) ────────────────────────────── -->
+{% if selected_q.intro_text or selected_q.body_text or selected_q.conclusion_text %}
+<details style="margin-bottom:16px;">
+  <summary style="cursor:pointer;color:#8AB4F8;font-size:0.9rem;padding:10px 0;user-select:none;">
+    📖 View Model Answer (tap to reveal)
+  </summary>
+  <div class="gem-card" style="margin-top:8px;border-color:rgba(138,180,248,0.3);">
+    {% if selected_q.intro_text %}
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Introduction</div>
+    <div style="font-size:0.88rem;line-height:1.7;color:#E8EAED;margin-bottom:14px;">{{ selected_q.intro_text }}</div>
+    {% endif %}
+    {% if selected_q.body_text %}
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Body</div>
+    <div style="font-size:0.88rem;line-height:1.7;color:#E8EAED;margin-bottom:14px;">{{ selected_q.body_text }}</div>
+    {% endif %}
+    {% if selected_q.conclusion_text %}
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Conclusion</div>
+    <div style="font-size:0.88rem;line-height:1.7;color:#E8EAED;">{{ selected_q.conclusion_text }}</div>
+    {% endif %}
+  </div>
+</details>
+{% endif %}
+
 <!-- ── Answer form ────────────────────────────────────────────────────────── -->
-<form method="POST" action="/ies/quiz/submit">
+<form method="POST" action="/ies/quiz/submit" id="quiz-form">
   <input type="hidden" name="qid" value="{{ qid }}">
   <input type="hidden" name="mode" value="{{ mode }}">
   <input type="hidden" name="year_str" value="{{ year_str }}">
@@ -228,17 +218,40 @@
   <input type="hidden" name="topic_id" value="{{ topic_id }}">
 
   <div class="gem-card" style="margin-bottom:16px;">
-    <div class="section-header" style="color:#8AB4F8;margin-bottom:8px;">Introduction</div>
-    <textarea name="intro" placeholder="~{{ wc[0] }} words · Define the key concept, state the scope of your answer"
-              style="height:100px;resize:vertical;"></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div class="section-header" style="color:#8AB4F8;margin-bottom:0;">Introduction</div>
+      <span id="wc-intro" style="font-size:0.75rem;color:#9AA0A6;">0 / ~{{ wc[0] }}w</span>
+    </div>
+    <textarea name="intro" id="ta-intro"
+              placeholder="~{{ wc[0] }} words · Define the key concept, state the scope of your answer"
+              style="height:100px;resize:vertical;" oninput="updateWC()"></textarea>
 
-    <div class="section-header" style="color:#C084FC;margin-top:16px;margin-bottom:8px;">Body</div>
-    <textarea name="body" placeholder="~{{ wc[1] }} words · Analysis, theories, diagrams (described), data points, government schemes"
-              style="height:260px;resize:vertical;"></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
+      <div class="section-header" style="color:#C084FC;margin-bottom:0;">Body</div>
+      <span id="wc-body" style="font-size:0.75rem;color:#9AA0A6;">0 / ~{{ wc[1] }}w</span>
+    </div>
+    <textarea name="body" id="ta-body"
+              placeholder="~{{ wc[1] }} words · Analysis, theories, diagrams (described), data points, government schemes"
+              style="height:260px;resize:vertical;" oninput="updateWC()"></textarea>
 
-    <div class="section-header" style="color:#81C995;margin-top:16px;margin-bottom:8px;">Conclusion</div>
-    <textarea name="conclusion" placeholder="~{{ wc[2] }} words · Policy implications, way forward, evaluative statement"
-              style="height:90px;resize:vertical;"></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
+      <div class="section-header" style="color:#81C995;margin-bottom:0;">Conclusion</div>
+      <span id="wc-conc" style="font-size:0.75rem;color:#9AA0A6;">0 / ~{{ wc[2] }}w</span>
+    </div>
+    <textarea name="conclusion" id="ta-conc"
+              placeholder="~{{ wc[2] }} words · Policy implications, way forward, evaluative statement"
+              style="height:90px;resize:vertical;" oninput="updateWC()"></textarea>
+
+    <!-- Total word count bar -->
+    <div style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#9AA0A6;margin-bottom:4px;">
+        <span>Total words</span>
+        <span id="wc-total">0 / ~{{ wc[0] + wc[1] + wc[2] }}w target</span>
+      </div>
+      <div style="background:#2A2F3A;border-radius:4px;height:6px;overflow:hidden;">
+        <div id="wc-bar" style="height:100%;width:0%;background:#8AB4F8;border-radius:4px;transition:width .15s,background .15s;"></div>
+      </div>
+    </div>
 
     <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
       <button type="submit" class="btn btn-primary" style="flex:1;padding:12px;font-size:1rem;font-weight:700;">
@@ -251,6 +264,41 @@
     </div>
   </div>
 </form>
+
+<script>
+(function() {
+  var targets = { intro: {{ wc[0] }}, body: {{ wc[1] }}, conc: {{ wc[2] }} };
+  var total_target = targets.intro + targets.body + targets.conc;
+
+  function wc(text) {
+    return text.trim() ? text.trim().split(/\s+/).length : 0;
+  }
+
+  function colorFor(count, target) {
+    var ratio = count / target;
+    if (ratio < 0.6) return '#F28B82';
+    if (ratio > 1.3) return '#F28B82';
+    if (ratio >= 0.85 && ratio <= 1.15) return '#81C995';
+    return '#FDD663';
+  }
+
+  window.updateWC = function() {
+    var wi = wc(document.getElementById('ta-intro').value);
+    var wb = wc(document.getElementById('ta-body').value);
+    var wco = wc(document.getElementById('ta-conc').value);
+    var total = wi + wb + wco;
+
+    document.getElementById('wc-intro').textContent = wi + ' / ~' + targets.intro + 'w';
+    document.getElementById('wc-body').textContent  = wb + ' / ~' + targets.body + 'w';
+    document.getElementById('wc-conc').textContent  = wco + ' / ~' + targets.conc + 'w';
+    document.getElementById('wc-total').textContent = total + ' / ~' + total_target + 'w target';
+
+    var bar = document.getElementById('wc-bar');
+    bar.style.width = Math.min(100, (total / total_target) * 100) + '%';
+    bar.style.background = colorFor(total, total_target);
+  };
+})();
+</script>
 {% endif %}
 
 {% endif %}
