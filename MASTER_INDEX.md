@@ -38,6 +38,7 @@ Updated: 2026-06-16 (Session 41)
 | DECIDE-21 | AI scoring uses `claude-haiku-4-5-20251001` (not Sonnet) | Fastest, cheapest, sufficient for structured tool-use 5-dimension scoring; Sonnet overkill at 15 free evals/month | claude-sonnet-4-6 for quality | web/blueprints/ies_quiz_bp.py _score_answer() |
 | DECIDE-22 | `can_use_feature(user_id, gate_id)` wraps has_feature + quota check — the atomic gate call | has_feature() checks boolean only; quota enforcement was missing entirely (planning agent caught this) | Check has_feature + get_monthly_usage inline at each callsite | web/db.py can_use_feature() |
 | DECIDE-23 | UPSC optional subjects = separate DB per optional, lazy-loaded by user enrollment; `_UPSC_OPT_DB_MAP` in app.py maps optional code → path; `g.upsc_conn` stays as "user's active UPSC optional" | Maintains one-DB-per-exam pattern; zero blueprint changes for new optionals; `exam_id` in every PK already handles schema isolation | Single `upsc_optionals.db` with shared connection | web/app.py `_UPSC_OPT_DB_MAP`; rename: upsc.db → upsc_eco_opt.db (S42) |
+| DECIDE-24 | Any migration adding a column to a shared-schema table (`descriptive_attempts`, `gap_states`, `user_mastery`, `return_quiz_questions`) must have a companion migration for every exam DB that has that table | BUG-028: m016 added `self_rating` to ies.db only; UPSC dashboard crashed with 'no such column' after S41 hero strip additions | Apply migration to one DB and call it done | migrations/m016 (ies.db only) + m038 (upsc fix); enforce in code review |
 
 ---
 
