@@ -1,9 +1,9 @@
-"""Create upsc.db schema (16 IES + 5 UPSC-specific tables) and seed exam config."""
+"""Create upsc_eco_opt.db schema (16 IES + 5 UPSC-specific tables) and seed exam config."""
 import sys
 import importlib.util
 from pathlib import Path
 
-DB = "upsc"
+DB = "upsc_eco_opt"
 
 _spec = importlib.util.spec_from_file_location(
     "init_upsc_db",

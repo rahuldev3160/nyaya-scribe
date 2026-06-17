@@ -13,7 +13,7 @@ from pathlib import Path
 
 import anthropic
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 BATCH_ID_FILE = Path(__file__).parent.parent.parent / "data" / "upsc_rubrics_batch.txt"
 EXAM_ID = "upsc_eco_opt"
 

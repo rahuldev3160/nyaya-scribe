@@ -8,7 +8,7 @@ When a new exam paper is available (e.g., IES 2027):
 4. `python3 scripts/compute_base_scores.py --exam ies_2026`
 5. `git add migrations/ && git commit && git push` → Railway auto-deploys
 
-For UPSC: replace `ies_2026` with `upsc_eco_opt`, uses `data/upsc.db`
+For UPSC: replace `ies_2026` with `upsc_eco_opt`, uses `data/upsc_eco_opt.db`
 For RBI: replace `ies_2026` with `rbi_depr`, uses `data/rbi.db`
 
 ## Batch ID files
@@ -29,5 +29,5 @@ Delete the batch file only if you want to start a fresh batch.
 | exam_id       | DB file       |
 |---------------|---------------|
 | ies_2026      | data/ies.db   |
-| upsc_eco_opt  | data/upsc.db  |
+| upsc_eco_opt  | data/upsc_eco_opt.db  |
 | rbi_depr      | data/rbi.db   |

@@ -23,7 +23,7 @@ Updated: 2026-06-16 (Session 41)
 | DECIDE-06 | gs4_keywords.keyword_category CHECK constraint widened from 7 to ~22 values via m034 migration | Original 7-value constraint (value/virtue/principle/governance/psychological/philosophical/governance_term) was designed for a narrower taxonomy than the full GS4 keyword index needed | Remap all keywords to the 7 original categories | migrations/m034_upsc_gs_widen_keyword_category.py |
 | DECIDE-07 | GS4 synonym seed uses source='human' not 'seed' | gs4_keyword_synonyms.source CHECK(source IN ('auto','human')) — 'seed' violates constraint, INSERT OR IGNORE silently skips | Add 'seed' to CHECK constraint | scripts/setup_upsc_gs.py seed_synonyms() |
 | DECIDE-08 | UPSC GS Mains enters via UPSC tab toggle (not a 5th bottom nav tab) | CSS-MOB-001: exactly 4 mobile nav tabs; 5th tab breaks the mobile grid | New 5th bottom tab for GS | upsc_dashboard.html (planned), PLAN-017 |
-| DECIDE-09 | upsc_gs.db is a separate physical DB file (not tables inside upsc.db) | GS Mains has 41 tables; embedding in upsc.db would bloat it and require schema migration of existing data | Add GS tables to upsc.db | web/upsc_gs_db.py, web/app.py |
+| DECIDE-09 | upsc_gs.db is a separate physical DB file (not tables inside upsc_eco_opt.db) | GS Mains has 41 tables; embedding in upsc_eco_opt.db would bloat it and require schema migration of existing data | Add GS tables to upsc_eco_opt.db | web/upsc_gs_db.py, web/app.py |
 | DECIDE-10 | Implicit tracking only — no manual Verify/Mark Partial/Reset buttons anywhere | Even creator couldn't use it; Duolingo/Khan Academy never ask users to self-report mastery; behavioral signals are more accurate | Keep manual buttons with better UX | All dashboard + quiz templates |
 | DECIDE-11 | UPSC GS Mains is the primary design template for Phase 1 UI redesign | Largest audience, freshest build, no legacy patterns to untangle; replicate pattern to IES/RBI after | Nail IES first (older, more legacy) | .knowledge/plans/UI-REDESIGN-001.md (S40 version) |
 | DECIDE-12 | Partial-free freemium: model answers for 2022–2024 free, pre-2022 premium | Free reference library drives acquisition (note-takers); older PYQs drive upgrade from serious aspirants | Fully free model answers OR fully gated | feature_gates.gate_id='model_answers_full' |
@@ -37,6 +37,7 @@ Updated: 2026-06-16 (Session 41)
 | DECIDE-20 | Phase 2a = text AI scoring only; photo eval deferred to Phase 2b | Prevents 3-feature session that ships none cleanly; photo eval needs Pillow + new blueprint | Build photo + text scoring together in Phase 2 | ies_quiz_bp.py (Phase 2a done); photo_eval_bp.py (pending Phase 2b) |
 | DECIDE-21 | AI scoring uses `claude-haiku-4-5-20251001` (not Sonnet) | Fastest, cheapest, sufficient for structured tool-use 5-dimension scoring; Sonnet overkill at 15 free evals/month | claude-sonnet-4-6 for quality | web/blueprints/ies_quiz_bp.py _score_answer() |
 | DECIDE-22 | `can_use_feature(user_id, gate_id)` wraps has_feature + quota check — the atomic gate call | has_feature() checks boolean only; quota enforcement was missing entirely (planning agent caught this) | Check has_feature + get_monthly_usage inline at each callsite | web/db.py can_use_feature() |
+| DECIDE-23 | UPSC optional subjects = separate DB per optional, lazy-loaded by user enrollment; `_UPSC_OPT_DB_MAP` in app.py maps optional code → path; `g.upsc_conn` stays as "user's active UPSC optional" | Maintains one-DB-per-exam pattern; zero blueprint changes for new optionals; `exam_id` in every PK already handles schema isolation | Single `upsc_optionals.db` with shared connection | web/app.py `_UPSC_OPT_DB_MAP`; rename: upsc.db → upsc_eco_opt.db (S42) |
 
 ---
 
@@ -50,7 +51,7 @@ Updated: 2026-06-16 (Session 41)
 | SCHEMA-04 | gs4_keywords — 123 canonical ethics keywords + 430 synonym expansions | upsc_gs.db | setup_upsc_gs.py seed | categories: core_value/ethical_theory/governance_ethics/etc. |
 | SCHEMA-05 | pyq_questions — 221 rows seeded (GS4: 93, GS1: 62, GS2: 29, GS3: 37) | upsc_gs.db | scripts/seed_upsc_gs_pyqs.py | GS1-3 coverage gap; needs official PDFs |
 | SCHEMA-06 | feature_gates + user_feature_overrides + user_feature_usage — freemium gating tables | nyaya.db | m035_feature_gates.py | 5 gates seeded; admin toggles is_enabled_for_free/quota_free without redeploy |
-| SCHEMA-07 | gap_states.inferred_state + gap_states.inferred_at — implicit tracking columns | ies.db, upsc.db | m036, m037 | Populated by compute_inferred_states.py (written S41); canonical taxonomy UNVISITED/FLAGGED/IN_STUDY/VERIFIED/DECAYING |
+| SCHEMA-07 | gap_states.inferred_state + gap_states.inferred_at — implicit tracking columns | ies.db, upsc_eco_opt.db | m036, m037 | Populated by compute_inferred_states.py (written S41); canonical taxonomy UNVISITED/FLAGGED/IN_STUDY/VERIFIED/DECAYING |
 | SCHEMA-08 | descriptive_attempts.scores_json (TEXT) + weighted_score (REAL) — AI evaluation output | ies.db | In original CREATE TABLE (no dedicated migration) | Populated by _score_answer() in ies_quiz_bp.py since S41; format: {dimensions:{5 keys}, weighted_score, feedback, model} |
 
 ---
@@ -69,7 +70,7 @@ Updated: 2026-06-16 (Session 41)
 | ID | Pattern | Where Used | Notes |
 |----|---------|-----------|-------|
 | METHOD-01 | INSERT OR IGNORE with CHECK constraint validation | seed scripts | Silent skip on CHECK violation — always verify with SELECT COUNT(*) not rowcount |
-| METHOD-02 | SQLite multi-DB Flask pattern | web/app.py | g.conn (ies), g.rbi_conn (rbi), g.upsc_conn (upsc), g.nyaya_conn (nyaya), g.upsc_gs_conn (upsc_gs) |
+| METHOD-02 | SQLite multi-DB Flask pattern | web/app.py | g.conn (ies), g.rbi_conn (rbi), g.upsc_conn (upsc_eco_opt), g.nyaya_conn (nyaya), g.upsc_gs_conn (upsc_gs) |
 | METHOD-03 | Migration variable: `DB = "db_key"` (not TARGET_DB, not db_name) | scripts/migrate.py | migrate.py reads `getattr(mod, "DB", "ies")` — wrong name → defaults to ies silently |
 | METHOD-04 | PYQ ingestion: parse → JSON cache → seed (3-step idempotent) | scripts/parse_mrunal_pyqs.py + seed | Cache JSONs in data/cache/; re-run seed is safe (INSERT OR IGNORE + question_hash UNIQUE) |
 | METHOD-05 | has_feature(user_id, gate_id) — freemium gate check | web/db.py | Checks subscription_tier + user_feature_overrides; returns True if tables missing (safe during migration) |

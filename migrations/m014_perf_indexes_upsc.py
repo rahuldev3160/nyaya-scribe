@@ -1,4 +1,4 @@
-DB = "upsc"
+DB = "upsc_eco_opt"
 
 
 def run(conn):

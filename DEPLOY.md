@@ -23,7 +23,7 @@ Three DBs are gitignored (live user data accumulates). Seed copies are committed
 |---|---|---|
 | `data/ies.db` | `data/ies_seed.db` | 1219 IES PYQs + rubrics + model answers |
 | `data/rbi.db` | `data/rbi_seed.db` | 303 RBI MCQs + topic weights |
-| `data/upsc.db` | `data/upsc_seed.db` | 908 UPSC model answers |
+| `data/upsc_eco_opt.db` | `data/upsc_seed.db` | 908 UPSC model answers |
 
 `app.py` copies seed → live on first load. No manual step needed.
 
@@ -41,7 +41,7 @@ Three DBs are gitignored (live user data accumulates). Seed copies are committed
 ### 2. Add a persistent volume (CRITICAL — without this, DB data resets on redeploy)
 1. In Railway dashboard → your service → **Storage** tab
 2. **Add Volume** → Mount Path: `/app/data`
-3. This keeps `ies.db`, `rbi.db`, `upsc.db` alive across deploys
+3. This keeps `ies.db`, `rbi.db`, `upsc_eco_opt.db` alive across deploys
 
 ### 3. Set environment variables
 In Railway → your service → **Variables** tab, add:

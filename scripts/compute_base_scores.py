@@ -14,7 +14,7 @@ from pathlib import Path
 
 EXAM_DB_MAP = {
     "ies_2026": "ies.db",
-    "upsc_eco_opt": "upsc.db",
+    "upsc_eco_opt": "upsc_eco_opt.db",
 }
 CURRENT_YEAR = date.today().year
 

@@ -9,7 +9,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 CONFIG_PATH = Path(__file__).parent.parent.parent / "config" / "topics_upsc_eco.json"
 EXAM_ID = "upsc_eco_opt"
 USER_ID = "rahul"

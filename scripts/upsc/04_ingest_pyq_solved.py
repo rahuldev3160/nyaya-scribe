@@ -2,7 +2,7 @@
 Script 04: Ingest pre-solved Q+A pairs from PYQs/ subfolder.
 
 Source: ~/Desktop/UPSC/Mains/Optional/PYQs/
-Target: data/upsc.db
+Target: data/upsc_eco_opt.db
     - pyq_questions  (INSERT OR IGNORE, deduped by question_hash)
     - reference_answers  (stores answers with link back to question)
 
@@ -31,7 +31,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from parsers.digital_pdf import extract_text, get_page_text_quality  # noqa: E402
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 EXAM_ID = "upsc_eco_opt"
 
 PYQ_SOLVED_DIR = (

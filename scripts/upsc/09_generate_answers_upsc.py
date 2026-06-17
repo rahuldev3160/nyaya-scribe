@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 
 import anthropic
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 BATCH_ID_FILE = Path(__file__).parent.parent.parent / "data" / "upsc_answers_batch.txt"
 CACHE_DIR = Path(__file__).parent.parent.parent / "cache" / "upsc_answer_batch_results"
 EXAM_ID = "upsc_eco_opt"

@@ -15,9 +15,17 @@ from flask import Flask, g, redirect, session
 _DATA  = Path(__file__).parent.parent / "data"
 _SEEDS = Path(__file__).parent.parent / "seeds"
 _RBI_DB_PATH     = _DATA / "rbi.db"
-_UPSC_DB_PATH    = _DATA / "upsc.db"
 _ENGLISH_DB_PATH = _DATA / "english.db"
 _UPSC_GS_DB_PATH = _DATA / "upsc_gs.db"
+
+# UPSC Optional subjects — lazy-loaded by user's enrolled optional (DECIDE-23)
+# Add new optionals here; before_request opens the right DB into g.upsc_conn.
+_UPSC_OPT_DB_MAP: dict[str, Path] = {
+    "eco_opt": _DATA / "upsc_eco_opt.db",
+    # "hist_opt": _DATA / "upsc_hist_opt.db",   # History Optional (future)
+    # "geo_opt":  _DATA / "upsc_geo_opt.db",     # Geography Optional (future)
+}
+_UPSC_DB_PATH = _UPSC_OPT_DB_MAP["eco_opt"]  # current default until multi-optional UI is built
 
 _FEEDBACK_TABLE_SQL = """
     CREATE TABLE IF NOT EXISTS user_feedback (
@@ -171,6 +179,12 @@ def _boot_db(name: str) -> None:
     seed = _SEEDS / f"{name}_seed.db"
     if live.exists():
         return
+    # One-time legacy rename: upsc.db → upsc_eco_opt.db on existing Railway deploys
+    if name == "upsc_eco_opt":
+        old = _DATA / "upsc.db"
+        if old.exists():
+            old.rename(live)
+            return
     if not seed.exists():
         raise RuntimeError(
             f"data/{name}.db missing and seeds/{name}_seed.db not found. "
@@ -284,7 +298,7 @@ def create_app() -> Flask:
 
     _boot_db("ies")
     _boot_db("rbi")
-    _boot_db("upsc")
+    _boot_db("upsc_eco_opt")
     _boot_db("nyaya")
     _run_migrations()
     _run_nyaya_migrations()

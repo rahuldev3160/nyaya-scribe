@@ -15,7 +15,7 @@ import pdfplumber
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 EXAM_ID = "upsc_eco_opt"
 TARGET_WORDS = 500
 MIN_WORDS = 400

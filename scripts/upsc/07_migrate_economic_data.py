@@ -17,7 +17,7 @@ from pathlib import Path
 import anthropic
 import pdfplumber
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 EXAM_ID = "upsc_eco_opt"
 
 RBI_FILE = Path(__file__).parent.parent.parent / "data" / "rbi_current_data.txt"

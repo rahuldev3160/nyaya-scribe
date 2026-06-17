@@ -1,5 +1,5 @@
-"""Add inferred_state columns to upsc.db gap_states for implicit tracking."""
-DB = "upsc"
+"""Add inferred_state columns to upsc_eco_opt.db gap_states for implicit tracking."""
+DB = "upsc_eco_opt"
 
 
 def run(conn):

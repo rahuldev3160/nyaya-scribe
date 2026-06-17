@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-16 (Session 41)
+Last updated: 2026-06-17 (Session 42)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -38,6 +38,8 @@ Last updated: 2026-06-16 (Session 41)
 | [BUG-023](bugs/BUG-023.md) | FIXED | MEDIUM | data-sync | Profile "Answers Graded" undercounts — only queries IES `descriptive_attempts` in ies.db; UPSC `descriptive_attempts` in upsc.db ignored. Fix: open direct upsc.db connection in profile_bp and sum. | SYNC-001 | S28 | TBD |
 | [BUG-024](bugs/BUG-024.md) | FIXED | MEDIUM | data-integrity | Orphaned `user_events` rows with no `users` FK — `user_events` had no `REFERENCES users(user_id)`; `validate_session` didn't JOIN users so stale sessions returned ghost user_ids. Fix: FK + ON DELETE CASCADE via `_run_nyaya_migrations()`; validate_session now JOINs users. | — | S29 | 4bf3097 |
 | [BUG-025](bugs/BUG-025.md) | FIXED | HIGH | data | Quiz model answer panel always empty — `get_questions()` selects `ma.answer_id` but not `intro_text/body_text/conclusion_text` (too expensive for 1219 rows). Fix: call `get_answer()` for `selected_q` only, merge 3 text fields after question selection. | — | S30 | 49d0d0e |
+| [BUG-026](bugs/BUG-026.md) | FIXED | HIGH | scoring | self_rating TEXT * 2.0 = 0 silently — all readiness/avg_score SQL returned 0; Fix: CASE expression mapping ('got_it'→8,'partial'→5,'missed'→2) in 5 SQL locations across 3 files + compute_inferred_states.py | — | S41 | 62f4439 |
+| [BUG-027](bugs/BUG-027.md) | FIXED | MEDIUM | ui | inferred_state taxonomy mismatch — compute script wrote READY/CRUNCH/SHAKY/LEARNING, no display map existed; Fix: aligned to canonical UNVISITED/FLAGGED/IN_STUDY/VERIFIED/DECAYING | — | S41 | 62f4439 |
 
 ---
 
@@ -51,6 +53,7 @@ Last updated: 2026-06-16 (Session 41)
 | [AUDIT-004](audits/AUDIT-004.md) | 2026-06-07 | Data flow architecture — all 4 exam domains (RBI, IES, UPSC, English+shared) | 4 parallel | 8 problem classes, 2 live bugs | 2 fixed same session | 6 open → PLAN-014 |
 | [AUDIT-005](audits/AUDIT-005.md) | 2026-06-08 | Mobile layout regressions — all 4 issues (login tiny, sidebar shows, nav disappears, zoom-out) | inline | 6 root causes | 6 fixed (commit ca37f51) | 0 open |
 | [AUDIT-006](audits/AUDIT-006.md) | 2026-06-08 | Mobile UI polish — button text overflow, mid-word breaks in stat cards, grid collapse strategy | inline | 5 root causes | 5 fixed (commit 7f405e9) | 0 open |
+| [AUDIT-007](audits/AUDIT-007.md) | 2026-06-13 | Production funnel — 95 users · 46 onboarded · ~0 content engagement; 3 activation RC identified | inline | 3 RC | 3 fixed (PLAN-016, commit e51b27a) | 0 open |
 
 ---
 
@@ -73,9 +76,9 @@ Last updated: 2026-06-16 (Session 41)
 | [PLAN-013](plans/PLAN-013.md) | 2026-06-06 | S25: nyaya.db — 4th canonical DB for identity+events; Phase 1+2 complete (commit 9a26646) | PHASE 2 COMPLETE |
 | [PLAN-014](plans/PLAN-014.md) | 2026-06-07 | S33: Single-source architecture refactor — kill INSERT OR IGNORE drift, eliminate KEY_SECTIONS/BUCKETS, centralise metadata, English to own DB | ALL PHASES COMPLETE (S37 — commit bc90ab4) |
 | PLAN-015 | 2026-06-08 | S35: Mobile-first UI — bottom tab nav, responsive grids, sidebar DOM removal, full-screen login, CSS-MOB-001 fix | COMPLETE (commit ca37f51) |
-| PLAN-016 | 2026-06-13 | S36: Engagement activation — post-setup routing, smart login, button redesign, first-action cards, nav cleanup | COMPLETE (commit e51b27a) |
+| [PLAN-016](plans/PLAN-016.md) | 2026-06-13 | S36: Engagement activation — post-setup routing, smart login, button redesign, first-action cards, nav cleanup | COMPLETE (commit e51b27a) |
 | [PLAN-017](plans/PLAN-017.md) | 2026-06-16 | S38: UPSC GS Mains expansion — upsc_gs.db, all 4 GS papers, Ethics keyword index, CA integration, cross-paper linking | PHASE 1 COMPLETE (S39) — Phase 2 PYQ ingestion in progress |
-| UI-REDESIGN-001 | 2026-06-16 | S39: All-exam UI cleanup — better visual grouping, noise removal, guide users to main content | PLANNING (S39) |
+| [UI-REDESIGN-001](plans/UI-REDESIGN-001.md) | 2026-06-16 | S39–S41: Product redesign — noise removal, freemium foundation, AI scoring, hero strip, photo eval pending | Phase 0 ✅ · Phase 1 ✅ · Phase 2a ✅ · Phase 2b PENDING |
 
 ---
 

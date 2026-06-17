@@ -1,8 +1,8 @@
-"""UPSC DB helpers — upsc.db connection and shared query helpers."""
+"""UPSC Economics Optional DB helpers — upsc_eco_opt.db connection and shared query helpers."""
 import sqlite3
 from pathlib import Path
 
-_UPSC_DB_PATH = Path(__file__).parent.parent / "data" / "upsc.db"
+_UPSC_DB_PATH = Path(__file__).parent.parent / "data" / "upsc_eco_opt.db"
 
 
 def _open_upsc_conn() -> sqlite3.Connection:

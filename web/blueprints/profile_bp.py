@@ -59,7 +59,7 @@ def profile_page():
 
     upsc_answers = 0
     upsc_mcqs = 0
-    upsc_db = _DATA / "upsc.db"
+    upsc_db = _DATA / "upsc_eco_opt.db"
     if upsc_db.exists():
         try:
             _upsc = sqlite3.connect(str(upsc_db), check_same_thread=False)

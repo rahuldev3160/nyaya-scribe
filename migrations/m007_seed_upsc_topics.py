@@ -3,7 +3,7 @@ import json
 import importlib.util
 from pathlib import Path
 
-DB = "upsc"
+DB = "upsc_eco_opt"
 
 ROOT = Path(__file__).parent.parent
 

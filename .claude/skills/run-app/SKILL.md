@@ -116,7 +116,7 @@ print('OK')
 |----|-----------|-------|
 | `data/ies.db` | `app.before_request` | `g.conn` |
 | `data/rbi.db` | `rbi_dashboard_bp.before_request` + `rbi_prep_bp.before_request` | `g.rbi_conn` |
-| `data/upsc.db` | `upsc_dashboard_bp.before_request` + `upsc_bp.before_request` | `g.upsc_conn` |
+| `data/upsc_eco_opt.db` | `upsc_dashboard_bp.before_request` + `upsc_bp.before_request` | `g.upsc_conn` |
 
 All connections closed by corresponding `teardown_appcontext` / `teardown_request` hooks — no manual `.close()` needed in routes.
 

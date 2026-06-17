@@ -14,7 +14,7 @@ import re
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 CACHE_FILE = Path(__file__).parent.parent.parent / "cache" / "upsc_answer_batch_results" / "msgbatch_01UKywnC3extuStyUiQX4eXs.jsonl"
 EXAM_ID = "upsc_eco_opt"
 

@@ -12,7 +12,7 @@ Last updated: 2026-06-16 (Session 38)
 
 6 parallel sub-agents researched all 4 GS papers (GS1 History/Geo/Culture/Society, GS2 Polity/Governance/IR, GS3 Economy/Environment/Tech/Security, GS4 Ethics/Integrity/Aptitude). Full plan written to `.knowledge/plans/PLAN-017.md`.
 
-**Architecture decision:** New `upsc_gs.db` (not expanding `upsc.db`). `exam_id='upsc_gs_mains'`, `paper_id` values: gs1/gs2/gs3/gs4. New Flask connection `g.upsc_gs_conn` + `web/upsc_gs_db.py`. Three new blueprints: `gs_dashboard_bp`, `gs_quiz_bp`, `gs4_ethics_bp`. GS accessed under UPSC nav tab (toggle EO / GS Mains) — no 5th tab (CSS-MOB-001).
+**Architecture decision:** New `upsc_gs.db` (not expanding `upsc_eco_opt.db`). `exam_id='upsc_gs_mains'`, `paper_id` values: gs1/gs2/gs3/gs4. New Flask connection `g.upsc_gs_conn` + `web/upsc_gs_db.py`. Three new blueprints: `gs_dashboard_bp`, `gs_quiz_bp`, `gs4_ethics_bp`. GS accessed under UPSC nav tab (toggle EO / GS Mains) — no 5th tab (CSS-MOB-001).
 
 **Content pipeline:** ~935 PYQs across 4 papers. Migrations m020-m026. AI cost estimate ~$4.54 ($9-10 with buffer). Sources confirmed: 2019-2024 from upsc.gov.in (text PDFs), 2013-2018 from Mrunal.org.
 
@@ -36,7 +36,7 @@ Last updated: 2026-06-16 (Session 38)
 |---|---|---|
 | `g.conn` | `data/ies.db` | IES questions, rubrics, model answers, attempts, mastery |
 | `g.rbi_conn` | `data/rbi.db` | RBI MCQs, attempts, gap state |
-| `g.upsc_conn` | `data/upsc.db` | UPSC Economics Optional questions, rubrics, model answers, attempts |
+| `g.upsc_conn` | `data/upsc_eco_opt.db` | UPSC Economics Optional questions, rubrics, model answers, attempts |
 | `g.nyaya_conn` | `data/nyaya.db` | users, sessions, user_events (identity + events) |
 | `g.english_conn` | `data/english.db` | English question types, questions, keywords, attempts |
 | `g.upsc_gs_conn` | `data/upsc_gs.db` | **PENDING** — GS Mains: all 4 papers questions, rubrics, model answers, ethics concepts |
@@ -93,7 +93,7 @@ All S37 tasks complete — commit `bc90ab4`, pushed to Railway ✅.
 |---|---|---|
 | `g.conn` | `data/ies.db` | IES questions, rubrics, model answers, attempts, mastery |
 | `g.rbi_conn` | `data/rbi.db` | RBI MCQs, attempts, gap state |
-| `g.upsc_conn` | `data/upsc.db` | UPSC questions, rubrics, model answers, attempts |
+| `g.upsc_conn` | `data/upsc_eco_opt.db` | UPSC questions, rubrics, model answers, attempts |
 | `g.nyaya_conn` | `data/nyaya.db` | users, sessions, user_events (identity + events) |
 | `g.english_conn` | `data/english.db` | English question types, questions, keywords, attempts |
 

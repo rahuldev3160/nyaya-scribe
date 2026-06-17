@@ -1,6 +1,6 @@
 # UI-REDESIGN-001 — Nyaya Scribe Product Redesign (formerly: Clean Navigation & Noise Reduction)
-**Date:** 2026-06-16 (S39 original) → EXPANDED S40
-**Status:** PHASE 0 COMPLETE (S40, commit afe431e) — Phase 1 next
+**Date:** 2026-06-16 (S39 original) → EXPANDED S40–S41
+**Status:** PHASE 0 ✅ (S40, afe431e) · PHASE 1 ✅ (S41, 62f4439) · PHASE 2a ✅ (S41, 7bcb78a) · PHASE 2b PENDING (photo eval)
 **Scope:** Cross-exam UI audit: reduce visual noise, flatten navigation flow, add UPSC GS toggle, equalize all four exam tabs, remove dead/pro-gated routes
 
 ---
@@ -288,18 +288,23 @@ Changes 11–14 can wait until a polish pass.
 - Added "View Model Answer" collapsible before submission (note-taker mode)
 - Removed state badges, state_summary sections, self-rating column from templates
 
-### Phase 1 — Core UX (PENDING)
-1. Dashboard: single recommended question card + behavior-inferred readiness + exam countdown
-2. scripts/compute_inferred_states.py batch script
-3. Topic browser: attempt count + avg score + "Refresh recommended" color coding
-4. Backport word count bar + model answer panel to UPSC/RBI quiz templates
+### Phase 1 — Core UX (COMPLETE — S41, commit 62f4439)
+1. ✅ Hero strip on IES + UPSC dashboards: recommended question card + readiness/100 + exam countdown + daily ●○○ goal
+2. ✅ scripts/compute_inferred_states.py — batch script, 870 rows, 10ms; taxonomy: UNVISITED/FLAGGED/IN_STUDY/VERIFIED/DECAYING
+3. ✅ Topic rows: attempt count + avg score + color dot (🔴/🟢/⚪) replace old state badges
+4. Recommendation algorithm: highest-priority topic with 0 attempts OR avg_score < 6.0
 
-### Phase 2 — Freemium + Photo Eval (PENDING)
-1. Claude API evaluation on submit (premium gate via has_feature('ai_scoring'))
-2. 5-dimension rubric breakdown display in feedback screen
-3. POST /practice/submit-photo: PIL compress → Claude Vision OCR + eval
-4. Upgrade prompt component (Jinja2 macro) + /upgrade route
-5. Monthly quota tracking via increment_feature_usage()
+### Phase 2a — AI Scoring (COMPLETE — S41, commit 7bcb78a)
+1. ✅ can_use_feature(user_id, gate_id) → (bool, reason) in web/db.py
+2. ✅ _score_answer() calls claude-haiku-4-5-20251001 via tool-use; 5 dimensions (content_accuracy/structure/analytical_depth/evidence/language)
+3. ✅ quiz_submit() gates + stores scores_json + weighted_score + increments usage
+4. ✅ ies_quiz.html: post-submit 5-dim pill card; quota-exhausted → /upgrade
+5. ✅ /upgrade stub + email capture → user_events
+
+### Phase 2b — Photo Eval (PENDING)
+1. POST /practice/submit-photo: PIL compress → Claude Vision OCR + eval
+2. Upgrade prompt component (Jinja2 macro) + /upgrade → Stripe (deferred)
+3. Backport word count bar + model answer panel to UPSC/RBI quiz templates
 
 ### Phase 3 — Public Launch Basics (FUTURE SESSION)
 1. Fix feedback_bp.py privacy (filter own submissions only)

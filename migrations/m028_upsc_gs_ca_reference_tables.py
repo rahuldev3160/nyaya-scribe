@@ -6,7 +6,7 @@ DB = "upsc_gs"
 def run(conn):
     conn.executescript("""
 
-    -- Cross-paper concept linking (within upsc_gs.db + cross to upsc.db via Python-merge)
+    -- Cross-paper concept linking (within upsc_gs.db + cross to upsc_eco_opt.db via Python-merge)
     CREATE TABLE IF NOT EXISTS topic_links (
         link_id         TEXT PRIMARY KEY,
         source_topic_id TEXT NOT NULL,

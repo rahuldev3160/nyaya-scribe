@@ -18,7 +18,7 @@ from parsers.digital_pdf import extract_text
 
 EXAM_DB_MAP = {
     "ies_2026": "ies.db",
-    "upsc_eco_opt": "upsc.db",
+    "upsc_eco_opt": "upsc_eco_opt.db",
     "rbi_depr": "rbi.db",
 }
 PYQ_DIR = Path.home() / "Desktop" / "UPSC" / "IES"

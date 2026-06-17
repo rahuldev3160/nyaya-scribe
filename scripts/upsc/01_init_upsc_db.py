@@ -1,5 +1,5 @@
 """
-Stage 1 (UPSC): Initialise upsc.db with full schema.
+Stage 1 (UPSC): Initialise upsc_eco_opt.db with full schema.
 Run: python3 scripts/upsc/01_init_upsc_db.py
 
 Creates all 16 IES tables + 5 UPSC-specific tables.
@@ -9,7 +9,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 EXAM_ID = "upsc_eco_opt"
 
 

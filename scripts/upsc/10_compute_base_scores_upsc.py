@@ -11,7 +11,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 EXAM_ID = "upsc_eco_opt"
 CURRENT_YEAR = date.today().year
 

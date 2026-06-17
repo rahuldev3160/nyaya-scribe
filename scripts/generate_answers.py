@@ -23,7 +23,7 @@ from sentence_transformers import SentenceTransformer
 
 EXAM_DB_MAP = {
     "ies_2026": "ies.db",
-    "upsc_eco_opt": "upsc.db",
+    "upsc_eco_opt": "upsc_eco_opt.db",
     "rbi_depr": "rbi.db",
 }
 CACHE_DIR = Path(__file__).parent.parent / "cache" / "answer_batch_results"

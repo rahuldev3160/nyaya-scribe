@@ -2,7 +2,7 @@
 Script 03: Ingest UPSC Economics Optional PYQs from Ecoholics-format topic-wise PDFs.
 
 Source: ~/Desktop/UPSC/Mains/Optional/PYQ- paper 1/  and  PYQ- Paper 2/
-Target: data/upsc.db  →  pyq_questions table
+Target: data/upsc_eco_opt.db  →  pyq_questions table
 
 PDF format (Ecoholics topic-wise):
     IAS-MAINS
@@ -27,7 +27,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from parsers.digital_pdf import extract_text, get_page_text_quality  # noqa: E402
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc.db"
+DB_PATH = Path(__file__).parent.parent.parent / "data" / "upsc_eco_opt.db"
 EXAM_ID = "upsc_eco_opt"
 
 PYQ_P1_DIR = Path.home() / "Desktop" / "UPSC" / "Mains" / "Optional" / "PYQ- paper 1"

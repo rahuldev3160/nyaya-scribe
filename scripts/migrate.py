@@ -1,6 +1,6 @@
 """
 Pre-start migration runner. Multi-DB support.
-Each migration file declares DB = "ies" | "rbi" | "upsc" | "nyaya" (defaults to "ies").
+Each migration file declares DB = "ies" | "rbi" | "upsc_eco_opt" | "nyaya" (defaults to "ies").
 Called before gunicorn on every Railway deploy.
 
 To add future content:
@@ -16,7 +16,7 @@ ROOT = Path(__file__).parent.parent
 DB_PATHS = {
     "ies":      ROOT / "data" / "ies.db",
     "rbi":      ROOT / "data" / "rbi.db",
-    "upsc":     ROOT / "data" / "upsc.db",
+    "upsc_eco_opt": ROOT / "data" / "upsc_eco_opt.db",
     "nyaya":    ROOT / "data" / "nyaya.db",
     "english":  ROOT / "data" / "english.db",
     "upsc_gs":  ROOT / "data" / "upsc_gs.db",

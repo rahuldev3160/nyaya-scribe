@@ -44,7 +44,7 @@ def _get_exam_dates() -> list[dict]:
     exams = [
         {"exam_id": "ies_2026",    "name": "IES 2026",     "fallback": "2026-06-19", "link": "/dashboard", "color": "#8AB4F8", "db": "ies.db"},
         {"exam_id": "rbi_depr",    "name": "RBI Grade B",  "fallback": "2026-06-14", "link": "/rbi",       "color": "#81C995", "db": "rbi.db"},
-        {"exam_id": "upsc_eco_opt","name": "UPSC Eco Opt", "fallback": "2026-08-22", "link": "/upsc",      "color": "#FDD663", "db": "upsc.db"},
+        {"exam_id": "upsc_eco_opt","name": "UPSC Eco Opt", "fallback": "2026-08-22", "link": "/upsc",      "color": "#FDD663", "db": "upsc_eco_opt.db"},
     ]
     result = []
     for e in exams:
