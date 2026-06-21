@@ -1,32 +1,31 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S42 → S43 | 2026-06-17 | Branch: main @ 3f8a529
+**Session:** S43 → S44 | 2026-06-21 | Branch: main @ 5f2e5f0
 
 ## Active Work
+PLAN-018 Phase 1 — Essay module migrations + seed scripts ⏳ pending
+PLAN-019 Phase 1 — Ethics module migrations + seed scripts ⏳ pending
 UI-REDESIGN-001 Phase 2b — Photo eval (handwritten → Claude Vision scoring) ⏳ pending
 PLAN-017 Phase 2+ — GS Mains blueprints + PYQ completion ⏳ pending
 
-## Done This Session
-- `upsc.db` → `upsc_eco_opt.db` rename: 18 files updated (migrate.py key, 5 migration DB= decls, app.py path + _boot_db + legacy-rename guard, upsc_db.py, profile_bp, progress_bp, all scripts/upsc/*.py, compute/generate/ingest scripts, templates, docs)
-- `_UPSC_OPT_DB_MAP` stub added to web/app.py (DECIDE-23) — future optional subjects plug in here
-- Knowledge base brought current: PLAN-016, BUG-026, BUG-027, AUDIT-007 created; UI-REDESIGN-001 + INDEX updated
-- BUG-028 (CRITICAL, production 500): `self_rating` column missing from upsc_eco_opt.db — m016 was ies.db-only; S41 UPSC hero strip queries `da.self_rating` in 3 places; fixed by m038, pushed + deployed ✅
-- DECIDE-24 + L-DEV-56 logged: shared-schema table migrations must have companion for every exam DB
-- UPSC page confirmed working on production (200 OK)
+## Done This Session (S43)
+- PLAN-018 created: UPSC Essay Paper module — adaptive annual CA→essay pipeline, PART A/B/C framework with body_dimensions_json, 36 questions planned (8 PYQ-2024 + 8 PYQ-2025 + 20 practice-2026), combined 315-item Anthropic Batch API plan
+- PLAN-019 created: GS4 Ethics paper simulation — IDEA-U (Section A theory) + STAKE (Section B case studies), 13-year research done, 2 practice papers designed, self-compare only (no AI scoring)
+- DECIDE-25 through DECIDE-31 logged + SCHEMA-09 through SCHEMA-15 logged in MASTER_INDEX.md
+- PLAN-018 + PLAN-019 added to MASTER_INDEX.md PLAN table; RISK-08 added
+- .knowledge/INDEX.md updated with both plans
+- Adaptive architecture: essay count/year/framework/hook all data in DB registries; annual refresh = 2 script runs, zero code change (DECIDE-25)
+- Indexing layer: normalized junction tables (essay_thinker_links, ethics_concept_links, ethics_thinker_links, ethics_scenario_links) + FTS5 virtual tables replacing JSON blobs (DECIDE-30)
+- CSS-MOB-001 compliance: essay + ethics enter as toggle states inside UPSC tab, not new nav tabs
 
-## Next Actions (start here)
-1. **Phase 2b — Photo eval:** `POST /ies/practice/submit-photo` in `web/blueprints/ies_quiz_bp.py`; base64 JPEG in Anthropic `image/jpeg` content block; reuse `_score_answer()` tool schema with Vision OCR step; gate under `can_use_feature(user_id, "photo_eval")`
-2. **RBI dashboard Phase 1:** Add hero strip (recommended card + readiness/100 + daily ●○○) to `web/templates/rbi_dashboard.html` — mirror pattern from `web/blueprints/upsc_dashboard_bp.py` lines 110–174
-3. **GS Mains blueprints:** Create `web/blueprints/gs_dashboard_bp.py` (mirrors upsc_dashboard_bp), register in app.py, add toggle to upsc_dashboard.html — upsc_gs.db already has 221 PYQs, no new DB work
+## Exact Next Step (S44 start here)
+Open `MASTER_INDEX.md` and verify SCHEMA-09 through SCHEMA-15 and PLAN-018/019 entries are correct. Then write **migrations m039–m046** in `migrations/` following schemas in `.knowledge/plans/PLAN-018.md` (m039–m043) and `.knowledge/plans/PLAN-019.md` (m044–m046). Each migration file must have `DB = "upsc_gs"` at top. Run `python3.11 scripts/migrate.py upsc_gs` to apply all. Then write `scripts/essay/seed_frameworks.py` and `data/essay_questions_seed.jsonl`.
 
-## Files Modified
-- `web/app.py` — `_UPSC_OPT_DB_MAP`, `_UPSC_DB_PATH`, `_boot_db("upsc_eco_opt")`, legacy-rename guard
-- `web/upsc_db.py` — path constant → upsc_eco_opt.db
-- `scripts/migrate.py` — DB key "upsc" → "upsc_eco_opt"
-- `migrations/m038_add_self_rating_upsc.py` — new, production fix for BUG-028
-- `migrations/m006,m007,m014,m023,m028,m037` — DB= declaration updated
-- `seeds/upsc_eco_opt_seed.db` — renamed from upsc_seed.db
-- `MASTER_INDEX.md` — DECIDE-23, DECIDE-24 added
-- `.knowledge/` — PLAN-016, BUG-026/027/028, AUDIT-007 created; INDEX updated
+## Files Modified This Session
+- `.knowledge/plans/PLAN-018.md` — new (S43)
+- `.knowledge/plans/PLAN-019.md` — new (S43)
+- `.knowledge/INDEX.md` — PLAN-018 + PLAN-019 added
+- `MASTER_INDEX.md` — DECIDE-25..31, SCHEMA-09..15, PLAN-018/019, RISK-08 added
+- `HANDOFF.md` — this file
 
 ## Blockers
 GS1-3 PYQ gap: ~680 questions missing. Needs manual download from upsc.gov.in → drop in `data/cache/upsc_gs_pdfs/` → `python3.11 scripts/parse_upsc_gs_pdfs.py && python3.11 scripts/seed_upsc_gs_pyqs.py`
@@ -34,9 +33,11 @@ GS1-3 PYQ gap: ~680 questions missing. Needs manual download from upsc.gov.in �
 ## Context Pointers — load ONLY if task requires
 | Need | Read |
 |---|---|
+| Essay Paper module full spec (schema, 36 Qs, batch plan) | .knowledge/plans/PLAN-018.md |
+| Ethics Paper module full spec (IDEA-U, STAKE, 2 practice papers) | .knowledge/plans/PLAN-019.md |
 | Full product redesign plan (Phases 2b onward) | .knowledge/plans/UI-REDESIGN-001.md |
 | GS Mains blueprint spec + PYQ pipeline | .knowledge/plans/PLAN-017.md |
-| All architectural decisions (DECIDE-01 to DECIDE-24) | MASTER_INDEX.md |
+| All architectural decisions (DECIDE-01 to DECIDE-31) | MASTER_INDEX.md |
 | Bug/audit history | .knowledge/INDEX.md |
 | Feature gate schema + freemium logic | migrations/m035_feature_gates.py |
 | AI scoring helper + tool schema | web/blueprints/ies_quiz_bp.py `_score_answer()` |
