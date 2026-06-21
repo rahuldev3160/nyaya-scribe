@@ -18,12 +18,24 @@ PLAN-017 Phase 2+ — GS Mains blueprints + PYQ completion ⏳ pending
 - CSS-MOB-001 compliance: essay + ethics enter as toggle states inside UPSC tab, not new nav tabs
 
 ## Exact Next Step (S44 start here)
-Open `MASTER_INDEX.md` and verify SCHEMA-09 through SCHEMA-15 and PLAN-018/019 entries are correct. Then write **migrations m039–m046** in `migrations/` following schemas in `.knowledge/plans/PLAN-018.md` (m039–m043) and `.knowledge/plans/PLAN-019.md` (m044–m046). Each migration file must have `DB = "upsc_gs"` at top. Run `python3.11 scripts/migrate.py upsc_gs` to apply all. Then write `scripts/essay/seed_frameworks.py` and `data/essay_questions_seed.jsonl`.
+**Answer two questions first** (determines Tier 3 scope of indexing work — see AUDIT-008):
+1. Cross-DB topic linking: should "Monetary Policy" in IES + RBI + essay share a single canonical topic entity in nyaya.db? (Y → master_topics project; N → column-name consistency only)
+2. rbi.db year data: do the seeded rbi_questions have known exam years, or were they compiled without year attribution?
+
+Then begin **Tier 1 indexing** (safe, no decisions needed):
+- Write `docs/SCHEMA_CONVENTIONS.md` (naming rulebook — see AUDIT-008 for the 7 proposed rules)
+- Write `migrations/m047_ies_indexes.py` (DB="ies") — 3 missing indexes + DROP stale tables after grep
+- Write `migrations/m048_eco_opt_indexes.py` (DB="upsc_eco_opt") — 5 missing indexes
+- Write `migrations/m049_english_indexes.py` (DB="english") — 2 missing indexes
+- Write `migrations/m050_rbi_composite.py` (DB="rbi") — 1 composite index
+
+Then **essay/ethics migrations** (m039–m046 in upsc_gs.db) — confirm question_id format for essay/ethics before writing (proposed: `essay_a_2024_001`, `ethics_b_2024_c01_s01`).
 
 ## Files Modified This Session
 - `.knowledge/plans/PLAN-018.md` — new (S43)
 - `.knowledge/plans/PLAN-019.md` — new (S43)
-- `.knowledge/INDEX.md` — PLAN-018 + PLAN-019 added
+- `.knowledge/audits/AUDIT-008.md` — new (S43) — global DB schema + indexing audit
+- `.knowledge/INDEX.md` — PLAN-018 + PLAN-019 + AUDIT-008 added
 - `MASTER_INDEX.md` — DECIDE-25..31, SCHEMA-09..15, PLAN-018/019, RISK-08 added
 - `HANDOFF.md` — this file
 

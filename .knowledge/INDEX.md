@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-17 (Session 42)
+Last updated: 2026-06-21 (Session 43)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -55,6 +55,7 @@ Last updated: 2026-06-17 (Session 42)
 | [AUDIT-005](audits/AUDIT-005.md) | 2026-06-08 | Mobile layout regressions — all 4 issues (login tiny, sidebar shows, nav disappears, zoom-out) | inline | 6 root causes | 6 fixed (commit ca37f51) | 0 open |
 | [AUDIT-006](audits/AUDIT-006.md) | 2026-06-08 | Mobile UI polish — button text overflow, mid-word breaks in stat cards, grid collapse strategy | inline | 5 root causes | 5 fixed (commit 7f405e9) | 0 open |
 | [AUDIT-007](audits/AUDIT-007.md) | 2026-06-13 | Production funnel — 95 users · 46 onboarded · ~0 content engagement; 3 activation RC identified | inline | 3 RC | 3 fixed (PLAN-016, commit e51b27a) | 0 open |
+| [AUDIT-008](audits/AUDIT-008.md) | 2026-06-21 | Global DB schema + indexing — all 6 DBs; question_id formats, index gaps, FTS5 absence, rbi.db year gap | 3 parallel | 0 new bugs | 0 | 2 pending decisions (DECIDE-32, DECIDE-33); m047–m052 planned |
 
 ---
 
