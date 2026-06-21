@@ -81,8 +81,8 @@ Last updated: 2026-06-21 (Session 43)
 | [PLAN-016](plans/PLAN-016.md) | 2026-06-13 | S36: Engagement activation — post-setup routing, smart login, button redesign, first-action cards, nav cleanup | COMPLETE (commit e51b27a) |
 | [PLAN-017](plans/PLAN-017.md) | 2026-06-16 | S38: UPSC GS Mains expansion — upsc_gs.db, all 4 GS papers, Ethics keyword index, CA integration, cross-paper linking | PHASE 1 COMPLETE (S39) — Phase 2 PYQ ingestion in progress |
 | [UI-REDESIGN-001](plans/UI-REDESIGN-001.md) | 2026-06-16 | S39–S41: Product redesign — noise removal, freemium foundation, AI scoring, hero strip, photo eval pending | Phase 0 ✅ · Phase 1 ✅ · Phase 2a ✅ · Phase 2b PENDING |
-| [PLAN-018](plans/PLAN-018.md) | 2026-06-21 | S43: UPSC Essay Paper module — adaptive architecture, PART A/B/C framework, annual CA→essay pipeline, PYQ post-exam ingestion | PHASE 0 COMPLETE — 36 questions ready (16 PYQ + 20 practice); Phase 1 next |
-| [PLAN-019](plans/PLAN-019.md) | 2026-06-21 | S43: GS4 Ethics paper simulation — IDEA-U (theory) + STAKE (case study) frameworks, PYQ 2019–2025 solved, 2 practice papers, self-compare, full indexing layer | PHASE 0 COMPLETE (S43) — 13-year research done; Phase 1 next |
+| [PLAN-018](plans/PLAN-018.md) | 2026-06-21 | S43: UPSC Essay Paper module — adaptive architecture, PART A/B/C framework, annual CA→essay pipeline, PYQ post-exam ingestion | PHASE 1 COMPLETE (S44) — m039–m043 applied, 36 Qs seeded, batch script ready; Phase 2 = run batch |
+| [PLAN-019](plans/PLAN-019.md) | 2026-06-21 | S43: GS4 Ethics paper simulation — IDEA-U (theory) + STAKE (case study) frameworks, PYQ 2019–2025 solved, 2 practice papers, self-compare, full indexing layer | PHASE 1 COMPLETE (S44) — m044–m046 applied, 93 Qs seeded, batch script ready; Phase 2 = run batch |
 
 ---
 
