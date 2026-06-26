@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-21 (Session 43)
+Last updated: 2026-06-26 (Session 45)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -41,6 +41,8 @@ Last updated: 2026-06-21 (Session 43)
 | [BUG-026](bugs/BUG-026.md) | FIXED | HIGH | scoring | self_rating TEXT * 2.0 = 0 silently — all readiness/avg_score SQL returned 0; Fix: CASE expression mapping ('got_it'→8,'partial'→5,'missed'→2) in 5 SQL locations across 3 files + compute_inferred_states.py | — | S41 | 62f4439 |
 | [BUG-027](bugs/BUG-027.md) | FIXED | MEDIUM | ui | inferred_state taxonomy mismatch — compute script wrote READY/CRUNCH/SHAKY/LEARNING, no display map existed; Fix: aligned to canonical UNVISITED/FLAGGED/IN_STUDY/VERIFIED/DECAYING | — | S41 | 62f4439 |
 | [BUG-028](bugs/BUG-028.md) | FIXED | CRITICAL | schema-drift | UPSC dashboard 500 — `self_rating` missing from upsc_eco_opt.db; m016 was ies.db-only; S41 hero strip queries da.self_rating in 3 places → crash; Fix: m038 adds column | — | S42 | 55f8a83 |
+| [BUG-029](bugs/BUG-029.md) | FIXED | HIGH | batch-generation | `_parse_json` non-greedy `{.*?}` stops at first `}` → breaks on nested JSON in STAKE responses; Fix: 3-tier fallback with `rfind("}")` | — | S45 | — |
+| [BUG-030](bugs/BUG-030.md) | FIXED | HIGH | batch-generation | `max_tokens=2048` truncates all Section B STAKE answers (~9000 chars); Fix: `max_tokens=4096` in `build_ethics_b_request()` | — | S45 | — |
 
 ---
 

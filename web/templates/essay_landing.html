@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Essay Paper · UPSC Mains{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.75rem;">
+  <h2 style="font-size:1.5rem;font-weight:700;color:#E8EAED;margin-bottom:4px;">Essay Paper</h2>
+  <div style="font-size:0.85rem;color:#9AA0A6;">UPSC Mains · 2 essays × 125 marks · 3 hours</div>
+</div>
+
+<!-- Paper toggle -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.75rem;">
+  <a href="/upsc" style="padding:7px 16px;border-radius:6px;font-size:0.85rem;font-weight:600;text-decoration:none;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">Eco Optional</a>
+  <a href="/upsc/mains" style="padding:7px 16px;border-radius:6px;font-size:0.85rem;font-weight:600;text-decoration:none;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">GS Mains</a>
+  <span style="padding:7px 16px;border-radius:6px;font-size:0.85rem;font-weight:600;background:#8AB4F8;color:#202124;border:1px solid #8AB4F8;">Essay Paper</span>
+  <a href="/upsc/ethics" style="padding:7px 16px;border-radius:6px;font-size:0.85rem;font-weight:600;text-decoration:none;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">Ethics Paper</a>
+</div>
+
+{% if error %}
+<div class="info-box" style="margin-bottom:1.5rem;">
+  <strong style="color:#F28B82;">{{ error }}</strong>
+</div>
+{% else %}
+
+<!-- Filter bar -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:1.25rem;">
+  {% if active_tab == 'pyq' %}
+  <a href="?tab=pyq&year=2024{% if filters.section %}&section={{ filters.section }}{% endif %}"
+     style="padding:5px 12px;border-radius:4px;font-size:0.8rem;text-decoration:none;
+            background:{% if filters.year == 2024 %}#8AB4F8{% else %}#2A2D31{% endif %};
+            color:{% if filters.year == 2024 %}#202124{% else %}#9AA0A6{% endif %};
+            border:1px solid {% if filters.year == 2024 %}#8AB4F8{% else %}#3C4043{% endif %};">2024</a>
+  <a href="?tab=pyq&year=2025{% if filters.section %}&section={{ filters.section }}{% endif %}"
+     style="padding:5px 12px;border-radius:4px;font-size:0.8rem;text-decoration:none;
+            background:{% if filters.year == 2025 %}#8AB4F8{% else %}#2A2D31{% endif %};
+            color:{% if filters.year == 2025 %}#202124{% else %}#9AA0A6{% endif %};
+            border:1px solid {% if filters.year == 2025 %}#8AB4F8{% else %}#3C4043{% endif %};">2025</a>
+  <span style="color:#3C4043;">|</span>
+  {% endif %}
+  <a href="?tab={{ active_tab }}{% if filters.year %}&year={{ filters.year }}{% endif %}&section=A{% if filters.theme %}&theme={{ filters.theme }}{% endif %}{% if filters.hot %}&hot=1{% endif %}"
+     style="padding:5px 12px;border-radius:4px;font-size:0.8rem;text-decoration:none;
+            background:{% if filters.section == 'A' %}#8AB4F8{% else %}#2A2D31{% endif %};
+            color:{% if filters.section == 'A' %}#202124{% else %}#9AA0A6{% endif %};
+            border:1px solid {% if filters.section == 'A' %}#8AB4F8{% else %}#3C4043{% endif %};">Section A</a>
+  <a href="?tab={{ active_tab }}{% if filters.year %}&year={{ filters.year }}{% endif %}&section=B{% if filters.theme %}&theme={{ filters.theme }}{% endif %}{% if filters.hot %}&hot=1{% endif %}"
+     style="padding:5px 12px;border-radius:4px;font-size:0.8rem;text-decoration:none;
+            background:{% if filters.section == 'B' %}#8AB4F8{% else %}#2A2D31{% endif %};
+            color:{% if filters.section == 'B' %}#202124{% else %}#9AA0A6{% endif %};
+            border:1px solid {% if filters.section == 'B' %}#8AB4F8{% else %}#3C4043{% endif %};">Section B</a>
+  {% if filters.section %}
+  <a href="?tab={{ active_tab }}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.hot %}&hot=1{% endif %}"
+     style="padding:5px 12px;border-radius:4px;font-size:0.8rem;text-decoration:none;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">All Sections</a>
+  {% endif %}
+  <a href="?tab={{ active_tab }}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.section %}&section={{ filters.section }}{% endif %}&hot=1"
+     style="padding:5px 12px;border-radius:4px;font-size:0.8rem;text-decoration:none;
+            background:{% if filters.hot %}#F28B82{% else %}#2A2D31{% endif %};
+            color:{% if filters.hot %}#202124{% else %}#9AA0A6{% endif %};
+            border:1px solid {% if filters.hot %}#F28B82{% else %}#3C4043{% endif %};">High Prob</a>
+</div>
+
+<!-- Tabs -->
+<div id="essay-tabs">
+  <div class="tab-bar">
+    <button class="tab-btn {% if active_tab == 'practice' %}active{% endif %}"
+            data-tab="practice"
+            onclick="switchTab('essay-tabs','practice')">Practice Bank</button>
+    <button class="tab-btn {% if active_tab == 'pyq' %}active{% endif %}"
+            data-tab="pyq"
+            onclick="switchTab('essay-tabs','pyq')">Solved PYQ</button>
+    <button class="tab-btn {% if active_tab == 'pattern' %}active{% endif %}"
+            data-tab="pattern"
+            onclick="switchTab('essay-tabs','pattern')">Pattern Synthesis</button>
+  </div>
+
+  <!-- Tab 1: Practice Bank -->
+  <div id="essay-tabs-practice" class="tab-panel {% if active_tab == 'practice' %}active{% endif %}">
+    {% set practice_rows = essay_rows | selectattr("content_type", "equalto", "practice") | list %}
+    {% if not practice_rows %}
+    <div class="info-box" style="margin-top:1rem;">
+      <span style="color:#9AA0A6;">No practice questions yet. Check back soon.</span>
+    </div>
+    {% else %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:1rem;">
+      {% for row in practice_rows %}
+      <a href="/upsc/essay/{{ row.essay_id }}" style="text-decoration:none;">
+        <div class="gem-card" style="height:100%;transition:border-color 0.15s;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;">
+            <span style="padding:2px 8px;border-radius:3px;font-size:0.72rem;font-weight:700;background:#8AB4F822;color:#8AB4F8;border:1px solid #8AB4F844;">
+              Sec {{ row.section }}
+            </span>
+            {% if row.theme_tag %}
+            <span style="padding:2px 8px;border-radius:3px;font-size:0.72rem;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">
+              {{ row.theme_tag }}
+            </span>
+            {% endif %}
+            {% if row.difficulty %}
+            <span style="padding:2px 8px;border-radius:3px;font-size:0.72rem;
+                         background:{% if row.difficulty == 'HARD' %}#F28B8222{% elif row.difficulty == 'EASY' %}#81C99522{% else %}#FDD66322{% endif %};
+                         color:{% if row.difficulty == 'HARD' %}#F28B82{% elif row.difficulty == 'EASY' %}#81C995{% else %}#FDD663{% endif %};
+                         border:1px solid {% if row.difficulty == 'HARD' %}#F28B8244{% elif row.difficulty == 'EASY' %}#81C99544{% else %}#FDD66344{% endif %};">
+              {{ row.difficulty }}
+            </span>
+            {% endif %}
+            {% if row.is_high_probability %}
+            <span title="High probability" style="font-size:0.85rem;">🔥</span>
+            {% endif %}
+            <span style="margin-left:auto;font-size:0.78rem;">
+              {% if row.answer_count > 0 %}<span style="color:#81C995;">✅</span>{% else %}<span style="color:#9AA0A6;">⏳</span>{% endif %}
+            </span>
+          </div>
+          <div style="font-size:0.9rem;color:#E8EAED;line-height:1.45;">
+            {{ row.prompt[:120] }}{% if row.prompt|length > 120 %}…{% endif %}
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Tab 2: Solved PYQ -->
+  <div id="essay-tabs-pyq" class="tab-panel {% if active_tab == 'pyq' %}active{% endif %}">
+    {% set pyq_rows = essay_rows | selectattr("content_type", "equalto", "pyq") | list %}
+    {% if not pyq_rows %}
+    <div class="info-box" style="margin-top:1rem;">
+      <span style="color:#9AA0A6;">No past year questions found for these filters.</span>
+    </div>
+    {% else %}
+    {% set years_seen = [] %}
+    {% for row in pyq_rows %}
+      {% if row.year_appeared not in years_seen %}
+        {% if years_seen %}</div>{% endif %}
+        {% set _ = years_seen.append(row.year_appeared) %}
+        <div style="margin-top:1.25rem;">
+        <div style="font-size:0.78rem;font-weight:700;color:#9AA0A6;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">
+          {{ row.year_appeared or 'Undated' }}
+        </div>
+        {% set sec_a = pyq_rows | selectattr("year_appeared", "equalto", row.year_appeared) | selectattr("section", "equalto", "A") | list %}
+        {% set sec_b = pyq_rows | selectattr("year_appeared", "equalto", row.year_appeared) | selectattr("section", "equalto", "B") | list %}
+
+        {% if sec_a %}
+        <div style="font-size:0.8rem;font-weight:600;color:#8AB4F8;margin-bottom:8px;">Section A</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:14px;">
+          {% for q in sec_a %}
+          <a href="/upsc/essay/{{ q.essay_id }}" style="text-decoration:none;">
+            <div class="gem-card" style="transition:border-color 0.15s;">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                <span style="font-size:0.72rem;color:#9AA0A6;">{{ q.year_appeared }}</span>
+                {% if q.theme_tag %}<span style="padding:2px 7px;border-radius:3px;font-size:0.7rem;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">{{ q.theme_tag }}</span>{% endif %}
+                {% if q.is_high_probability %}<span style="font-size:0.82rem;">🔥</span>{% endif %}
+                <span style="margin-left:auto;font-size:0.78rem;">{% if q.answer_count > 0 %}<span style="color:#81C995;">✅</span>{% else %}<span style="color:#9AA0A6;">⏳</span>{% endif %}</span>
+              </div>
+              <div style="font-size:0.9rem;color:#E8EAED;line-height:1.45;">{{ q.prompt[:120] }}{% if q.prompt|length > 120 %}…{% endif %}</div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if sec_b %}
+        <div style="font-size:0.8rem;font-weight:600;color:#8AB4F8;margin-bottom:8px;">Section B</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;">
+          {% for q in sec_b %}
+          <a href="/upsc/essay/{{ q.essay_id }}" style="text-decoration:none;">
+            <div class="gem-card" style="transition:border-color 0.15s;">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                <span style="font-size:0.72rem;color:#9AA0A6;">{{ q.year_appeared }}</span>
+                {% if q.theme_tag %}<span style="padding:2px 7px;border-radius:3px;font-size:0.7rem;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">{{ q.theme_tag }}</span>{% endif %}
+                {% if q.is_high_probability %}<span style="font-size:0.82rem;">🔥</span>{% endif %}
+                <span style="margin-left:auto;font-size:0.78rem;">{% if q.answer_count > 0 %}<span style="color:#81C995;">✅</span>{% else %}<span style="color:#9AA0A6;">⏳</span>{% endif %}</span>
+              </div>
+              <div style="font-size:0.9rem;color:#E8EAED;line-height:1.45;">{{ q.prompt[:120] }}{% if q.prompt|length > 120 %}…{% endif %}</div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% if years_seen %}</div>{% endif %}
+    {% endif %}
+  </div>
+
+  <!-- Tab 3: Pattern Synthesis -->
+  <div id="essay-tabs-pattern" class="tab-panel {% if active_tab == 'pattern' %}active{% endif %}">
+    {% if not theme_rows %}
+    <div class="info-box" style="margin-top:1rem;">
+      <span style="color:#9AA0A6;">Theme analysis not yet available.</span>
+    </div>
+    {% else %}
+    <div style="overflow-x:auto;margin-top:1rem;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+        <thead>
+          <tr style="border-bottom:1px solid #3C4043;">
+            <th style="text-align:left;padding:8px 12px;color:#9AA0A6;font-weight:600;font-size:0.78rem;white-space:nowrap;">Theme</th>
+            <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:600;font-size:0.78rem;">Freq</th>
+            <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:600;font-size:0.78rem;">Section</th>
+            <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:600;font-size:0.78rem;">Trend</th>
+            <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:600;font-size:0.78rem;">2026</th>
+            <th style="text-align:left;padding:8px 12px;color:#9AA0A6;font-weight:600;font-size:0.78rem;">CA Hook</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in theme_rows %}
+          <tr style="border-bottom:1px solid #2A2D31;">
+            <td style="padding:10px 12px;color:#E8EAED;font-weight:600;">{{ t.theme_label }}</td>
+            <td style="padding:10px 12px;text-align:center;color:#8AB4F8;font-weight:700;">{{ t.frequency_count }}</td>
+            <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ t.typical_section or '—' }}</td>
+            <td style="padding:10px 12px;text-align:center;font-size:1rem;">
+              {% if t.trend == 'rising' %}↑
+              {% elif t.trend == 'emerging' %}↗
+              {% else %}→
+              {% endif %}
+            </td>
+            <td style="padding:10px 12px;text-align:center;">
+              {% if t.probability_2026 == 'HIGH' %}
+              <span style="padding:2px 8px;border-radius:3px;font-size:0.72rem;font-weight:700;background:#81C99522;color:#81C995;border:1px solid #81C99544;">HIGH</span>
+              {% elif t.probability_2026 == 'LOW' %}
+              <span style="padding:2px 8px;border-radius:3px;font-size:0.72rem;font-weight:700;background:#F28B8222;color:#F28B82;border:1px solid #F28B8244;">LOW</span>
+              {% else %}
+              <span style="padding:2px 8px;border-radius:3px;font-size:0.72rem;font-weight:700;background:#FDD66322;color:#FDD663;border:1px solid #FDD66344;">MED</span>
+              {% endif %}
+            </td>
+            <td style="padding:10px 12px;color:#9AA0A6;font-size:0.82rem;max-width:260px;">{{ t.fy26_ca_hook or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endif %}
+
+<script>
+(function() {
+  var tab = "{{ active_tab }}";
+  var group = document.getElementById('essay-tabs');
+  if (!group) return;
+  group.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  group.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  var activeBtn = group.querySelector('[data-tab="' + tab + '"]');
+  var activePanel = document.getElementById('essay-tabs-' + tab);
+  if (activeBtn) activeBtn.classList.add('active');
+  if (activePanel) activePanel.classList.add('active');
+})();
+</script>
+{% endblock %}

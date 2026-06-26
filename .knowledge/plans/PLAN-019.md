@@ -573,7 +573,7 @@ Junction tables and indexes added in **m044** (alongside ethics_questions). FTS 
 - [x] Phase 0: Section B research complete (S43) — 13 years, scenario type map, sub-part taxonomy, 2025 confirmed
 - [x] Phase 0: Practice paper design complete (2 papers, data-driven)
 - [x] Phase 0: Combined batch plan finalized (315 items = essay 36 + ethics 279, ~$2.44)
-- [ ] Phase 1: Schema + seed
-- [ ] Phase 2: Batch generation
-- [ ] Phase 3: Blueprint + templates
-- [ ] Phase 4: Post-exam + annual
+- [x] Phase 1: Schema + seed complete (S44) — m044–m046 applied; 75 answerable questions seeded
+- [x] Phase 2: Batch generation complete (S45) — 75/75 answers in DB (3 batches: max_tokens bug required retry)
+- [x] Phase 3: Blueprint + templates complete (S45) — ethics_paper_bp.py (4 routes) + ethics_landing.html, ethics_paper.html, ethics_question.html, ethics_framework.html; UPSC 4-item toggle wired
+- [ ] Phase 4: Post-exam + annual (ingest_pyq.py, update_analysis.py after Nov 2026)

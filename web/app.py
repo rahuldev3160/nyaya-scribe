@@ -381,6 +381,12 @@ def create_app() -> Flask:
     from blueprints.upsc_dashboard_bp import upsc_dashboard_bp
     app.register_blueprint(upsc_dashboard_bp)
 
+    from blueprints.essay_bp import essay_bp
+    app.register_blueprint(essay_bp)
+
+    from blueprints.ethics_paper_bp import ethics_paper_bp
+    app.register_blueprint(ethics_paper_bp)
+
     from blueprints.progress_bp import progress_bp
     app.register_blueprint(progress_bp)
 

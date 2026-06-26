@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}{{ paper_title }} · Ethics Paper · Nyaya Scribe{% endblock %}
+
+{% block content %}
+
+{# ── Breadcrumb ────────────────────────────────────────────────────────── #}
+<div style="margin-bottom:12px;">
+  <a href="/upsc/ethics" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← Ethics Paper</a>
+</div>
+
+{# ── Paper header ─────────────────────────────────────────────────────── #}
+<div style="margin-bottom:1.75rem;">
+  <h2 style="font-size:1.4rem;font-weight:700;color:#E8EAED;margin-bottom:6px;">{{ paper_title }}</h2>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <span class="chip" style="background:#8AB4F822;color:#8AB4F8;">Section A — Theory (~125 marks)</span>
+    <span class="chip" style="background:#C084FC22;color:#C084FC;">Section B — Case Studies (~125 marks)</span>
+  </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# SECTION A                                                             #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+{% if section_a_rows %}
+<div style="margin-bottom:2rem;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+    <span style="font-size:1rem;font-weight:600;color:#8AB4F8;">Section A</span>
+    <span style="font-size:0.82rem;color:#9AA0A6;">Theory &amp; Ethics — short/medium answers</span>
+  </div>
+
+  {% for q in section_a_rows %}
+  {% set attempted = attempt_counts.get(q.question_id, 0) > 0 %}
+  <div class="gem-card" style="margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+
+      <div style="flex:1;min-width:0;">
+        {# Meta row #}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;">
+          <span style="font-size:0.78rem;font-weight:600;color:#9AA0A6;">Q{{ loop.index }}</span>
+          {% if q.marks %}
+          <span class="chip chip-purple">{{ q.marks }}m</span>
+          {% endif %}
+          {% if q.question_type %}
+          <span class="chip" style="font-size:0.72rem;background:#3C404322;color:#9AA0A6;">{{ q.question_type }}</span>
+          {% endif %}
+          {% if attempted %}
+          <span class="chip" style="background:#81C99522;color:#81C995;">&#10003; Practiced</span>
+          {% else %}
+          <span class="chip" style="background:#3C404322;color:#9AA0A6;">Not attempted</span>
+          {% endif %}
+        </div>
+
+        {# Question text #}
+        <p style="color:#E8EAED;font-size:0.93rem;line-height:1.65;margin-bottom:10px;">{{ q.question_text }}</p>
+
+        {# Concept tag pills #}
+        {% if q._concept_tags %}
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;">
+          {% for tag in q._concept_tags %}
+          <span class="chip" style="font-size:0.72rem;background:#8AB4F822;color:#8AB4F8;">{{ tag }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      {# Action #}
+      <div style="padding-top:2px;">
+        <a href="/upsc/ethics/{{ paper_id }}/q/{{ q.question_id }}"
+           class="btn btn-sm {% if attempted %}btn-primary{% endif %}"
+           style="white-space:nowrap;">
+          {{ 'Revisit' if attempted else 'Practice' }} →
+        </a>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# SECTION B                                                             #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+{% if section_b_groups %}
+<div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+    <span style="font-size:1rem;font-weight:600;color:#C084FC;">Section B</span>
+    <span style="font-size:0.82rem;color:#9AA0A6;">Case Studies — scenario-based analysis</span>
+  </div>
+
+  {% for group in section_b_groups %}
+  <div style="margin-bottom:1.75rem;">
+
+    {# Preamble card #}
+    {% if group.preamble %}
+    <div class="gem-card" style="border-left:3px solid #8AB4F8;background:#1C2333;margin-bottom:10px;padding:14px 16px;">
+      <div style="font-size:0.74rem;font-weight:600;color:#8AB4F8;margin-bottom:6px;letter-spacing:0.05em;">CASE PREAMBLE</div>
+      <p style="color:#E8EAED;font-size:0.9rem;line-height:1.7;margin:0;white-space:pre-line;">{{ group.preamble }}</p>
+    </div>
+    {% endif %}
+
+    {# Sub-questions #}
+    {% for sq in group.sub_questions %}
+    {% set attempted = attempt_counts.get(sq.question_id, 0) > 0 %}
+    <div class="gem-card" style="margin-bottom:8px;margin-left:1rem;border-left:2px solid #3C4043;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px;align-items:center;">
+            {% if sq.sub_part %}
+            <span class="chip" style="background:#C084FC22;color:#C084FC;font-weight:600;">{{ sq.sub_part | upper }}</span>
+            {% endif %}
+            {% if sq.marks %}
+            <span class="chip chip-purple">{{ sq.marks }}m</span>
+            {% endif %}
+            {% if attempted %}
+            <span class="chip" style="background:#81C99522;color:#81C995;">&#10003; Practiced</span>
+            {% else %}
+            <span class="chip" style="background:#3C404322;color:#9AA0A6;">Not attempted</span>
+            {% endif %}
+          </div>
+          <p style="color:#E8EAED;font-size:0.91rem;line-height:1.65;margin-bottom:6px;">{{ sq.question_text }}</p>
+          {% if sq._concept_tags %}
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            {% for tag in sq._concept_tags %}
+            <span class="chip" style="font-size:0.72rem;background:#8AB4F822;color:#8AB4F8;">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div style="padding-top:2px;">
+          <a href="/upsc/ethics/{{ paper_id }}/q/{{ sq.question_id }}"
+             class="btn btn-sm {% if attempted %}btn-primary{% endif %}"
+             style="white-space:nowrap;">
+            {{ 'Revisit' if attempted else 'Practice' }} →
+          </a>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if not section_a_rows and not section_b_groups %}
+<div class="info-box" style="color:#9AA0A6;">No questions found for this paper.</div>
+{% endif %}
+
+{% endblock %}

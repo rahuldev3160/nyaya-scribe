@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block title %}{{ essay.prompt[:60] if essay else 'Essay' }} · Nyaya Scribe{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:12px;">
+  <a href="/upsc/essay" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← Essay Paper</a>
+</div>
+
+{% if error %}
+<div class="info-box">
+  <strong style="color:#F28B82;">{{ error }}</strong>
+</div>
+{% elif not essay %}
+<div class="info-box">
+  <span style="color:#9AA0A6;">Essay question not found.</span>
+</div>
+{% else %}
+
+{% if submitted %}
+<div class="info-box" style="margin-bottom:1.25rem;border-color:#81C99544;">
+  <span style="color:#81C995;font-weight:600;">Submitted.</span>
+  <span style="color:#9AA0A6;"> Your essay has been saved.</span>
+</div>
+{% endif %}
+
+<!-- Question header -->
+<div class="gem-card" style="margin-bottom:1.25rem;">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+    <span style="padding:3px 10px;border-radius:4px;font-size:0.78rem;font-weight:700;background:#8AB4F822;color:#8AB4F8;border:1px solid #8AB4F844;">
+      Section {{ essay.section }}
+    </span>
+    {% if essay.theme_tag %}
+    <span style="padding:3px 10px;border-radius:4px;font-size:0.78rem;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">
+      {{ essay.theme_tag }}
+    </span>
+    {% endif %}
+    {% if essay.framework_id %}
+    <span style="padding:3px 10px;border-radius:4px;font-size:0.78rem;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">
+      {{ essay.framework_id }}
+    </span>
+    {% endif %}
+    {% if essay.year_appeared %}
+    <span style="padding:3px 10px;border-radius:4px;font-size:0.78rem;background:#2A2D31;color:#9AA0A6;border:1px solid #3C4043;">
+      {{ essay.year_appeared }}
+    </span>
+    {% endif %}
+    {% if essay.marks %}
+    <span style="padding:3px 10px;border-radius:4px;font-size:0.78rem;color:#9AA0A6;">{{ essay.marks }}m</span>
+    {% endif %}
+    {% if essay.word_limit %}
+    <span style="padding:3px 10px;border-radius:4px;font-size:0.78rem;color:#9AA0A6;">~{{ essay.word_limit }} words</span>
+    {% endif %}
+    {% if essay.is_high_probability %}
+    <span style="font-size:0.9rem;" title="High probability">🔥</span>
+    {% endif %}
+    {% if essay.difficulty %}
+    <span style="padding:3px 10px;border-radius:4px;font-size:0.78rem;
+                 color:{% if essay.difficulty == 'HARD' %}#F28B82{% elif essay.difficulty == 'EASY' %}#81C995{% else %}#FDD663{% endif %};">
+      {{ essay.difficulty }}
+    </span>
+    {% endif %}
+  </div>
+  <p style="font-size:1.05rem;font-weight:600;color:#E8EAED;line-height:1.5;margin:0;">{{ essay.prompt }}</p>
+</div>
+
+{% if essay.backing_note %}
+<div class="info-box" style="margin-bottom:1.25rem;">
+  <div style="font-size:0.78rem;font-weight:700;color:#8AB4F8;margin-bottom:4px;letter-spacing:0.05em;text-transform:uppercase;">Note</div>
+  <div style="color:#9AA0A6;font-size:0.88rem;line-height:1.5;">{{ essay.backing_note }}</div>
+</div>
+{% endif %}
+
+<!-- Write your essay -->
+<div class="gem-card" style="margin-bottom:1.25rem;">
+  <div style="font-size:1rem;font-weight:700;color:#E8EAED;margin-bottom:1rem;">Write Your Essay</div>
+  <form method="POST" action="/upsc/essay/{{ essay.essay_id }}/submit" id="essay-form">
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:0.8rem;font-weight:600;color:#9AA0A6;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">
+        Part A — Introduction
+        <span id="intro-wc" style="font-weight:400;color:#3C4043;margin-left:8px;">0 words</span>
+      </label>
+      <textarea name="intro_text" id="intro-text" rows="5"
+                style="width:100%;background:#1A1C1E;border:1px solid #3C4043;border-radius:6px;color:#E8EAED;font-size:0.9rem;padding:10px 12px;resize:vertical;line-height:1.5;font-family:inherit;"
+                placeholder="Hook → Context → Thesis → Signpost (target: 150–180 words)"
+                oninput="updateWc('intro-text','intro-wc');updateTotal()">{{ request.form.get('intro_text','') }}</textarea>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:0.8rem;font-weight:600;color:#9AA0A6;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">
+        Part B — Body
+        <span id="body-wc" style="font-weight:400;color:#3C4043;margin-left:8px;">0 words</span>
+      </label>
+      <textarea name="body_text" id="body-text" rows="14"
+                style="width:100%;background:#1A1C1E;border:1px solid #3C4043;border-radius:6px;color:#E8EAED;font-size:0.9rem;padding:10px 12px;resize:vertical;line-height:1.5;font-family:inherit;"
+                placeholder="Dimension blocks: Claim → Evidence → Analysis → Counter → Rebuttal (target: 650–750 words)"
+                oninput="updateWc('body-text','body-wc');updateTotal()">{{ request.form.get('body_text','') }}</textarea>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:0.8rem;font-weight:600;color:#9AA0A6;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">
+        Part C — Conclusion
+        <span id="concl-wc" style="font-weight:400;color:#3C4043;margin-left:8px;">0 words</span>
+      </label>
+      <textarea name="conclusion_text" id="concl-text" rows="5"
+                style="width:100%;background:#1A1C1E;border:1px solid #3C4043;border-radius:6px;color:#E8EAED;font-size:0.9rem;padding:10px 12px;resize:vertical;line-height:1.5;font-family:inherit;"
+                placeholder="Synthesis → Way Forward → Philosophical → Closing Line (target: 120–150 words)"
+                oninput="updateWc('concl-text','concl-wc');updateTotal()">{{ request.form.get('conclusion_text','') }}</textarea>
+    </div>
+
+    <input type="hidden" name="full_text" id="full-text-hidden">
+    <input type="hidden" name="word_count" id="word-count-hidden">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div style="font-size:0.85rem;color:#9AA0A6;">
+        Total: <strong id="total-wc" style="color:#E8EAED;">0</strong> words
+        {% if essay.word_limit %}<span style="color:#3C4043;"> / {{ essay.word_limit }} target</span>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary" onclick="prepareSubmit()">Submit Essay</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Model Answer -->
+<details style="margin-bottom:1.5rem;">
+  <summary style="cursor:pointer;padding:14px 16px;background:#1A1C1E;border:1px solid #3C4043;border-radius:8px;font-size:0.92rem;font-weight:700;color:#E8EAED;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+    <span>Model Answer</span>
+    <span style="font-size:0.78rem;font-weight:400;color:#9AA0A6;">
+      {% if answer %}{{ answer.total_word_count or '' }} words · click to expand{% else %}Generating…{% endif %}
+    </span>
+  </summary>
+
+  <div style="border:1px solid #3C4043;border-top:none;border-radius:0 0 8px 8px;padding:1.25rem;background:#111315;">
+    {% if not answer %}
+    <div style="color:#9AA0A6;font-size:0.9rem;padding:1rem 0;">
+      Model answer generating — check back soon.
+    </div>
+    {% else %}
+
+    <!-- PART A: Introduction -->
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.75rem;font-weight:700;color:#8AB4F8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;border-bottom:1px solid #8AB4F822;padding-bottom:6px;">
+        Part A — Introduction
+      </div>
+
+      {% if answer.intro_hook %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">
+          A1 Hook{% if answer.intro_hook_type %} · {{ answer.intro_hook_type }}{% endif %}
+        </div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.intro_hook }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.intro_context %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">A2 Context</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.intro_context }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.intro_thesis %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">A3 Thesis</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.intro_thesis }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.intro_signpost %}
+      <div style="margin-bottom:0;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">A4 Signpost</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.intro_signpost }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- PART B: Body -->
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.75rem;font-weight:700;color:#8AB4F8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;border-bottom:1px solid #8AB4F822;padding-bottom:6px;">
+        Part B — Body
+      </div>
+
+      {% for dim in dimension_entries %}
+      <div style="margin-bottom:14px;padding:12px;background:#1A1C1E;border-radius:6px;border-left:3px solid #8AB4F844;">
+        {% if dim.slot %}
+        <div style="font-size:0.78rem;font-weight:700;color:#8AB4F8;margin-bottom:8px;">{{ dim.slot }}</div>
+        {% endif %}
+
+        {% if dim.claim %}
+        <div style="margin-bottom:6px;">
+          <span style="font-size:0.7rem;font-weight:700;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.05em;">Claim · </span>
+          <span style="color:#E8EAED;font-size:0.88rem;line-height:1.5;">{{ dim.claim }}</span>
+        </div>
+        {% endif %}
+
+        {% if dim.evidence %}
+        <div style="margin-bottom:6px;">
+          <span style="font-size:0.7rem;font-weight:700;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.05em;">Evidence · </span>
+          <span style="color:#E8EAED;font-size:0.88rem;line-height:1.5;">{{ dim.evidence }}</span>
+        </div>
+        {% endif %}
+
+        {% if dim.analysis %}
+        <div style="margin-bottom:6px;">
+          <span style="font-size:0.7rem;font-weight:700;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.05em;">Analysis · </span>
+          <span style="color:#E8EAED;font-size:0.88rem;line-height:1.5;">{{ dim.analysis }}</span>
+        </div>
+        {% endif %}
+
+        {% if dim.counter %}
+        <div style="margin-bottom:6px;">
+          <span style="font-size:0.7rem;font-weight:700;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.05em;">Counter · </span>
+          <span style="color:#E8EAED;font-size:0.88rem;line-height:1.5;">{{ dim.counter }}</span>
+        </div>
+        {% endif %}
+
+        {% if dim.rebuttal %}
+        <div style="margin-bottom:0;">
+          <span style="font-size:0.7rem;font-weight:700;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.05em;">Rebuttal · </span>
+          <span style="color:#E8EAED;font-size:0.88rem;line-height:1.5;">{{ dim.rebuttal }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      {% if answer.body_challenges %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Challenges</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.body_challenges }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.body_solutions %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Solutions</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.body_solutions }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.body_synthesis_para %}
+      <div style="margin-bottom:0;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Synthesis</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.body_synthesis_para }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- PART C: Conclusion -->
+    <div>
+      <div style="font-size:0.75rem;font-weight:700;color:#8AB4F8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;border-bottom:1px solid #8AB4F822;padding-bottom:6px;">
+        Part C — Conclusion
+      </div>
+
+      {% if answer.concl_synthesis %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">C1 Synthesis</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.concl_synthesis }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.concl_way_forward %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">C2 Way Forward</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.concl_way_forward }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.concl_philosophical %}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">C3 Philosophical</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;">{{ answer.concl_philosophical }}</div>
+      </div>
+      {% endif %}
+
+      {% if answer.concl_closing_line %}
+      <div>
+        <div style="font-size:0.72rem;font-weight:600;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">C4 Closing Line</div>
+        <div style="color:#E8EAED;font-size:0.9rem;line-height:1.6;font-style:italic;">{{ answer.concl_closing_line }}</div>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endif %}
+  </div>
+</details>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+}
+
+function updateWc(textareaId, labelId) {
+  var ta = document.getElementById(textareaId);
+  var lbl = document.getElementById(labelId);
+  if (!ta || !lbl) return;
+  var n = countWords(ta.value);
+  lbl.textContent = n + ' word' + (n !== 1 ? 's' : '');
+  lbl.style.color = n > 0 ? '#8AB4F8' : '#3C4043';
+}
+
+function updateTotal() {
+  var intro = document.getElementById('intro-text');
+  var body = document.getElementById('body-text');
+  var concl = document.getElementById('concl-text');
+  var total = countWords((intro ? intro.value : '') + ' ' + (body ? body.value : '') + ' ' + (concl ? concl.value : ''));
+  var lbl = document.getElementById('total-wc');
+  if (lbl) lbl.textContent = total;
+}
+
+function prepareSubmit() {
+  var intro = document.getElementById('intro-text');
+  var body = document.getElementById('body-text');
+  var concl = document.getElementById('concl-text');
+  var parts = [intro ? intro.value : '', body ? body.value : '', concl ? concl.value : ''];
+  var full = parts.filter(function(p) { return p.trim(); }).join('\n\n');
+  document.getElementById('full-text-hidden').value = full;
+  document.getElementById('word-count-hidden').value = countWords(full);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateWc('intro-text', 'intro-wc');
+  updateWc('body-text', 'body-wc');
+  updateWc('concl-text', 'concl-wc');
+  updateTotal();
+});
+</script>
+{% endblock %}

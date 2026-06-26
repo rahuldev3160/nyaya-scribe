@@ -228,7 +228,7 @@ def build_ethics_b_request(q, preamble, cid):
         custom_id=cid,
         params=MessageCreateParamsNonStreaming(
             model=MODEL,
-            max_tokens=2048,
+            max_tokens=4096,
             system=ETHICS_B_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         ),
@@ -327,15 +327,26 @@ def poll_batch(batch_id):
 # ---------------------------------------------------------------------------
 
 def _parse_json(text):
-    """Extract JSON from model output — handles raw JSON or ```json blocks."""
+    """Extract JSON from model output — handles raw JSON, ```json blocks, or leading/trailing prose."""
     text = text.strip()
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
-    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
-    if match:
-        return json.loads(match.group(1))
+    # Strip markdown fences (greedy removal handles multi-line JSON inside fences)
+    stripped = re.sub(r"```(?:json)?\s*", "", text).strip().rstrip("`").strip()
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
+    # Last resort: extract outermost { ... } (handles leading prose)
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end > start:
+        try:
+            return json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            pass
     raise ValueError("No valid JSON found in response")
 
 

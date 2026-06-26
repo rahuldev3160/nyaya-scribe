@@ -1,0 +1,15 @@
+{
+  "batch_id": "msgbatch_01PNGjhpenuTssHSHmQgvoo2",
+  "submitted_at": "2026-06-26T11:00:52.996890",
+  "essay_count": 0,
+  "ethics_count": 1,
+  "total": 1,
+  "test_mode": false,
+  "processing_status": "in_progress",
+  "id_map": {
+    "ethics_0000": {
+      "type": "ethics",
+      "id": "ethics_prac_2_b01_a"
+    }
+  }
+}

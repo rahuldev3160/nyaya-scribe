@@ -1,67 +1,73 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S44 → S45 | 2026-06-21 | Branch: main
+**Session:** S45 → S46 | 2026-06-26 | Branch: main
 
 ## Active Work
-PLAN-018 Phase 2 — Essay model answer batch generation ⏳ pending (script written, needs API key)
-PLAN-019 Phase 2 — Ethics model answer batch generation ⏳ pending (same script)
-PLAN-018/019 Phase 3 — Blueprint + UI ⏳ pending (after batch answers land)
-UI-REDESIGN-001 Phase 2b — Photo eval (handwritten → Claude Vision scoring) ⏳ deferred
+PLAN-018 Phase 4 — Essay AI scoring (`_score_essay()` + `essay_eval` feature gate) ⏳ pending
 PLAN-017 Phase 2+ — GS Mains blueprints + PYQ completion ⏳ pending
+UI-REDESIGN-001 Phase 2b — Photo eval (handwritten → Claude Vision scoring) ⏳ deferred
 
-## Done This Session (S44)
-- Migrations m039–m050 applied to upsc_gs.db (essay core tables, proposals, questions, answers, attempts; ethics questions, answers, attempts; ies/eco_opt/english/rbi index gaps)
-- All 5 seed scripts ran clean: essay_frameworks (19 rows), essay_questions (36), ethics_concepts (25), ethics_pyq (31), ethics_practice (62) → 173 rows total into upsc_gs.db
-- web/utils.py written: parse_search() + build_query() for section-wise search bar (KNOWN_CONCEPTS 42 terms, KNOWN_THINKERS 23, KNOWN_SCENARIOS 13, ESSAY_THEMES 17)
-- scripts/generate_model_answers_batch.py written: Anthropic Batch API for 111 model answers (36 essay + 75 ethics), --test-mode --count 4, --poll, --retrieve, id_map in status file
+## Done This Session (S45)
+- .env created with ANTHROPIC_API_KEY (key from Devthorium project)
+- Batch test mode: 4 items; BUG-029 fixed (_parse_json non-greedy regex → greedy with rfind)
+- Full batch: 108 items; BUG-030 fixed (max_tokens 2048→4096 for Section B STAKE)
+- Result: 36/36 essay model answers + 75/75 ethics model answers in upsc_gs.db
+- web/blueprints/essay_bp.py — 5 routes (/upsc/essay, /upsc/essay/<id>, /upsc/essay/<id>/submit, /upsc/essay/pyq, /upsc/essay/framework-guide)
+- web/blueprints/ethics_paper_bp.py — 4 routes (/upsc/ethics, /upsc/ethics/<paper_id>, /upsc/ethics/<paper_id>/q/<question_id>, /upsc/ethics/framework-guide)
+- 9 new templates: essay_landing.html, essay_detail.html, essay_framework.html, ethics_landing.html, ethics_paper.html, ethics_question.html, ethics_framework.html
+- web/app.py — essay_bp + ethics_paper_bp registered
+- upsc_dashboard.html + upsc_mains.html — 4-item module toggle added (Eco Optional | GS Mains | Essay Paper | Ethics Paper)
+- App boots clean; 9 new routes all respond correctly
 
-## Exact Next Step (S45 start here)
-**Phase 2 batch — unblock with API key:**
-1. Create `.env` with `ANTHROPIC_API_KEY=sk-ant-api03-...`
-2. Run test mode: `python scripts/generate_model_answers_batch.py --test-mode`
-3. Poll: `python scripts/generate_model_answers_batch.py --poll <batch_id>`
-4. Retrieve: `python scripts/generate_model_answers_batch.py --retrieve <batch_id>` — verify 1 essay + 3 ethics rows in DB
-5. Full batch: `python scripts/generate_model_answers_batch.py` — 111 items, ~$1 at batch pricing
+## Exact Next Step (S46 start here)
+**Phase 4 — Essay AI scoring:**
+1. Open `web/blueprints/essay_bp.py` — add `_score_essay(attempt_text, essay_prompt, framework_id)` using claude-haiku-4-5-20251001
+2. Scoring rubric: intro:20 + body:40 + challenges+solutions:20 + concl:20 = 100
+3. Gate: `can_use_feature(g.user_id, "essay_eval")` from `web/db.py` (same pattern as ies_quiz_bp.py `_score_answer`)
+4. On submit in essay_submit route: call `_score_essay()`, store in `essay_attempts.ai_score_json` + `ai_score_overall`
+5. First verify `essay_eval` gate exists: `sqlite3 data/upsc_gs.db "SELECT * FROM feature_gates WHERE gate_id='essay_eval'"`
+   → If missing: INSERT row (quota_free=15, quota_period='monthly')
 
-**After batch completes → Phase 3 (Blueprint + UI):**
-- `web/blueprints/essay_bp.py` — 6 routes: landing, detail, attempt, results, search, framework_guide
-- `web/blueprints/ethics_paper_bp.py` — landing, paper view, question view, framework guide
-- HTML templates: essay_landing.html, essay_detail.html, ethics_landing.html, ethics_paper.html, ethics_question.html
-- UPSC toggle: add "Essay Paper" + "Ethics Paper" as 3rd/4th toggle states in the UPSC tab
-- Section-wise search bars calling parse_search() + build_query() from web/utils.py
+**After essay scoring:**
+- PLAN-017 Phase 2+ — GS1-3 PYQ data (680 questions gap; manual PDF download from upsc.gov.in)
+- UI-REDESIGN-001 Phase 2b — Photo eval (POST /practice/submit-photo → Claude Vision)
 
-## Files Modified This Session (S44)
-- `scripts/generate_model_answers_batch.py` — new: Phase 2 Batch API script
-- `web/utils.py` — new: parse_search + build_query search utility
-- `scripts/essay/seed_frameworks.py` — new: seeds essay_frameworks, hook_types, theme_analysis
-- `scripts/essay/seed_questions.py` — new: seeds essay_questions from JSONL
-- `scripts/ethics/seed_concepts.py` — new: seeds ethics_concept_analysis + ethics_scenario_analysis
-- `scripts/ethics/seed_questions.py` — new: seeds ethics_questions from JSONL (--input flag)
-- `data/essay_questions_seed.jsonl` — new: 36 essay questions (8 PYQ-2024 + 8 PYQ-2025 + 20 practice)
-- `data/ethics_questions_pyq.jsonl` — new: 31 ethics PYQ 2025 rows
-- `data/ethics_questions_practice.jsonl` — new: 62 ethics practice rows (2 papers)
-- `migrations/m039_essay_core_tables.py` through `m050_rbi_composite_index.py` — new: 12 migrations
-- `data/upsc_gs.db` — modified: 12 migrations applied, 173 seed rows inserted
-- `data/nyaya.db` — modified: schema updates from earlier sessions
+## Files Modified This Session (S45)
+- `web/blueprints/essay_bp.py` — new
+- `web/blueprints/ethics_paper_bp.py` — new
+- `web/templates/essay_landing.html` — new
+- `web/templates/essay_detail.html` — new
+- `web/templates/essay_framework.html` — new
+- `web/templates/ethics_landing.html` — new
+- `web/templates/ethics_paper.html` — new
+- `web/templates/ethics_question.html` — new
+- `web/templates/ethics_framework.html` — new
+- `web/templates/upsc_dashboard.html` — 4-item module toggle added
+- `web/templates/upsc_mains.html` — 4-item module toggle added
+- `web/app.py` — essay_bp + ethics_paper_bp registered
+- `scripts/generate_model_answers_batch.py` — BUG-029 fix (_parse_json) + BUG-030 fix (max_tokens=4096 for Section B)
+- `.env` — created (not committed — in .gitignore)
+- `data/upsc_gs.db` — 111 model answers inserted (36 essay + 75 ethics)
+- `.knowledge/INDEX.md` — BUG-029, BUG-030 added
+- `.knowledge/plans/PLAN-018.md` — Phase 2+3 marked complete
+- `.knowledge/plans/PLAN-019.md` — Phase 2+3 marked complete
+- `MASTER_INDEX.md` — DECIDE-34, DECIDE-35 added; RISK-08 mitigated
 
 ## Blockers
-- ANTHROPIC_API_KEY needed locally to run batch script (create .env)
-- GS1-3 PYQ gap: ~680 questions missing. Needs manual download from upsc.gov.in → `data/cache/upsc_gs_pdfs/` → `python3.11 scripts/parse_upsc_gs_pdfs.py && python3.11 scripts/seed_upsc_gs_pyqs.py`
-- nyaya_seed.db missing feature_gates, user_feature_overrides, user_feature_usage, user_feedback tables (needed before next prod deploy)
+- Essay AI scoring: verify `essay_eval` gate exists in feature_gates before wiring
+- GS1-3 PYQ gap: ~680 questions missing — manual PDF download required
+- nyaya_seed.db missing feature_gates tables (needed before next prod deploy)
 
-## Pending Decisions (Stale from S43 — no blocker on Phase 3)
-- DECIDE-32: Cross-DB topic linking (Y → master_topics project; N → document only)
+## Pending Decisions
+- DECIDE-32: Cross-DB topic linking (Y → master_topics; N → document only)
 - DECIDE-33: rbi.db year column (Y → ALTER TABLE; N → keep is_recent_dev flag)
 
-## Context Pointers — load ONLY if task requires
+## Context Pointers
 | Need | Read |
 |---|---|
-| Essay Paper module full spec (schema, 36 Qs, batch plan) | .knowledge/plans/PLAN-018.md |
-| Ethics Paper module full spec (IDEA-U, STAKE, 2 practice papers) | .knowledge/plans/PLAN-019.md |
-| Batch script usage + id_map design | scripts/generate_model_answers_batch.py |
-| Search utility API (parse_search, build_query) | web/utils.py |
-| Full product redesign plan (Phases 2b onward) | .knowledge/plans/UI-REDESIGN-001.md |
-| GS Mains blueprint spec + PYQ pipeline | .knowledge/plans/PLAN-017.md |
-| All architectural decisions (DECIDE-01 to DECIDE-32) | MASTER_INDEX.md |
-| Bug/audit history | .knowledge/INDEX.md |
-| Feature gate schema + freemium logic | migrations/m035_feature_gates.py |
-| AI scoring helper + tool schema | web/blueprints/ies_quiz_bp.py `_score_answer()` |
+| Essay scoring rubric + gate spec | .knowledge/plans/PLAN-018.md — "AI Scoring Rubric" section |
+| Existing AI scoring pattern | web/blueprints/ies_quiz_bp.py `_score_answer()` |
+| Feature gate API | web/db.py `can_use_feature()` |
+| Photo eval spec | .knowledge/plans/UI-REDESIGN-001.md |
+| GS Mains PYQ pipeline | .knowledge/plans/PLAN-017.md |
+| All decisions (DECIDE-01 to DECIDE-35) | MASTER_INDEX.md |
+| Bug history | .knowledge/INDEX.md |

@@ -703,8 +703,8 @@ High-probability for Nov 2026 (CA-hooked, HIGH): Q7, Q8, Q9, Q10, Q11, Q12, Q13
 
 ## Status
 - [x] Phase 0: Research complete (S43) — paper format confirmed; 2024 + 2025 PYQs verified (16 questions); 20 practice questions curated; all 36 assigned frameworks + hooks; 2025 pattern anomaly documented
-- [ ] Phase 1: Schema + seed (next session)
-- [ ] Phase 2: Content generation
-- [ ] Phase 3: Blueprint + templates
-- [ ] Phase 4: AI scoring
+- [x] Phase 1: Schema + seed complete (S44) — m039–m043 applied; 36 questions seeded
+- [x] Phase 2: Content generation complete (S45) — 36/36 model answers in DB via Batch API
+- [x] Phase 3: Blueprint + templates complete (S45) — essay_bp.py (5 routes) + essay_landing.html, essay_detail.html, essay_framework.html; UPSC 4-item toggle wired
+- [ ] Phase 4: AI scoring — _score_essay() + essay_eval gate (15 free/month)
 - [ ] Phase 5: Admin + annual pipeline

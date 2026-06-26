@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% block title %}
+{% if question %}{{ question.question_text[:60] }}… · Ethics{% else %}Question Not Found{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# ── Breadcrumb ────────────────────────────────────────────────────────── #}
+<div style="margin-bottom:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+  <a href="/upsc/ethics" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← Ethics</a>
+  {% if paper_id %}
+  <a href="/upsc/ethics/{{ paper_id }}" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← Paper</a>
+  {% endif %}
+</div>
+
+{% if error %}
+<div class="info-box" style="color:#F28B82;margin-bottom:1rem;">{{ error }}</div>
+{% endif %}
+
+{% if not question %}
+<div class="info-box" style="color:#9AA0A6;">Question not found.</div>
+{% else %}
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# QUESTION HEADER                                                        #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<div class="gem-card" style="margin-bottom:1.25rem;">
+
+  {# Meta chips #}
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center;">
+    {% if question.section %}
+    <span class="chip" style="{% if question.section == 'A' %}background:#8AB4F822;color:#8AB4F8;{% else %}background:#C084FC22;color:#C084FC;{% endif %}font-weight:600;">
+      Section {{ question.section }}
+    </span>
+    {% endif %}
+    {% if question.question_type %}
+    <span class="chip" style="background:#3C404322;color:#9AA0A6;">{{ question.question_type }}</span>
+    {% endif %}
+    {% if question.marks %}
+    <span class="chip chip-purple">{{ question.marks }} marks</span>
+    {% endif %}
+    {% if question.framework_hint %}
+    <span class="chip" style="{% if question.framework_hint == 'IDEA-U' %}background:#FDD66322;color:#FDD663;{% else %}background:#81C99522;color:#81C995;{% endif %}font-weight:600;">
+      {{ question.framework_hint }}
+    </span>
+    {% endif %}
+    {% if question.sub_part %}
+    <span class="chip" style="background:#C084FC22;color:#C084FC;">Part {{ question.sub_part | upper }}</span>
+    {% endif %}
+  </div>
+
+  {# Concept tag pills #}
+  {% if question._concept_tags %}
+  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+    {% for tag in question._concept_tags %}
+    <span class="chip" style="font-size:0.72rem;background:#8AB4F822;color:#8AB4F8;">{{ tag }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# Section B case preamble callout #}
+  {% if question.section == 'B' and question.case_preamble %}
+  <div style="border-left:3px solid #8AB4F8;background:#1C2333;padding:12px 14px;margin-bottom:14px;border-radius:4px;">
+    <div style="font-size:0.72rem;font-weight:600;color:#8AB4F8;margin-bottom:5px;letter-spacing:0.05em;">CASE PREAMBLE</div>
+    <p style="color:#E8EAED;font-size:0.88rem;line-height:1.7;margin:0;white-space:pre-line;">{{ question.case_preamble }}</p>
+  </div>
+  {% endif %}
+
+  {# Question text #}
+  <p style="color:#E8EAED;font-size:1rem;line-height:1.7;margin:0;">{{ question.question_text }}</p>
+
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# STATE MACHINE                                                          #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+
+{% set has_attempt = prev_attempt is not none %}
+{% set is_revealed = has_attempt and prev_attempt.model_revealed %}
+{% set force_write = request.args.get('write') == '1' %}
+
+{# ── STATE 1: Write ──────────────────────────────────────────────────── #}
+{% if not has_attempt or force_write %}
+<div class="gem-card">
+  <div style="font-size:0.88rem;font-weight:600;color:#E8EAED;margin-bottom:10px;">Write Your Answer</div>
+
+  <form method="POST" id="attempt-form">
+    <input type="hidden" name="action" value="submit_attempt">
+    <textarea id="attempt-textarea" name="attempt_text"
+              style="width:100%;min-height:220px;background:#1C2333;border:1px solid #3C4043;border-radius:6px;
+                     padding:12px;color:#E8EAED;font-size:0.9rem;line-height:1.65;resize:vertical;
+                     font-family:inherit;box-sizing:border-box;"
+              placeholder="Write your answer here…"
+              oninput="updateWordCount(this)"></textarea>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;">
+      <span id="wc-display" style="font-size:0.8rem;color:#9AA0A6;">0 words
+        {% if question.marks %}
+        &nbsp;·&nbsp;target ~{{ question.marks * 10 }}w
+        {% endif %}
+      </span>
+      <div style="display:flex;gap:8px;">
+        <a href="/upsc/ethics/{{ paper_id }}" class="btn btn-sm" style="color:#9AA0A6;">Cancel</a>
+        <button type="submit" class="btn btn-sm btn-primary"
+                onclick="document.getElementById('wc-hidden').value=countWords(document.getElementById('attempt-textarea').value)">
+          Submit →
+        </button>
+      </div>
+    </div>
+    <input type="hidden" name="word_count" id="wc-hidden" value="0">
+  </form>
+</div>
+
+{# ── STATE 2 & 3: Has attempt ───────────────────────────────────────── #}
+{% else %}
+
+{# Attempt text display #}
+<div class="gem-card" style="margin-bottom:1rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+    <span style="font-size:0.88rem;font-weight:600;color:#E8EAED;">Your Answer</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+      {% if prev_attempt.word_count %}
+      <span style="font-size:0.78rem;color:#9AA0A6;">{{ prev_attempt.word_count }} words</span>
+      {% endif %}
+      <a href="?write=1" class="btn btn-sm" style="font-size:0.76rem;">Rewrite</a>
+    </div>
+  </div>
+  <p style="color:#E8EAED;font-size:0.9rem;line-height:1.7;white-space:pre-line;margin:0;">{{ prev_attempt.attempt_text }}</p>
+</div>
+
+{# ── STATE 2: Submitted, not revealed ─────────────────────────────── #}
+{% if not is_revealed %}
+<div class="gem-card" style="text-align:center;padding:2rem 1rem;">
+  <div style="font-size:0.9rem;color:#9AA0A6;margin-bottom:1rem;">
+    Answer submitted. Ready to compare with the model answer?
+  </div>
+  <form method="POST" style="display:inline;">
+    <input type="hidden" name="action" value="reveal">
+    <input type="hidden" name="attempt_id" value="{{ prev_attempt.attempt_id }}">
+    <button type="submit" class="btn btn-primary">Reveal Model Answer</button>
+  </form>
+</div>
+
+{# ── STATE 3: Revealed — side-by-side compare ─────────────────────── #}
+{% else %}
+
+{# Model answer #}
+{% if model_answer %}
+<div class="gem-card" style="margin-bottom:1.25rem;">
+  <div style="font-size:0.88rem;font-weight:600;color:#81C995;margin-bottom:14px;">Model Answer</div>
+
+  {% set framework = question.framework_hint or ('STAKE' if question.section == 'B' else 'IDEA-U') %}
+
+  {% if framework == 'IDEA-U' %}
+  {# IDEA-U steps: Introduction, Dimensions, Evidence, Application, Upshot #}
+  {% set idea_steps = [
+    ('I', 'Introduction', model_answer.theory_intro, '#8AB4F8'),
+    ('D', 'Dimensions', model_answer.theory_dimensions, '#C084FC'),
+    ('E', 'Evidence', model_answer.theory_evidence, '#FDD663'),
+    ('A', 'Application', model_answer.theory_apply, '#81C995'),
+    ('U', 'Upshot', model_answer.theory_upshot, '#F28B82'),
+  ] %}
+  {% for letter, label, content, color in idea_steps %}
+  {% if content %}
+  <div style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+      <span style="width:26px;height:26px;border-radius:50%;background:{{ color }}22;color:{{ color }};
+                   font-size:0.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+                   flex-shrink:0;">{{ letter }}</span>
+      <span style="font-size:0.82rem;font-weight:600;color:{{ color }};">{{ label }}</span>
+    </div>
+    <p style="color:#E8EAED;font-size:0.88rem;line-height:1.65;margin:0 0 0 34px;white-space:pre-line;">{{ content }}</p>
+  </div>
+  {% endif %}
+  {% endfor %}
+
+  {% else %}
+  {# STAKE steps: Stakeholders, Tension, Analysis, Key decision, Execution #}
+  {% set stake_steps = [
+    ('S', 'Stakeholders', model_answer.stake_stakeholders, '#8AB4F8'),
+    ('T', 'Tension', model_answer.stake_tension, '#C084FC'),
+    ('A', 'Analysis', model_answer.stake_analysis, '#FDD663'),
+    ('K', 'Key Decision', model_answer.stake_decision, '#81C995'),
+    ('E', 'Execution', model_answer.stake_execution, '#F28B82'),
+  ] %}
+  {% for letter, label, content, color in stake_steps %}
+  {% if content %}
+  <div style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+      <span style="width:26px;height:26px;border-radius:50%;background:{{ color }}22;color:{{ color }};
+                   font-size:0.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;
+                   flex-shrink:0;">{{ letter }}</span>
+      <span style="font-size:0.82rem;font-weight:600;color:{{ color }};">{{ label }}</span>
+    </div>
+    <p style="color:#E8EAED;font-size:0.88rem;line-height:1.65;margin:0 0 0 34px;white-space:pre-line;">{{ content }}</p>
+  </div>
+  {% endif %}
+  {% endfor %}
+  {% endif %}
+
+  {# Full prose answer #}
+  {% if model_answer.full_answer_text %}
+  <details style="margin-top:14px;">
+    <summary class="btn btn-sm" style="cursor:pointer;list-style:none;display:inline-flex;">Full Prose Answer</summary>
+    <div style="margin-top:12px;">
+      <p style="color:#E8EAED;font-size:0.88rem;line-height:1.7;white-space:pre-line;">{{ model_answer.full_answer_text }}</p>
+    </div>
+  </details>
+  {% endif %}
+
+  {# Thinkers + frameworks cited #}
+  {% if model_answer._thinkers_cited %}
+  <div style="margin-top:12px;">
+    <span style="font-size:0.76rem;color:#9AA0A6;margin-right:6px;">Thinkers:</span>
+    {% for t in model_answer._thinkers_cited %}
+    <span class="chip" style="font-size:0.72rem;background:#8AB4F822;color:#8AB4F8;">{{ t }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+{% else %}
+{# No model answer yet #}
+<div class="gem-card" style="margin-bottom:1.25rem;border-color:#3C4043;">
+  <div style="font-size:0.88rem;color:#9AA0A6;">
+    Model answer coming soon — generated via batch.
+  </div>
+</div>
+{% endif %}
+
+{# Self-rating #}
+<div class="gem-card">
+  <div style="font-size:0.88rem;font-weight:600;color:#E8EAED;margin-bottom:12px;">Self-Rating</div>
+
+  {% if prev_attempt.self_rating %}
+  <div style="margin-bottom:10px;">
+    <span style="font-size:0.82rem;color:#9AA0A6;">Rated:</span>
+    <span class="chip" style="margin-left:6px;
+      {% if prev_attempt.self_rating == 'strong' %}background:#81C99522;color:#81C995;
+      {% elif prev_attempt.self_rating == 'partial' %}background:#FDD66322;color:#FDD663;
+      {% else %}background:#F28B8222;color:#F28B82;{% endif %}">
+      {{ prev_attempt.self_rating | capitalize }}
+    </span>
+  </div>
+  {% endif %}
+
+  <form method="POST">
+    <input type="hidden" name="action" value="self_rate">
+    <input type="hidden" name="attempt_id" value="{{ prev_attempt.attempt_id }}">
+    <input type="hidden" name="model_revealed" value="1">
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <button type="submit" name="self_rating" value="strong"
+              class="btn btn-sm"
+              style="{% if prev_attempt.self_rating == 'strong' %}background:#81C99533;color:#81C995;border-color:#81C995;{% else %}color:#81C995;border-color:#81C99566;{% endif %}">
+        Strong
+      </button>
+      <button type="submit" name="self_rating" value="partial"
+              class="btn btn-sm"
+              style="{% if prev_attempt.self_rating == 'partial' %}background:#FDD66333;color:#FDD663;border-color:#FDD663;{% else %}color:#FDD663;border-color:#FDD66366;{% endif %}">
+        Partial
+      </button>
+      <button type="submit" name="self_rating" value="weak"
+              class="btn btn-sm"
+              style="{% if prev_attempt.self_rating == 'weak' %}background:#F28B8233;color:#F28B82;border-color:#F28B82;{% else %}color:#F28B82;border-color:#F28B8266;{% endif %}">
+        Weak
+      </button>
+    </div>
+
+    <textarea name="self_notes"
+              style="width:100%;min-height:70px;background:#1C2333;border:1px solid #3C4043;border-radius:6px;
+                     padding:10px;color:#E8EAED;font-size:0.85rem;line-height:1.55;resize:vertical;
+                     font-family:inherit;box-sizing:border-box;"
+              placeholder="Optional notes (what you missed, what worked)…">{{ prev_attempt.self_notes or '' }}</textarea>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+      <button type="submit" name="self_rating" value="{{ prev_attempt.self_rating or 'partial' }}"
+              class="btn btn-sm btn-primary">Save Notes</button>
+    </div>
+  </form>
+
+  {# Next question link #}
+  <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #3C4043;">
+    <a href="/upsc/ethics/{{ paper_id }}" class="btn btn-sm">← Back to Paper</a>
+  </div>
+
+</div>
+
+{% endif %}{# end STATE 3 #}
+{% endif %}{# end has_attempt check #}
+
+{% endif %}{# end question exists #}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function countWords(text) {
+  return text.trim() ? text.trim().split(/\s+/).length : 0;
+}
+function updateWordCount(textarea) {
+  var n = countWords(textarea.value);
+  var el = document.getElementById('wc-display');
+  if (!el) return;
+  {% if question and question.marks %}
+  var target = {{ question.marks }} * 10;
+  el.innerHTML = n + ' words&nbsp;&middot;&nbsp;target ~' + target + 'w';
+  {% else %}
+  el.textContent = n + ' words';
+  {% endif %}
+}
+</script>
+{% endblock %}

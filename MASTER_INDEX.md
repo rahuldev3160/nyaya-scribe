@@ -1,6 +1,6 @@
 # MASTER_INDEX — Descriptive Exams (Nyaya Scribe)
 Created: 2026-06-16 (Session 39)
-Updated: 2026-06-16 (Session 41)
+Updated: 2026-06-26 (Session 45)
 
 ---
 
@@ -48,6 +48,8 @@ Updated: 2026-06-16 (Session 41)
 | DECIDE-31 | Essay Paper scope: 2024 PYQ (8 Qs) + 2025 PYQ (8 Qs) + 20 practice (2026) = 36 total; Ethics Paper scope: 2019–2025 PYQ (7 years) + 2 practice papers = ~279 total | 2025 essay paper confirmed from official UPSC PDF; ethics pre-2019 format varied significantly (earlier years can be added later); scoping prevents unbounded batch size | Include all 13 years of ethics PYQs (too large for first batch) | data/essay_questions_seed.jsonl; data/ethics_questions_pyq.jsonl |
 | DECIDE-32 | **PENDING** — Cross-DB master topic linking: should "Monetary Policy" in IES, RBI, and UPSC essay point to a single canonical entity in nyaya.db `master_topics`? Awaiting Rahul answer | Yes → shared taxonomy, bigger architecture work; No → column-name consistency only (docs only) | — | AUDIT-008; blocks Tier 3 of indexing plan |
 | DECIDE-33 | **PENDING** — rbi.db year column: does source data support year attribution per question? Awaiting Rahul answer | is_recent_dev flag is current proxy; year column only useful if year data exists | — | AUDIT-008; blocks m050+ for rbi year enrichment |
+| DECIDE-34 | `_parse_json` uses 3-tier fallback: direct parse → strip fences → `find("{")` + `rfind("}")` | Non-greedy regex `{.*?}` stops at first `}`, breaking on any nested JSON. Outermost-brace extraction is always safe for single-object JSON responses | Regex `{.*?}` (non-greedy) | scripts/generate_model_answers_batch.py `_parse_json()` |
+| DECIDE-35 | Section B STAKE batch requests use `max_tokens=4096`; Section A IDEA-U uses `max_tokens=2048` | STAKE responses include 5 structured fields + `full_answer_text` prose combining them all — runs ~9000 chars (~3500 tokens). IDEA-U targets 150 words (~700 tokens). Uniform 2048 truncated all 34 Section B items mid-JSON | Keep uniform 2048 for all ethics items | scripts/generate_model_answers_batch.py `build_ethics_b_request()` |
 
 ---
 
@@ -108,4 +110,4 @@ Updated: 2026-06-16 (Session 41)
 | RISK-05 | WAL contention with 5+ DBs at 100+ concurrent users — profile_bp opens 3+ separate connections per request | HIGH | DECIDE-17: cache.db for cross-exam aggregates; replaces 3-connection pattern in profile_bp (BUG-021 pattern recurs) |
 | RISK-06 | No transaction isolation in quiz submit — concurrent users on same topic may corrupt attempt_count | MEDIUM | Fix in Phase 2: BEGIN EXCLUSIVE on submit routes; or use atomic UPDATE+SELECT |
 | RISK-07 | No migration rollback safety — deploy new migration, rollback app, in-flight requests hit missing columns | MEDIUM | Deferred: Alembic migration (post-launch); current mitigation: test migrations on local before push |
-| RISK-08 | Anthropic Batch API JSON shape for essay/ethics model answers unvalidated — body_dimensions_json and IDEA-U/STAKE fields may return malformed JSON or skip optional fields | HIGH | Mandatory test-mode gate: run 4-item test batch before full 315-item submission; validate shape before INSERT; generation scripts must enforce field presence |
+| RISK-08 | Anthropic Batch API JSON shape for essay/ethics model answers unvalidated — body_dimensions_json and IDEA-U/STAKE fields may return malformed JSON or skip optional fields | MITIGATED | Test-mode gate confirmed working (S45); `_parse_json` hardened (BUG-029); `max_tokens` fixed (BUG-030); 111/111 answers now in DB |

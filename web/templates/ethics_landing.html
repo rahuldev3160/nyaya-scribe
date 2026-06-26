@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Ethics Paper (GS4) · Nyaya Scribe{% endblock %}
+
+{% block content %}
+
+{# ── Header ────────────────────────────────────────────────────────────── #}
+<div style="margin-bottom:1.5rem;">
+  <h2 style="font-size:1.5rem;font-weight:700;color:#E8EAED;margin-bottom:4px;">Ethics Paper (GS4)</h2>
+  <div style="font-size:0.85rem;color:#9AA0A6;">UPSC Mains · 250 marks · 3 hours · Self-compare mode</div>
+</div>
+
+{# ── Module toggle ─────────────────────────────────────────────────────── #}
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.75rem;">
+  <a href="/upsc" class="btn btn-sm" style="color:#9AA0A6;">Eco Optional</a>
+  <a href="/upsc/mains" class="btn btn-sm" style="color:#9AA0A6;">GS Mains</a>
+  <a href="/upsc/essay" class="btn btn-sm" style="color:#9AA0A6;">Essay Paper</a>
+  <span class="btn btn-sm btn-primary" style="cursor:default;">Ethics Paper</span>
+</div>
+
+{# ── Tab bar ───────────────────────────────────────────────────────────── #}
+<div id="ethics-tabs">
+  <div class="tab-bar" style="margin-bottom:1.25rem;">
+    <button class="tab-btn {% if active_tab == 'practice' %}active{% endif %}"
+            data-tab="practice"
+            onclick="switchTab('ethics-tabs','practice')">Practice Papers</button>
+    <button class="tab-btn {% if active_tab == 'pyq' %}active{% endif %}"
+            data-tab="pyq"
+            onclick="switchTab('ethics-tabs','pyq')">Solved Past Years</button>
+    <button class="tab-btn {% if active_tab == 'pattern' %}active{% endif %}"
+            data-tab="pattern"
+            onclick="switchTab('ethics-tabs','pattern')">Pattern Synthesis</button>
+  </div>
+
+  {# ── Tab: Practice Papers ──────────────────────────────────────────── #}
+  <div id="ethics-tabs-practice" class="tab-panel {% if active_tab == 'practice' %}active{% endif %}">
+    {% if not practice_papers %}
+    <div class="info-box" style="color:#9AA0A6;">No practice papers available yet.</div>
+    {% else %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">
+      {% for p in practice_papers %}
+      <a href="/upsc/ethics/{{ p.paper_id }}"
+         style="text-decoration:none;">
+        <div class="gem-card" style="height:100%;transition:border-color 0.15s;"
+             onmouseover="this.style.borderColor='#8AB4F8'"
+             onmouseout="this.style.borderColor=''">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+            <span style="font-size:0.95rem;font-weight:600;color:#E8EAED;">{{ p.paper_title }}</span>
+            {% if p.difficulty %}
+            <span class="chip"
+                  style="white-space:nowrap;margin-left:8px;
+                         {% if p.difficulty == 'Hard' %}background:#F28B8222;color:#F28B82;
+                         {% elif p.difficulty == 'Medium' %}background:#FDD66322;color:#FDD663;
+                         {% else %}background:#81C99522;color:#81C995;{% endif %}">
+              {{ p.difficulty }}
+            </span>
+            {% endif %}
+          </div>
+          {% if p.theme_focus %}
+          <div style="font-size:0.82rem;color:#9AA0A6;margin-bottom:10px;">{{ p.theme_focus }}</div>
+          {% endif %}
+          <div style="font-size:0.8rem;color:#8AB4F8;">250 marks &middot; Practice →</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Tab: Solved Past Years ────────────────────────────────────────── #}
+  <div id="ethics-tabs-pyq" class="tab-panel {% if active_tab == 'pyq' %}active{% endif %}">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.25rem;">
+      {% for yr in years %}
+      <a href="/upsc/ethics/ethics_pyq_{{ yr }}" style="text-decoration:none;">
+        <div class="gem-card" style="padding:14px 20px;text-align:center;cursor:pointer;transition:border-color 0.15s;"
+             onmouseover="this.style.borderColor='#8AB4F8'"
+             onmouseout="this.style.borderColor=''">
+          <div style="font-size:1rem;font-weight:700;color:#E8EAED;">{{ yr }}</div>
+          <div style="font-size:0.76rem;color:#9AA0A6;margin-top:4px;">GS4 Ethics</div>
+          <div style="font-size:0.74rem;color:#8AB4F8;margin-top:6px;">Sec A + Sec B →</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="info-box" style="font-size:0.82rem;color:#9AA0A6;">
+      Each paper contains Section A (theory, 125 marks) and Section B (case studies, 125 marks).
+      Model answers follow IDEA-U and STAKE frameworks respectively.
+    </div>
+  </div>
+
+  {# ── Tab: Pattern Synthesis ────────────────────────────────────────── #}
+  <div id="ethics-tabs-pattern" class="tab-panel {% if active_tab == 'pattern' %}active{% endif %}">
+
+    {# Concept Frequency #}
+    <div style="margin-bottom:2rem;">
+      <h3 style="font-size:1rem;font-weight:600;color:#E8EAED;margin-bottom:12px;">Concept Frequency (2019–2024)</h3>
+      {% if not concept_rows %}
+      <div class="info-box" style="color:#9AA0A6;">No concept data available.</div>
+      {% else %}
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <thead>
+            <tr style="border-bottom:1px solid #3C4043;">
+              <th style="text-align:left;padding:8px 10px;color:#9AA0A6;font-weight:500;">Concept</th>
+              <th style="text-align:center;padding:8px 10px;color:#9AA0A6;font-weight:500;">Appearances</th>
+              <th style="text-align:center;padding:8px 10px;color:#9AA0A6;font-weight:500;">Section</th>
+              <th style="text-align:center;padding:8px 10px;color:#9AA0A6;font-weight:500;">FY26 Probability</th>
+              <th style="text-align:center;padding:8px 10px;color:#9AA0A6;font-weight:500;">Typical Marks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in concept_rows %}
+            <tr style="border-bottom:1px solid #2C2F33;">
+              <td style="padding:8px 10px;color:#E8EAED;">{{ row.concept_label }}</td>
+              <td style="padding:8px 10px;text-align:center;color:#8AB4F8;">{{ row.frequency_count }}/13</td>
+              <td style="padding:8px 10px;text-align:center;color:#9AA0A6;">{{ row.section_preference or '—' }}</td>
+              <td style="padding:8px 10px;text-align:center;">
+                {% set prob = row.fy26_probability | upper if row.fy26_probability else '' %}
+                {% if prob == 'HIGH' %}
+                <span class="chip" style="background:#81C99522;color:#81C995;">HIGH</span>
+                {% elif prob == 'MEDIUM' %}
+                <span class="chip" style="background:#FDD66322;color:#FDD663;">MEDIUM</span>
+                {% elif prob == 'LOW' %}
+                <span class="chip" style="background:#3C404322;color:#9AA0A6;">LOW</span>
+                {% else %}
+                <span style="color:#9AA0A6;">{{ row.fy26_probability or '—' }}</span>
+                {% endif %}
+              </td>
+              <td style="padding:8px 10px;text-align:center;color:#9AA0A6;">{{ row.typical_marks or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    {# Scenario Types #}
+    <div>
+      <h3 style="font-size:1rem;font-weight:600;color:#E8EAED;margin-bottom:12px;">Scenario Types (Section B)</h3>
+      {% if not scenario_rows %}
+      <div class="info-box" style="color:#9AA0A6;">No scenario data available.</div>
+      {% else %}
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <thead>
+            <tr style="border-bottom:1px solid #3C4043;">
+              <th style="text-align:left;padding:8px 10px;color:#9AA0A6;font-weight:500;">Scenario Type</th>
+              <th style="text-align:center;padding:8px 10px;color:#9AA0A6;font-weight:500;">Appearances</th>
+              <th style="text-align:left;padding:8px 10px;color:#9AA0A6;font-weight:500;">Core Dilemma</th>
+              <th style="text-align:center;padding:8px 10px;color:#9AA0A6;font-weight:500;">FY26 Probability</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in scenario_rows %}
+            <tr style="border-bottom:1px solid #2C2F33;">
+              <td style="padding:8px 10px;color:#E8EAED;">{{ row.scenario_label }}</td>
+              <td style="padding:8px 10px;text-align:center;color:#8AB4F8;">{{ row.frequency_count }}/13</td>
+              <td style="padding:8px 10px;color:#9AA0A6;">{{ row.core_dilemma_type or '—' }}</td>
+              <td style="padding:8px 10px;text-align:center;">
+                {% set prob = row.fy26_probability | upper if row.fy26_probability else '' %}
+                {% if prob == 'HIGH' %}
+                <span class="chip" style="background:#81C99522;color:#81C995;">HIGH</span>
+                {% elif prob == 'MEDIUM' %}
+                <span class="chip" style="background:#FDD66322;color:#FDD663;">MEDIUM</span>
+                {% elif prob == 'LOW' %}
+                <span class="chip" style="background:#3C404322;color:#9AA0A6;">LOW</span>
+                {% else %}
+                <span style="color:#9AA0A6;">{{ row.fy26_probability or '—' }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <a href="/upsc/ethics/framework-guide" class="btn btn-sm btn-primary">View Framework Guide (IDEA-U + STAKE) →</a>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var tab = "{{ active_tab }}";
+  if (tab && tab !== "practice") {
+    switchTab("ethics-tabs", tab);
+  }
+})();
+</script>
+{% endblock %}
