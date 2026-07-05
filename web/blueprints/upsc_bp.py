@@ -10,11 +10,13 @@ from auth import login_required
 
 upsc_bp = Blueprint("upsc", __name__)
 
-_EXAM_ID = "upsc_eco_opt"
+_EXAM_ID = "upsc_gs_mains"
 
 _PAPER_LABELS = {
-    "upsc_p1": "Paper I — Theory",
-    "upsc_p2": "Paper II — Indian Economy",
+    "gs1": "GS Paper I — History, Geography, Society",
+    "gs2": "GS Paper II — Governance, Polity, IR",
+    "gs3": "GS Paper III — Economy, Environment, Tech",
+    "gs4": "GS Paper IV — Ethics",
 }
 
 
@@ -65,17 +67,17 @@ def _get_answer(conn, question_id: str) -> dict | None:
 @upsc_bp.route("/upsc/mains")
 @login_required
 def mains():
-    if not g.upsc_conn:
+    if not g.upsc_gs_conn:
         return render_template(
             "upsc_mains.html",
             active_page="upsc_mains",
-            error="UPSC database not found.",
+            error="GS Mains database not found.",
             paper_labels=_PAPER_LABELS,
         )
 
-    paper = request.args.get("paper", "upsc_p1")
+    paper = request.args.get("paper", "gs1")
     if paper not in _PAPER_LABELS:
-        paper = "upsc_p1"
+        paper = "gs1"
 
     show_all = request.args.get("show_all", "0") == "1"
 
@@ -86,26 +88,26 @@ def mains():
         except (ValueError, TypeError):
             sel_year = None
 
-    topics = _get_topics(g.upsc_conn, paper)
+    topics = _get_topics(g.upsc_gs_conn, paper)
     topic_opts = {t["topic_id"]: t["topic_name"] for t in topics}
     default_topic = topics[0]["topic_id"] if topics else None
     topic_id = request.args.get("topic", default_topic)
 
     # If topic_id given but not in current paper, auto-detect the correct paper
     if topic_id and topic_id not in topic_opts:
-        row = g.upsc_conn.execute(
+        row = g.upsc_gs_conn.execute(
             "SELECT paper_id FROM topics WHERE topic_id=? AND exam_id=? AND topic_level='topic'",
             (topic_id, _EXAM_ID),
         ).fetchone()
         if row:
             paper = row["paper_id"]
-            topics = _get_topics(g.upsc_conn, paper)
+            topics = _get_topics(g.upsc_gs_conn, paper)
             topic_opts = {t["topic_id"]: t["topic_name"] for t in topics}
             default_topic = topics[0]["topic_id"] if topics else None
         else:
             topic_id = default_topic
 
-    questions_all = _get_questions(g.upsc_conn, topic_id, paper) if topic_id else []
+    questions_all = _get_questions(g.upsc_gs_conn, topic_id, paper) if topic_id else []
     has_ans = [q for q in questions_all if q["answer_id"]]
     no_ans = [q for q in questions_all if not q["answer_id"]]
 
@@ -126,7 +128,7 @@ def mains():
     answers = {}
     for q in filtered_qs:
         if q["answer_id"]:
-            ans = _get_answer(g.upsc_conn, q["question_id"])
+            ans = _get_answer(g.upsc_gs_conn, q["question_id"])
             if ans:
                 ans["_data_points"] = _jl(ans.get("data_points"))
                 ans["_schemes"] = _jl(ans.get("schemes_referenced"))
