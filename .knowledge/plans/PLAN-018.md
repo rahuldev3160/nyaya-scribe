@@ -706,5 +706,5 @@ High-probability for Nov 2026 (CA-hooked, HIGH): Q7, Q8, Q9, Q10, Q11, Q12, Q13
 - [x] Phase 1: Schema + seed complete (S44) — m039–m043 applied; 36 questions seeded
 - [x] Phase 2: Content generation complete (S45) — 36/36 model answers in DB via Batch API
 - [x] Phase 3: Blueprint + templates complete (S45) — essay_bp.py (5 routes) + essay_landing.html, essay_detail.html, essay_framework.html; UPSC 4-item toggle wired
-- [ ] Phase 4: AI scoring — _score_essay() + essay_eval gate (15 free/month)
+- [x] Phase 4: AI scoring complete (S46) — _score_essay() (claude-haiku-4-5, 4-dim rubric intro:20+body:40+ch_sol:20+concl:20), essay_eval gate (m051), score breakdown card in essay_detail.html
 - [ ] Phase 5: Admin + annual pipeline

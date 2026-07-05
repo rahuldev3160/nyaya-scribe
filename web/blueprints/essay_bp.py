@@ -1,5 +1,6 @@
 """Essay Paper blueprint — /upsc/essay"""
 import json
+import os
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -7,8 +8,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import anthropic
 from flask import Blueprint, g, redirect, render_template, request
 from auth import login_required
+from db import can_use_feature, increment_feature_usage
 
 essay_bp = Blueprint("essay", __name__)
 
@@ -38,6 +41,103 @@ def _parse_dimensions(json_str: str) -> list[dict]:
     if not isinstance(raw, list):
         return []
     return raw
+
+
+_ESSAY_CLIENT = None
+
+
+def _get_client():
+    global _ESSAY_CLIENT
+    if _ESSAY_CLIENT is None:
+        key = os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            return None
+        _ESSAY_CLIENT = anthropic.Anthropic(api_key=key)
+    return _ESSAY_CLIENT
+
+
+_ESSAY_SCORE_TOOL = {
+    "name": "score_essay",
+    "description": "Score a UPSC essay answer across 4 rubric dimensions",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "intro_score": {
+                "type": "number",
+                "description": "Introduction quality 0–20: hook effectiveness, thesis clarity, signposting",
+            },
+            "body_score": {
+                "type": "number",
+                "description": "Body dimensions 0–40: coverage, evidence quality, analytical depth, counter-argument handling",
+            },
+            "challenges_solutions_score": {
+                "type": "number",
+                "description": "Challenges + Solutions block 0–20: specificity, feasibility, policy grounding",
+            },
+            "conclusion_score": {
+                "type": "number",
+                "description": "Conclusion 0–20: synthesis quality, way-forward actionability, memorable close",
+            },
+            "feedback": {
+                "type": "string",
+                "description": "One specific sentence of evaluative feedback referencing the essay content",
+            },
+        },
+        "required": [
+            "intro_score",
+            "body_score",
+            "challenges_solutions_score",
+            "conclusion_score",
+            "feedback",
+        ],
+    },
+}
+
+
+def _score_essay(essay_prompt: str, intro: str, body: str, conclusion: str) -> dict | None:
+    client = _get_client()
+    if not client:
+        return None
+    full = "\n\n".join(p for p in [intro, body, conclusion] if p and p.strip())
+    if not full.strip():
+        return None
+    prompt = (
+        f"UPSC Essay Paper question (125 marks, ~1200 words):\n{essay_prompt}\n\n"
+        f"Student essay:\n{full}"
+    )
+    try:
+        resp = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            system=(
+                "You are a UPSC Civil Services Mains essay examiner. "
+                "Score the student essay using the 4-dimension rubric provided. "
+                "Be fair and specific. Scores must be integers within the stated range."
+            ),
+            messages=[{"role": "user", "content": prompt}],
+            tools=[_ESSAY_SCORE_TOOL],
+            tool_choice={"type": "tool", "name": "score_essay"},
+        )
+        for block in resp.content:
+            if block.type == "tool_use" and block.name == "score_essay":
+                inp = block.input
+                intro_s = min(20, max(0, round(float(inp.get("intro_score", 0)))))
+                body_s = min(40, max(0, round(float(inp.get("body_score", 0)))))
+                ch_sol_s = min(20, max(0, round(float(inp.get("challenges_solutions_score", 0)))))
+                concl_s = min(20, max(0, round(float(inp.get("conclusion_score", 0)))))
+                overall = intro_s + body_s + ch_sol_s + concl_s
+                return {
+                    "intro_score": intro_s,
+                    "body_score": body_s,
+                    "challenges_solutions_score": ch_sol_s,
+                    "conclusion_score": concl_s,
+                    "overall": overall,
+                    "feedback": inp.get("feedback", ""),
+                    "model": "claude-haiku-4-5-20251001",
+                }
+    except Exception:
+        pass
+    return None
 
 
 @essay_bp.route("/upsc/essay")
@@ -259,6 +359,19 @@ def essay_detail(essay_id: str):
             dimension_entries = []
 
     submitted = request.args.get("submitted") == "1"
+    attempt_id = request.args.get("attempt_id", "")
+
+    score_data = None
+    if submitted and attempt_id:
+        attempt_row = g.upsc_gs_conn.execute(
+            """SELECT ai_score_json, ai_score_overall, word_count
+               FROM essay_attempts
+               WHERE attempt_id=? AND user_id=?""",
+            (attempt_id, g.user_id),
+        ).fetchone()
+        if attempt_row and attempt_row["ai_score_json"]:
+            score_data = _jd(attempt_row["ai_score_json"])
+            score_data["word_count"] = attempt_row["word_count"]
 
     return render_template(
         "essay_detail.html",
@@ -267,6 +380,7 @@ def essay_detail(essay_id: str):
         answer=answer,
         dimension_entries=dimension_entries,
         submitted=submitted,
+        score_data=score_data,
         error=None,
     )
 
@@ -310,4 +424,23 @@ def essay_submit(essay_id: str):
     )
     g.upsc_gs_conn.commit()
 
-    return redirect(f"/upsc/essay/{essay_id}?submitted=1")
+    allowed, _ = can_use_feature(g.user_id, "essay_eval")
+    if allowed:
+        essay_row = g.upsc_gs_conn.execute(
+            "SELECT prompt FROM essay_questions WHERE essay_id=?", (essay_id,)
+        ).fetchone()
+        if essay_row:
+            score = _score_essay(
+                essay_row["prompt"], intro_text, body_text, conclusion_text
+            )
+            if score:
+                g.upsc_gs_conn.execute(
+                    """UPDATE essay_attempts
+                          SET ai_score_json=?, ai_score_overall=?
+                        WHERE attempt_id=?""",
+                    (json.dumps(score), score["overall"], attempt_id),
+                )
+                g.upsc_gs_conn.commit()
+                increment_feature_usage(g.user_id, "essay_eval")
+
+    return redirect(f"/upsc/essay/{essay_id}?submitted=1&attempt_id={attempt_id}")

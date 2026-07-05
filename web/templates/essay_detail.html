@@ -21,6 +21,50 @@
   <span style="color:#81C995;font-weight:600;">Submitted.</span>
   <span style="color:#9AA0A6;"> Your essay has been saved.</span>
 </div>
+
+{% if score_data %}
+<div class="gem-card" style="margin-bottom:1.25rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <div style="font-size:1rem;font-weight:700;color:#E8EAED;">AI Score</div>
+    <div style="font-size:1.6rem;font-weight:800;
+                color:{% if score_data.overall >= 80 %}#81C995{% elif score_data.overall >= 60 %}#FDD663{% else %}#F28B82{% endif %};">
+      {{ score_data.overall }}<span style="font-size:0.9rem;font-weight:400;color:#9AA0A6;">/100</span>
+    </div>
+  </div>
+
+  {% set dims = [
+    ('Part A — Introduction',          'intro_score',                20, '#8AB4F8'),
+    ('Part B — Body Dimensions',       'body_score',                 40, '#C58AF9'),
+    ('Challenges + Solutions',         'challenges_solutions_score', 20, '#FDD663'),
+    ('Part C — Conclusion',            'conclusion_score',           20, '#81C995'),
+  ] %}
+
+  {% for label, key, max_pts, color in dims %}
+  {% set val = score_data.get(key, 0) %}
+  <div style="margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+      <span style="font-size:0.82rem;color:#9AA0A6;">{{ label }}</span>
+      <span style="font-size:0.82rem;font-weight:700;color:{{ color }};">{{ val }}/{{ max_pts }}</span>
+    </div>
+    <div style="height:6px;background:#2A2D31;border-radius:3px;overflow:hidden;">
+      <div style="height:100%;width:{{ ((val / max_pts) * 100)|round|int }}%;background:{{ color }};border-radius:3px;transition:width 0.4s ease;"></div>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% if score_data.feedback %}
+  <div style="margin-top:14px;padding:10px 12px;background:#1A1C1E;border-radius:6px;border-left:3px solid #8AB4F844;">
+    <div style="font-size:0.72rem;font-weight:700;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Feedback</div>
+    <div style="font-size:0.88rem;color:#E8EAED;line-height:1.5;">{{ score_data.feedback }}</div>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<div class="info-box" style="margin-bottom:1.25rem;">
+  <span style="color:#9AA0A6;font-size:0.88rem;">AI scoring unavailable — check your API key or monthly quota.</span>
+</div>
+{% endif %}
+
 {% endif %}
 
 <!-- Question header -->
