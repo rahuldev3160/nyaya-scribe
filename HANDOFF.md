@@ -1,61 +1,64 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S45 → S46 | 2026-06-26 | Branch: main
+**Session:** S46 → S47 | 2026-07-05 | Branch: main
 
 ## Active Work
-PLAN-018 Phase 4 — Essay AI scoring (`_score_essay()` + `essay_eval` feature gate) ⏳ pending
-PLAN-017 Phase 2+ — GS Mains blueprints + PYQ completion ⏳ pending
 UI-REDESIGN-001 Phase 2b — Photo eval (handwritten → Claude Vision scoring) ⏳ deferred
+PLAN-017 Phase 2+ — GS Mains model answers (not yet generated; questions live on Railway now)
 
-## Done This Session (S45)
-- .env created with ANTHROPIC_API_KEY (key from Devthorium project)
-- Batch test mode: 4 items; BUG-029 fixed (_parse_json non-greedy regex → greedy with rfind)
-- Full batch: 108 items; BUG-030 fixed (max_tokens 2048→4096 for Section B STAKE)
-- Result: 36/36 essay model answers + 75/75 ethics model answers in upsc_gs.db
-- web/blueprints/essay_bp.py — 5 routes (/upsc/essay, /upsc/essay/<id>, /upsc/essay/<id>/submit, /upsc/essay/pyq, /upsc/essay/framework-guide)
-- web/blueprints/ethics_paper_bp.py — 4 routes (/upsc/ethics, /upsc/ethics/<paper_id>, /upsc/ethics/<paper_id>/q/<question_id>, /upsc/ethics/framework-guide)
-- 9 new templates: essay_landing.html, essay_detail.html, essay_framework.html, ethics_landing.html, ethics_paper.html, ethics_question.html, ethics_framework.html
-- web/app.py — essay_bp + ethics_paper_bp registered
-- upsc_dashboard.html + upsc_mains.html — 4-item module toggle added (Eco Optional | GS Mains | Essay Paper | Ethics Paper)
-- App boots clean; 9 new routes all respond correctly
+## Done This Session (S46)
 
-## Exact Next Step (S46 start here)
-**Phase 4 — Essay AI scoring:**
-1. Open `web/blueprints/essay_bp.py` — add `_score_essay(attempt_text, essay_prompt, framework_id)` using claude-haiku-4-5-20251001
-2. Scoring rubric: intro:20 + body:40 + challenges+solutions:20 + concl:20 = 100
-3. Gate: `can_use_feature(g.user_id, "essay_eval")` from `web/db.py` (same pattern as ies_quiz_bp.py `_score_answer`)
-4. On submit in essay_submit route: call `_score_essay()`, store in `essay_attempts.ai_score_json` + `ai_score_overall`
-5. First verify `essay_eval` gate exists: `sqlite3 data/upsc_gs.db "SELECT * FROM feature_gates WHERE gate_id='essay_eval'"`
-   → If missing: INSERT row (quota_free=15, quota_period='monthly')
+### PLAN-018 Phase 4 — Essay AI Scoring ✅
+- `web/blueprints/essay_bp.py` — added `_score_essay()` (claude-haiku-4-5, tool_use, 4-dim rubric: intro:20 + body:40 + ch_sol:20 + concl:20)
+- `migrations/m051_essay_eval_gate.py` — adds `essay_eval` gate (15 free/month, unlimited pro)
+- `essay_submit` route: gates on `essay_eval`, calls `_score_essay()`, stores `ai_score_json` + `ai_score_overall`, redirects with `attempt_id`
+- `essay_detail` route: loads attempt scores when `attempt_id` in query
+- `web/templates/essay_detail.html` — score breakdown card (overall badge + 4 color bars + feedback)
+- Committed `77de724` + deployed to Railway
 
-**After essay scoring:**
-- PLAN-017 Phase 2+ — GS1-3 PYQ data (680 questions gap; manual PDF download from upsc.gov.in)
-- UI-REDESIGN-001 Phase 2b — Photo eval (POST /practice/submit-photo → Claude Vision)
+### BUG: upsc_gs.db content missing on Railway ✅ fixed (m052–m055)
+- Root cause: ethics/essay/GS questions were seeded via scripts locally, never in migrations
+- Railway had empty schema-only tables; all content was local-only
+- `m052` — essay_frameworks, hook_types, theme_analysis, gs4_thinkers, 36 essay questions, 93 ethics questions
+- `m053` — 36 essay model answers
+- `m054` — 75 ethics model answers  
+- `m055` — 221 GS Mains PYQ questions (gs1–gs4)
+- All use `INSERT OR IGNORE` — idempotent
+- Committed `db8f4bc` + `540172a`
 
-## Files Modified This Session (S45)
-- `web/blueprints/essay_bp.py` — new
-- `web/blueprints/ethics_paper_bp.py` — new
-- `web/templates/essay_landing.html` — new
-- `web/templates/essay_detail.html` — new
-- `web/templates/essay_framework.html` — new
-- `web/templates/ethics_landing.html` — new
-- `web/templates/ethics_paper.html` — new
-- `web/templates/ethics_question.html` — new
-- `web/templates/ethics_framework.html` — new
-- `web/templates/upsc_dashboard.html` — 4-item module toggle added
-- `web/templates/upsc_mains.html` — 4-item module toggle added
-- `web/app.py` — essay_bp + ethics_paper_bp registered
-- `scripts/generate_model_answers_batch.py` — BUG-029 fix (_parse_json) + BUG-030 fix (max_tokens=4096 for Section B)
-- `.env` — created (not committed — in .gitignore)
-- `data/upsc_gs.db` — 111 model answers inserted (36 essay + 75 ethics)
-- `.knowledge/INDEX.md` — BUG-029, BUG-030 added
-- `.knowledge/plans/PLAN-018.md` — Phase 2+3 marked complete
-- `.knowledge/plans/PLAN-019.md` — Phase 2+3 marked complete
-- `MASTER_INDEX.md` — DECIDE-34, DECIDE-35 added; RISK-08 mitigated
+### BUG: GS Mains showing Eco Optional content ✅ fixed
+- `upsc_bp.py` (serves `/upsc/mains`) had `_EXAM_ID = "upsc_eco_opt"` + `g.upsc_conn` — completely wrong
+- Fix: `_EXAM_ID = "upsc_gs_mains"`, `g.upsc_gs_conn`, paper defaults `gs1–gs4`
+- Paper labels updated: GS Paper I–IV with subject labels
+- `upsc_mains.html` title corrected
 
-## Blockers
-- Essay AI scoring: verify `essay_eval` gate exists in feature_gates before wiring
-- GS1-3 PYQ gap: ~680 questions missing — manual PDF download required
-- nyaya_seed.db missing feature_gates tables (needed before next prod deploy)
+## Exact Next Step (S47 start here)
+
+**Option A — UI Phase 2b: Photo eval**
+- `POST /practice/submit-photo` — PIL compress → Claude Vision OCR + eval
+- Template: add camera upload option to essay_detail.html or create separate route
+- Spec: `.knowledge/plans/UI-REDESIGN-001.md` Phase 2b
+
+**Option B — GS Mains model answers**
+- 221 questions exist (gs1–gs4); 0 model answers
+- Run batch generation script against upsc_gs.db (same pipeline as essay/ethics)
+- See `scripts/generate_answers.py --exam upsc_gs_mains`
+
+**Option C — AUDIT-008 index migrations**
+- m047–m050 already committed (ies, eco_opt, english, rbi indexes)
+- Verify Railway applied them; confirm with EXPLAIN QUERY PLAN
+
+## Files Modified This Session (S46)
+- `web/blueprints/essay_bp.py` — _score_essay() + gate wiring
+- `web/blueprints/upsc_bp.py` — _EXAM_ID + conn fixed (GS Mains bug)
+- `web/templates/essay_detail.html` — score breakdown card
+- `web/templates/upsc_mains.html` — title fixed
+- `migrations/m051_essay_eval_gate.py` — new
+- `migrations/m052_seed_upsc_gs_questions.py` — new
+- `migrations/m053_seed_essay_model_answers.py` — new
+- `migrations/m054_seed_ethics_model_answers.py` — new
+- `migrations/m055_seed_gs_mains_pyqs.py` — new
+- `.knowledge/INDEX.md` — updated
+- `.knowledge/plans/PLAN-018.md` — Phase 4 marked complete
 
 ## Pending Decisions
 - DECIDE-32: Cross-DB topic linking (Y → master_topics; N → document only)
@@ -64,10 +67,8 @@ UI-REDESIGN-001 Phase 2b — Photo eval (handwritten → Claude Vision scoring) 
 ## Context Pointers
 | Need | Read |
 |---|---|
-| Essay scoring rubric + gate spec | .knowledge/plans/PLAN-018.md — "AI Scoring Rubric" section |
-| Existing AI scoring pattern | web/blueprints/ies_quiz_bp.py `_score_answer()` |
+| Photo eval spec | .knowledge/plans/UI-REDESIGN-001.md Phase 2b |
+| Essay scoring implementation | web/blueprints/essay_bp.py `_score_essay()` |
 | Feature gate API | web/db.py `can_use_feature()` |
-| Photo eval spec | .knowledge/plans/UI-REDESIGN-001.md |
 | GS Mains PYQ pipeline | .knowledge/plans/PLAN-017.md |
-| All decisions (DECIDE-01 to DECIDE-35) | MASTER_INDEX.md |
 | Bug history | .knowledge/INDEX.md |

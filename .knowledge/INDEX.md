@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-26 (Session 45)
+Last updated: 2026-07-05 (Session 46)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -83,8 +83,8 @@ Last updated: 2026-06-26 (Session 45)
 | [PLAN-016](plans/PLAN-016.md) | 2026-06-13 | S36: Engagement activation — post-setup routing, smart login, button redesign, first-action cards, nav cleanup | COMPLETE (commit e51b27a) |
 | [PLAN-017](plans/PLAN-017.md) | 2026-06-16 | S38: UPSC GS Mains expansion — upsc_gs.db, all 4 GS papers, Ethics keyword index, CA integration, cross-paper linking | PHASE 1 COMPLETE (S39) — Phase 2 PYQ ingestion in progress |
 | [UI-REDESIGN-001](plans/UI-REDESIGN-001.md) | 2026-06-16 | S39–S41: Product redesign — noise removal, freemium foundation, AI scoring, hero strip, photo eval pending | Phase 0 ✅ · Phase 1 ✅ · Phase 2a ✅ · Phase 2b PENDING |
-| [PLAN-018](plans/PLAN-018.md) | 2026-06-21 | S43: UPSC Essay Paper module — adaptive architecture, PART A/B/C framework, annual CA→essay pipeline, PYQ post-exam ingestion | PHASE 1 COMPLETE (S44) — m039–m043 applied, 36 Qs seeded, batch script ready; Phase 2 = run batch |
-| [PLAN-019](plans/PLAN-019.md) | 2026-06-21 | S43: GS4 Ethics paper simulation — IDEA-U (theory) + STAKE (case study) frameworks, PYQ 2019–2025 solved, 2 practice papers, self-compare, full indexing layer | PHASE 1 COMPLETE (S44) — m044–m046 applied, 93 Qs seeded, batch script ready; Phase 2 = run batch |
+| [PLAN-018](plans/PLAN-018.md) | 2026-06-21 | S43: UPSC Essay Paper module — adaptive architecture, PART A/B/C framework, annual CA→essay pipeline, PYQ post-exam ingestion | PHASE 4 COMPLETE (S46) — _score_essay() + essay_eval gate (m051, 15/month free) + score breakdown card |
+| [PLAN-019](plans/PLAN-019.md) | 2026-06-21 | S43: GS4 Ethics paper simulation — IDEA-U (theory) + STAKE (case study) frameworks, PYQ 2019–2025 solved, 2 practice papers, self-compare, full indexing layer | PHASE 3 COMPLETE (S45) — 75/75 answers seeded; Phase 4 = post-exam ingest Nov 2026 |
 
 ---
 
