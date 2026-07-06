@@ -22,7 +22,7 @@
 
     <div class="form-group" style="margin:0; min-width:220px;">
       <label for="paper-select">Paper</label>
-      <select id="paper-select" name="paper" onchange="this.form.submit()">
+      <select id="paper-select" name="paper" onchange="document.getElementById('topic-select').removeAttribute('name'); this.form.submit()">
         {% for pid, plabel in paper_labels.items() %}
         <option value="{{ pid }}" {% if pid == paper %}selected{% endif %}>{{ plabel }}</option>
         {% endfor %}

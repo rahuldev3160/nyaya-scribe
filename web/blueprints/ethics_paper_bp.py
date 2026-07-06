@@ -9,7 +9,13 @@ from auth import login_required
 
 ethics_paper_bp = Blueprint("ethics_paper", __name__)
 
-_ETHICS_YEARS = list(range(2019, 2026))
+
+def _get_pyq_years(conn) -> list[int]:
+    rows = conn.execute(
+        "SELECT DISTINCT paper_year FROM ethics_questions "
+        "WHERE content_type='pyq' AND paper_year IS NOT NULL ORDER BY paper_year DESC"
+    ).fetchall()
+    return [r["paper_year"] for r in rows]
 
 
 def _jl(s) -> list:
@@ -58,7 +64,7 @@ def ethics_landing():
         "ethics_landing.html",
         active_page="upsc_ethics",
         practice_papers=practice_papers,
-        years=_ETHICS_YEARS,
+        years=_get_pyq_years(conn),
         concept_rows=concept_rows,
         scenario_rows=scenario_rows,
         active_tab=active_tab,

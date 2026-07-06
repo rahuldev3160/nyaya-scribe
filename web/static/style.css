@@ -304,6 +304,34 @@ body.sidebar-collapsed .sidebar-toggle { margin-left: 0; }
 /* Responsive 2-col used in dashboard panels — collapses to 1-col on mobile */
 .dash-2col { display: grid; grid-template-columns: 1fr 1fr; }
 @media (max-width: 600px) { .dash-2col { grid-template-columns: 1fr; } }
+
+/* ── Hero strip: recommended-question card + stat pills ────────── */
+.hero-strip { display: flex; flex-direction: column; gap: 12px; }
+.rec-card {
+    background: rgba(138,180,248,0.06);
+    border: 1px solid rgba(138,180,248,0.25);
+    border-radius: 10px;
+    padding: 16px 18px;
+}
+.rec-label {
+    font-size: 0.76rem; font-weight: 700; color: #8AB4F8;
+    text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;
+}
+.rec-text { font-size: 0.92rem; color: #E8EAED; line-height: 1.55; margin-bottom: 14px; }
+.stat-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat-pills > div {
+    background: #2C2C2E;
+    border: 1px solid #3A3A3C;
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    color: #9AA0A6;
+}
+.stat-pills > div strong { color: #E8EAED; font-weight: 700; }
+@media (max-width: 600px) {
+    .stat-pills { flex-direction: column; }
+    .stat-pills > div { border-radius: 8px; }
+}
 @media (max-width: 900px) {
     .grid-3 { grid-template-columns: repeat(2, 1fr); }
     .grid-4 { grid-template-columns: repeat(2, 1fr); }

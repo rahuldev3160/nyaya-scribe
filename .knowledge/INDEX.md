@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-07-05 (Session 46)
+Last updated: 2026-07-06 (Session 47)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -43,6 +43,11 @@ Last updated: 2026-07-05 (Session 46)
 | [BUG-028](bugs/BUG-028.md) | FIXED | CRITICAL | schema-drift | UPSC dashboard 500 — `self_rating` missing from upsc_eco_opt.db; m016 was ies.db-only; S41 hero strip queries da.self_rating in 3 places → crash; Fix: m038 adds column | — | S42 | 55f8a83 |
 | [BUG-029](bugs/BUG-029.md) | FIXED | HIGH | batch-generation | `_parse_json` non-greedy `{.*?}` stops at first `}` → breaks on nested JSON in STAKE responses; Fix: 3-tier fallback with `rfind("}")` | — | S45 | — |
 | [BUG-030](bugs/BUG-030.md) | FIXED | HIGH | batch-generation | `max_tokens=2048` truncates all Section B STAKE answers (~9000 chars); Fix: `max_tokens=4096` in `build_ethics_b_request()` | — | S45 | — |
+| [BUG-031](bugs/BUG-031.md) | FIXED | HIGH | navigation | GS Mains paper dropdown snaps back to old paper — stale `topic` param submitted alongside new `paper` triggers the auto-detect-correct-paper recovery path; Fix: clear topic select's `name` on paper change | — | S47 | — |
+| [BUG-032](bugs/BUG-032.md) | FIXED | MEDIUM | navigation | Essay "High Prob" filter has no deselect path — link always appended `&hot=1`; Fix: conditional toggle like Section A/B | — | S47 | — |
+| [BUG-033](bugs/BUG-033.md) | PARTIAL | MEDIUM | content-gap+nav | Ethics landing offered 7 hardcoded PYQ years (only 2025 has data); 62 seeded practice questions unreachable (no `ethics_practice_papers` row); concept/scenario analysis tables never seeded | — | S47 | — |
+| [BUG-034](bugs/BUG-034.md) | FIXED | LOW | ui | `.hero-strip`/`.rec-card`/`.stat-pills` had zero CSS — rendered as plain text; "Write Now" missing base `.btn` class; Fix: added CSS + 2-col dashboard layout | — | S47 | — |
+| [BUG-035](bugs/BUG-035.md) | **OPEN** | **CRITICAL** | data-integrity | GS Mains "221 PYQ questions" (gs1/gs2/gs3, 128 rows) are largely scraped blog comments, not exam questions (gs4/93 rows looks clean). Needs Rahul decision before any model-answer generation runs on this table. | — | S47 | — |
 
 ---
 
