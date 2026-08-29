@@ -402,6 +402,9 @@ def create_app() -> Flask:
     from blueprints.feedback_bp import feedback_bp
     app.register_blueprint(feedback_bp)
 
+    from blueprints.internal_api_bp import internal_api_bp
+    app.register_blueprint(internal_api_bp)
+
     @app.route("/")
     def index():
         if getattr(g, "user_id", None):
