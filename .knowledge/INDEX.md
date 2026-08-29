@@ -101,6 +101,7 @@ Last updated: 2026-07-06 (Session 47)
 | [DIAG-001](diagnostics/DIAG-001.md) | 2026-06-04 | Railway SSH + data migration setup | RESOLVED |
 | [DIAG-002](diagnostics/DIAG-002.md) | 2026-06-05 | Production "Page not found" on login | RESOLVED → BUG-001 |
 | [DIAG-003](diagnostics/DIAG-003.md) | 2026-08-29 | Bilingual/Devanagari spike (RISK-02, Nyaya Arena law track) | PARTIAL — storage/AI/web rendering clear; PDF export font gap still open |
+| [DIAG-004](diagnostics/DIAG-004.md) | 2026-08-29 | Production outage (Railway trial expiry + `/` healthcheck redirect bug) + portable Docker/backup hosting package | RESOLVED — production restored, verified live; Docker image untested (Docker not installed this session) |
 
 ---
 

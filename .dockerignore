@@ -1,0 +1,26 @@
+# Never bake real user data or secrets into the image -- always bind-mount /app/data
+# instead (see Dockerfile). Matches this repo's own .gitignore for the same reasons.
+data/
+!data/.gitkeep
+
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+node_modules/
+
+.env
+.secret_key
+.streamlit/credentials.toml
+
+logs/
+cache/
+.claude/
+.knowledge/
+
+*.md
+Dockerfile
+.dockerignore
