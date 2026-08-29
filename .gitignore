@@ -28,6 +28,7 @@ logs/
 # API batch job IDs
 exports/answers_batch.txt
 exports/prototype_diagrams.json
+data/*_batch.txt
 
 # Secrets
 .env
