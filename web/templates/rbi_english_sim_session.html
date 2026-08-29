@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}RBI English Sim — In Progress{% endblock %}
+
+{% block content %}
+<div style="position:sticky;top:0;background:#1C1C1E;z-index:10;padding:10px 0;margin-bottom:16px;border-bottom:1px solid #3A3A3C;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div>
+      <span style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;">Master Clock</span>
+      <div id="master-timer" style="font-size:1.8rem;font-weight:700;color:#8AB4F8;">90:00</div>
+    </div>
+    <div style="text-align:right;">
+      <span style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;">Section</span>
+      <div id="section-timer" style="font-size:1.4rem;font-weight:700;color:#81C995;">30:00</div>
+    </div>
+    <div style="text-align:right;">
+      <span style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;">Pace</span>
+      <div id="wpm-readout" style="font-size:1.1rem;font-weight:600;color:#FDD663;">0 wpm</div>
+    </div>
+  </div>
+  <div id="overrun-warning" style="display:none;margin-top:6px;color:#F28B82;font-size:0.82rem;font-weight:600;">
+    ⚠️ Over this section's time budget — no forced cutoff, but this is exactly the pattern that cost you in 2026.
+  </div>
+</div>
+
+<form id="sim-form" method="POST" action="{{ url_for('rbi_english_sim.submit', session_id=session_id) }}">
+  <input type="hidden" name="essay_time_s" id="essay_time_s" value="0">
+  <input type="hidden" name="precis_time_s" id="precis_time_s" value="0">
+  <input type="hidden" name="rc_time_s" id="rc_time_s" value="0">
+  <input type="hidden" name="wpm_samples_json" id="wpm_samples_json" value="[]">
+
+  <div id="section-essay" class="sim-section">
+    <div class="gem-card" style="margin-bottom:12px;">
+      <div style="font-weight:600;color:#E8EAED;margin-bottom:6px;">📝 Essay</div>
+      <div style="color:#9AA0A6;font-size:0.88rem;">{{ content.essay.prompt }}</div>
+    </div>
+    <textarea name="essay_text" id="essay_text" class="sim-textarea" rows="16" placeholder="Write your essay here..."></textarea>
+    <button type="button" class="btn btn-primary" style="margin-top:12px;" onclick="nextSection('essay','precis')">Next: Précis →</button>
+  </div>
+
+  <div id="section-precis" class="sim-section" style="display:none;">
+    <div class="gem-card" style="margin-bottom:12px;">
+      <div style="font-weight:600;color:#E8EAED;margin-bottom:6px;">✂️ Précis Writing</div>
+      <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:8px;">Target: ~{{ content.precis.target_words }} words (roughly one-third of the original)</div>
+      <div style="color:#C4C7C5;font-size:0.85rem;line-height:1.6;">{{ content.precis.text }}</div>
+    </div>
+    <textarea name="precis_text" id="precis_text" class="sim-textarea" rows="10" placeholder="Write your précis here..."></textarea>
+    <button type="button" class="btn btn-primary" style="margin-top:12px;" onclick="nextSection('precis','rc')">Next: Reading Comprehension →</button>
+  </div>
+
+  <div id="section-rc" class="sim-section" style="display:none;">
+    <div class="gem-card" style="margin-bottom:12px;">
+      <div style="font-weight:600;color:#E8EAED;margin-bottom:6px;">📖 Reading Comprehension</div>
+      <div style="color:#C4C7C5;font-size:0.85rem;line-height:1.6;margin-bottom:10px;">{{ content.rc.text }}</div>
+      <ol style="color:#9AA0A6;font-size:0.85rem;line-height:1.6;padding-left:18px;">
+        {% for q in content.rc.questions %}
+        <li>{{ q }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+    <textarea name="rc_answer_text" id="rc_answer_text" class="sim-textarea" rows="12" placeholder="Answer the questions above here..."></textarea>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;color:#9AA0A6;font-size:0.85rem;">
+      <input type="checkbox" name="request_essay_score" value="1"> Also score my Essay for content/language quality (optional, separate from pacing)
+    </label>
+    <button type="submit" class="btn btn-primary btn-block" style="margin-top:12px;padding:14px;font-size:1rem;" onclick="return finalizeSubmit()">Submit Sim</button>
+  </div>
+</form>
+
+<style>
+.sim-textarea { width:100%; min-height:200px; font-size:0.95rem; line-height:1.5; }
+</style>
+
+<script>
+const ESSAY_BUDGET = {{ essay_budget_s }};
+const PRECIS_BUDGET = {{ precis_budget_s }};
+const RC_BUDGET = {{ rc_budget_s }};
+const TOTAL_BUDGET = {{ total_budget_s }};
+
+let masterRemaining = TOTAL_BUDGET;
+let sectionRemaining = ESSAY_BUDGET;
+let currentSection = 'essay';
+let sectionElapsed = { essay: 0, precis: 0, rc: 0 };
+let wpmSamples = [];
+let autoSubmitted = false;
+
+function fmt(s) {
+  s = Math.max(0, Math.round(s));
+  const m = Math.floor(s / 60), sec = s % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function currentTextarea() {
+  return document.getElementById(currentSection === 'rc' ? 'rc_answer_text' : (currentSection + '_text'));
+}
+
+function wordCount(text) {
+  text = (text || '').trim();
+  return text ? text.split(/\s+/).length : 0;
+}
+
+function sampleWpm() {
+  const ta = currentTextarea();
+  const words = ta ? wordCount(ta.value) : 0;
+  wpmSamples.push({ t: TOTAL_BUDGET - masterRemaining, section: currentSection, words: words });
+  // rolling wpm over last ~60s of samples for this section
+  const recent = wpmSamples.filter(s => s.section === currentSection).slice(-4);
+  if (recent.length >= 2) {
+    const dw = recent[recent.length-1].words - recent[0].words;
+    const dt = recent[recent.length-1].t - recent[0].t;
+    const wpm = dt > 0 ? Math.max(0, Math.round((dw / dt) * 60)) : 0;
+    document.getElementById('wpm-readout').textContent = wpm + ' wpm';
+  }
+}
+
+function tick() {
+  masterRemaining -= 1;
+  sectionRemaining -= 1;
+  sectionElapsed[currentSection] += 1;
+
+  document.getElementById('master-timer').textContent = fmt(masterRemaining);
+  document.getElementById('section-timer').textContent = fmt(sectionRemaining);
+
+  const warn = document.getElementById('overrun-warning');
+  const sectionTimerEl = document.getElementById('section-timer');
+  if (sectionRemaining < 0) {
+    warn.style.display = 'block';
+    sectionTimerEl.style.color = '#F28B82';
+  } else {
+    warn.style.display = 'none';
+    sectionTimerEl.style.color = '#81C995';
+  }
+
+  if (masterRemaining % 15 === 0) sampleWpm();
+
+  if (masterRemaining <= 0 && !autoSubmitted) {
+    autoSubmitted = true;
+    finalizeSubmit();
+    document.getElementById('sim-form').submit();
+  }
+}
+setInterval(tick, 1000);
+
+function nextSection(from, to) {
+  document.getElementById('section-' + from).style.display = 'none';
+  document.getElementById('section-' + to).style.display = 'block';
+  document.getElementById(from + '_time_s').value = sectionElapsed[from];
+  currentSection = to;
+  sectionRemaining = to === 'precis' ? PRECIS_BUDGET : RC_BUDGET;
+  window.scrollTo(0, 0);
+}
+
+function finalizeSubmit() {
+  sectionElapsed[currentSection] = sectionElapsed[currentSection];
+  document.getElementById('essay_time_s').value = sectionElapsed.essay;
+  document.getElementById('precis_time_s').value = sectionElapsed.precis;
+  document.getElementById('rc_time_s').value = sectionElapsed.rc;
+  document.getElementById('wpm_samples_json').value = JSON.stringify(wpmSamples);
+  return true;
+}
+</script>
+{% endblock %}

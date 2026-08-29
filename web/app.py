@@ -378,6 +378,9 @@ def create_app() -> Flask:
     from blueprints.rbi_dashboard_bp import rbi_dashboard_bp
     app.register_blueprint(rbi_dashboard_bp)
 
+    from blueprints.rbi_english_sim_bp import rbi_english_sim_bp
+    app.register_blueprint(rbi_english_sim_bp)
+
     from blueprints.upsc_dashboard_bp import upsc_dashboard_bp
     app.register_blueprint(upsc_dashboard_bp)
 

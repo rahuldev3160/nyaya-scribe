@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}RBI English Sim — Results{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:12px;">
+  <a href="{{ url_for('rbi_english_sim.landing') }}" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← RBI English Sim</a>
+</div>
+
+<h1 style="font-size:1.5rem;font-weight:700;color:#E8EAED;margin-bottom:16px;">Pacing Report</h1>
+
+<div class="gem-card" style="margin-bottom:20px;">
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;">Total Time</div>
+      <div style="font-size:1.6rem;font-weight:700;color:{% if pacing_report.total_time_s and pacing_report.total_time_s > 5400 %}#F28B82{% else %}#81C995{% endif %};">
+        {{ (pacing_report.total_time_s // 60) if pacing_report.total_time_s else 0 }} min
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;">All Sections Completed</div>
+      <div style="font-size:1.6rem;font-weight:700;color:{% if pacing_report.all_sections_completed %}#81C995{% else %}#F28B82{% endif %};">
+        {{ 'Yes' if pacing_report.all_sections_completed else 'No' }}
+      </div>
+    </div>
+  </div>
+  {% if pacing_report.sections_over_budget %}
+  <div style="margin-top:12px;color:#F28B82;font-size:0.85rem;">
+    ⚠️ Over budget on: {{ pacing_report.sections_over_budget | join(', ') }}
+  </div>
+  {% endif %}
+</div>
+
+{% for s in pacing_report.sections %}
+<div class="gem-card-sm" style="margin-bottom:8px;border-left:3px solid {% if not s.completed %}#F28B82{% elif s.over_budget %}#FDD663{% else %}#81C995{% endif %}40;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+    <span style="font-weight:600;color:#E8EAED;">{{ s.label }}</span>
+    <span style="font-size:0.85rem;color:#9AA0A6;">
+      {{ (s.time_s // 60) }}m {{ s.time_s % 60 }}s / {{ (s.budget_s // 60) }}m budget
+      {% if s.over_budget %}<span style="color:#F28B82;"> (+{{ s.over_by_s // 60 }}m over)</span>{% endif %}
+    </span>
+  </div>
+  <div style="font-size:0.8rem;color:#9AA0A6;margin-top:4px;">
+    {{ s.word_count }} words {% if not s.completed %}— <span style="color:#F28B82;">not completed</span>{% endif %}
+  </div>
+</div>
+{% endfor %}
+
+{% if essay_score %}
+<div class="gem-card" style="margin-top:20px;">
+  <div style="font-weight:600;color:#E8EAED;margin-bottom:8px;">Essay Quality (optional, separate from pacing)</div>
+  <div style="display:flex;gap:20px;margin-bottom:8px;">
+    <div><span style="color:#9AA0A6;font-size:0.8rem;">Content</span><div style="font-weight:700;color:#8AB4F8;">{{ essay_score.content_score }}/10</div></div>
+    <div><span style="color:#9AA0A6;font-size:0.8rem;">Language</span><div style="font-weight:700;color:#8AB4F8;">{{ essay_score.language_score }}/10</div></div>
+  </div>
+  <div style="color:#9AA0A6;font-size:0.85rem;">{{ essay_score.feedback }}</div>
+</div>
+{% endif %}
+
+<div style="margin-top:24px;">
+  <a href="{{ url_for('rbi_english_sim.landing') }}" class="btn btn-primary">Try Again</a>
+</div>
+{% endblock %}

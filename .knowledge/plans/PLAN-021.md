@@ -188,6 +188,26 @@ worth referencing but is not reusable code across the two codebases).
    already exam-agnostic in structure) for an optional, separate quality pass on the essay
    portion — not required to use the timer/pacing feature.
 
+**DONE 2026-08-30.** Built `rbi_english_sim_bp.py` (new blueprint) + 3 new templates +
+`migrations/m058_create_rbi_english_sim_table.py` (new `rbi_english_sim_attempts` table, additive
+only, no approval gate). Master 90-min countdown + per-section 30/30/30 sub-budgets (even split,
+per Area 1's finding that the real split is unconfirmed), warn-not-hard-cut on overrun (DECIDE-40),
+client-side wpm sampling every 15s with a rolling readout, post-submit pacing report showing
+per-section time/budget/completion. **Deviation from the recommendation**: did NOT reuse
+`essay_bp.py`'s `_score_essay` directly — that function's prompt is hardcoded to UPSC's
+125-mark/1200-word essay, and RBI's is much shorter; wrote a small self-contained scorer in the
+new blueprint instead (same tool-use pattern, RBI-appropriate rubric) to avoid touching the live
+UPSC essay-scoring code path used by real Scribe users. Small hand-authored practice content set
+(3 essay prompts, 2 précis passages, 2 RC passages) seeded in `web/rbi_english_sim_content.py` —
+not a real-PYQ bank, since RBI's English paper has no public past-paper archive the way the MCQ
+side does; worth expanding later. Migration tested against a local copy first, then applied for
+real via `scripts/migrate.py` (additive, zero risk to existing `rbi.db` data) — this repo's normal
+deploy-time migration mechanism, not a special one-off action. Full flow (landing → start →
+session → submit → results) smoke-tested via direct view-function calls with a real Flask app
+context; caught and fixed one real bug in `_build_pacing_report` (RC section's text was being
+looked up under the wrong dict key, silently showing 0 words / not-completed for any real RC
+answer) before committing.
+
 Scope: new client-side JS (genuinely new) + one new small table for session/section timings,
 additive only. No changes to any existing `rbi.db` MCQ table — no approval gate needed for this
 feature on its own.

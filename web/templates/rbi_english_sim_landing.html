@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}RBI English Sim{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:12px;">
+  <a href="/rbi" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← RBI Dashboard</a>
+</div>
+
+<div style="margin-bottom:20px;">
+  <h1 style="font-size:1.6rem;font-weight:700;color:#E8EAED;margin-bottom:4px;">⏱️ RBI English Descriptive — Timed Sim</h1>
+  <p style="color:#9AA0A6;font-size:0.88rem;">Essay + Précis + Reading Comprehension, one 90-minute clock. This trains completion under time pressure — not content quality (that's already scored elsewhere).</p>
+</div>
+
+<div class="gem-card" style="margin-bottom:20px;">
+  <div style="font-weight:600;color:#E8EAED;margin-bottom:8px;">How this works</div>
+  <ul style="color:#9AA0A6;font-size:0.85rem;line-height:1.7;padding-left:18px;margin:0;">
+    <li>Three sections, one after another: Essay → Précis → Reading Comprehension.</li>
+    <li>Each section gets a {{ budget_min }}-minute budget (an even split — RBI's real per-section mark split isn't officially published).</li>
+    <li>Running over budget shows a warning, but never force-cuts you into the next section.</li>
+    <li>Live words/min is tracked while you type. At the end you get a pacing report showing exactly where the time went.</li>
+  </ul>
+</div>
+
+<form method="POST" action="{{ url_for('rbi_english_sim.start') }}">
+  <button type="submit" class="btn btn-primary btn-block" style="padding:14px;font-size:1rem;">Start Timed Sim</button>
+</form>
+
+{% if recent %}
+<div style="margin-top:28px;">
+  <div style="font-size:0.95rem;font-weight:600;color:#E8EAED;margin-bottom:10px;">Recent attempts</div>
+  {% for r in recent %}
+  <div class="gem-card-sm" style="margin-bottom:6px;display:flex;justify-content:space-between;">
+    <span style="color:#9AA0A6;font-size:0.82rem;">{{ r.submitted_at }}</span>
+    <a href="{{ url_for('rbi_english_sim.results', session_id=r.session_id) }}" style="color:#8AB4F8;font-size:0.82rem;text-decoration:none;">
+      {{ (r.total_time_s // 60) if r.total_time_s else '?' }} min total → View report
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
