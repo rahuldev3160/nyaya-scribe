@@ -14,10 +14,9 @@ from flask import Blueprint, g, redirect, render_template, request, session, url
 from auth import login_required
 from db import get_user_id, log_event, track_page_time
 from blueprints import _recall_client
+from exam_dates import RBI_DATE
 
 rbi_prep_bp = Blueprint("rbi_prep", __name__)
-
-RBI_DATE = "2026-06-14"
 
 # PLAN-008 §3: 'local' (default, today's unchanged behavior) | 'recall' (fetch/score via
 # Nyaya Recall's internal API instead of local rbi_questions). Must stay 'local' in

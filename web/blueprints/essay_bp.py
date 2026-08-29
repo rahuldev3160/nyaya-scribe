@@ -15,6 +15,11 @@ from db import can_use_feature, increment_feature_usage
 
 essay_bp = Blueprint("essay", __name__)
 
+# DECIDE-25: annual refresh must be a data operation, not a code change. Bump this
+# (or seed a fresh batch tagged to the new year first) rather than editing the
+# generation_year filter below directly.
+ACTIVE_PRACTICE_ESSAY_CYCLE = int(os.environ.get("ACTIVE_PRACTICE_ESSAY_CYCLE", 2026))
+
 
 def _jl(s) -> list:
     if not s:
@@ -182,7 +187,8 @@ def essay_landing():
 
     if active_tab == "practice":
         where_clauses.append("q.content_type = 'practice'")
-        where_clauses.append("q.generation_year = 2026")
+        where_clauses.append("q.generation_year = ?")
+        params.append(ACTIVE_PRACTICE_ESSAY_CYCLE)
     elif active_tab == "pyq":
         where_clauses.append("q.content_type = 'pyq'")
         if sel_year:

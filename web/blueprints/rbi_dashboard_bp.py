@@ -10,12 +10,11 @@ from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
 from db import get_conn, track_page_time
 from blueprints import _recall_client
+from exam_dates import RBI_DATE
 
 RBI_CONTENT_SOURCE = os.environ.get("RBI_CONTENT_SOURCE", "local")
 
 rbi_dashboard_bp = Blueprint("rbi_dashboard", __name__)
-
-RBI_DATE = "2026-06-14"
 
 SUBJECT_LABELS = {
     "macro": "Macroeconomics",
