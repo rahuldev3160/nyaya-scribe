@@ -1,6 +1,25 @@
 # HANDOFF — Nyaya Scribe / Descriptive Exams
 
-Last updated: 2026-06-16 (Session 38)
+Last updated: 2026-08-29 (Session 39)
+
+---
+
+## S39 — 2026-08-29 — Outage recovery + portable hosting readiness
+
+**Context:** Scribe had been offline ~1 month (Railway free-trial expired, silently). Same session also scoped **Nyaya Arena** (new sibling project, separate repo) as a cross-product competition layer calling into Scribe's and Recall's internal APIs — see Devthorium's HANDOFF.md and Nyaya-Arena's own docs for that thread; only the parts touching this repo are logged here.
+
+**Production outage — root-caused and fixed. Full writeup: `.knowledge/diagnostics/DIAG-004.md`.**
+1. Railway trial expired → Rahul fixed via dashboard (no CLI/billing access for Claude Code).
+2. Deploys still failed after billing fix: `/` always redirects, never a bare 200, but `healthcheckPath` pointed at `/`. Fixed by adding `GET /healthz` → `"ok", 200` and repointing `railway.toml`. `healthcheckTimeout` also raised 60s→300s (real but secondary factor — 56 startup migrations do add real boot time).
+3. Verified live via curl (`/healthz`, `/auth/login`) and `railway status`, not just deploy-status.
+4. All 7 production DBs confirmed intact throughout — never a data-loss incident, only deploy/billing.
+
+**Decision: stay on Railway for now** (already paid, just restored) rather than migrate to Rahul's other paid hosting domain. Instead built a **portable hosting readiness package** (commit `6d6ba40`) so a future move isn't a scramble: `Dockerfile` + `.dockerignore` (mirrors Railway's exact Nixpacks build/run — **not yet `docker build`-tested**, Docker isn't installed on this Mac), `scripts/backup_production_data.sh` (repeatable one-command backup of all 7 real DBs, with retry logic for a real observed Railway CLI stall on files >~10MB), `docs/PORTABLE_HOSTING.md` (plain-language, explicitly not a migration recommendation).
+
+**New tracking:** `.knowledge/diagnostics/DIAG-004.md`. `MASTER_INDEX.md` already carries DECIDE-36/37/38 (law-exam registry reuse pattern for Arena) and RISK-09/10 (bilingual gap, no leaderboard — lives in Arena instead) from this same session.
+
+### Exact next step
+Before relying on the portable package for a real migration: get Docker installed (`brew install --cask docker` needs Rahul's own sudo password, not Claude Code's), then `docker build .` and smoke-test the image locally against a copy of `data/railway-backup-20260829/` before trusting it for a live cutover. No urgency — Railway is healthy and this is readiness-only.
 
 ---
 
