@@ -111,11 +111,22 @@ to click through, essentially never actually used."
    `.knowledge/bugs/BUG-035.md` (OPEN, CRITICAL, missed by this research pass) found that 128 of
    those 221 rows (all of gs1/gs2/gs3) are scraped blog-comment junk, not real exam questions —
    generating "model answers" to them would have spent real API money hallucinating answers to
-   noise like "Thank you sir 😊🙏". **Only gs4 (93 rows, confirmed clean) is safe to generate
-   model answers for right now.** gs1-3 need BUG-035's content problem fixed first (re-source
+   noise like "Thank you sir 😊🙏". gs1-3 need BUG-035's content problem fixed first (re-source
    from a real UPSC PDF, or drop the contaminated rows) — that's a separate, larger effort, not
-   part of this "small nudge + retarget" pass. Still a paid API spend decision for Rahul, just
-   scoped to 93 rows instead of 221 until BUG-035 closes.
+   part of this "small nudge + retarget" pass.
+
+   **DONE 2026-08-30 (gs4 only).** Even gs4's "93 rows, confirmed clean" claim was too
+   optimistic — a full re-scan (not just a small sample) found 5 more junk rows (YouTube
+   playlist links / nav text, same failure class as BUG-035 just far rarer) and 7 rows that
+   jam multiple case-study titles into one row (incoherent as a single question). Excluded all
+   12, generated model answers for the remaining 81 via `scripts/upsc_gs/10_generate_answers_gs4.py`
+   — 100% success (81/81, 0 errors), avg 531 words/answer. Many of the 81 are case-study
+   *titles* rather than full narratives (e.g. "Case-Study: Leaking information ()"), so the
+   system prompt explicitly instructs an "illustrative framework answer" for those (labeled as
+   such in the output, not presented as if it were the real exam's facts) versus a direct answer
+   for the rows that do have full case text. Spot-checked 2 outputs before running the full
+   batch — both correctly followed the illustrative-vs-direct branching and cited accurate real
+   examples (Satyam, Tata, Infosys, IL&FS) with no fabrication presented as fact.
 2. **A small cross-repo continuity signal, not a merged database.** Recall (Prelims) and Scribe
    (Mains) have three deliberately disjoint identity spaces (Arena's DECIDE-02, this project's
    own AUDIT-008 DECIDE-32 still pending) — don't reopen that. The cheap, real fix: Recall's
