@@ -11,11 +11,23 @@ same-day task instead of a scramble.
 
 Three things now exist, on top of the unchanged live Railway deployment:
 
-1. **`Dockerfile`** (repo root) — builds this exact app (same Python version, same
+1. **`docker/Dockerfile`** — builds this exact app (same Python version, same
    dependencies, same startup command as `railway.toml`) into a container image that
-   runs identically on any machine with Docker installed. Railway itself does **not**
-   use this file — Railway still builds via Nixpacks per `railway.toml`, unchanged.
-   This Dockerfile is the "take it somewhere else" path, sitting alongside.
+   runs identically on any machine with Docker installed.
+
+   **CORRECTION (2026-08-30):** this file originally lived at the repo root, and the
+   original version of this doc claimed "Railway does not use this file — Railway
+   still builds via Nixpacks, unchanged." **That was wrong.** Railway auto-detects a
+   root-level `Dockerfile` and silently switches its builder away from Nixpacks
+   regardless of `railway.toml`'s `builder = "NIXPACKS"` setting — and this
+   Dockerfile's `VOLUME` directive isn't supported by Railway's Docker builder, so
+   every deploy failed at the build stage from the moment this file was added
+   (2026-08-29 23:43) until this was caught (2026-08-30, ~2.5 hours + several
+   sessions' worth of commits later) — production silently kept serving the
+   pre-Dockerfile build the whole time. Fixed by moving the file to `docker/Dockerfile`
+   so Railway's root-level auto-detection no longer finds it. **Never move this file
+   back to the repo root** — build it explicitly with `docker build -f docker/Dockerfile .`
+   instead.
 2. **`scripts/backup_production_data.sh`** — one command that pulls a fresh copy of
    all 7 real database files off Railway's volume into a local, dated,
    never-committed folder (`data/railway-backup-<timestamp>/`). Re-run this
@@ -29,11 +41,11 @@ When Rahul is ready (not now):
 
 1. Run `bash scripts/backup_production_data.sh` one more time to get the freshest
    possible copy of all production data.
-2. On the new server: install Docker, copy this repo there (or just the
-   `Dockerfile` + app code via git clone), and copy the latest
+2. On the new server: install Docker, copy this repo there (or just
+   `docker/Dockerfile` + app code via git clone), and copy the latest
    `data/railway-backup-<timestamp>/` folder to wherever the new server will keep
    its data.
-3. `docker build -t nyaya-scribe .`
+3. `docker build -t nyaya-scribe -f docker/Dockerfile .`
 4. `docker run -p 8080:8080 -v /path/to/copied/backup:/app/data -e ANTHROPIC_API_KEY=... -e ARENA_SERVICE_API_KEY=... nyaya-scribe`
    (see `.env.example` for the full list of environment variables the app needs —
    on Railway these are set in the dashboard; on a new server they'd be passed the
