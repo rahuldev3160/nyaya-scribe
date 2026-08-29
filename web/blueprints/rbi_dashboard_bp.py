@@ -1,4 +1,5 @@
 """RBI Dashboard blueprint — GET /rbi"""
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -8,6 +9,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from auth import login_required
 from db import get_conn, track_page_time
+from blueprints import _recall_client
+
+RBI_CONTENT_SOURCE = os.environ.get("RBI_CONTENT_SOURCE", "local")
 
 rbi_dashboard_bp = Blueprint("rbi_dashboard", __name__)
 
@@ -40,9 +44,12 @@ def rbi_dashboard():
 
     d = (datetime.strptime(RBI_DATE, "%Y-%m-%d").date() - datetime.today().date()).days
 
-    total_p1 = conn.execute(
-        "SELECT COUNT(*) FROM rbi_questions WHERE tier=1"
-    ).fetchone()[0]
+    if RBI_CONTENT_SOURCE == "recall":
+        total_p1 = _recall_client.count_rbi_questions(tier=1)
+    else:
+        total_p1 = conn.execute(
+            "SELECT COUNT(*) FROM rbi_questions WHERE tier=1"
+        ).fetchone()[0]
 
     agg = conn.execute(
         "SELECT COUNT(*), SUM(is_correct) FROM rbi_attempts WHERE user_id=?", (user_id,)

@@ -14,6 +14,15 @@ blueprint implements deterministic MCQ fetch+score for 'rbi' -- closer in shape
 to Recall's Contract 1 than to Scribe's own descriptive _score_answer() -- and
 returns LANGUAGE_NOT_SUPPORTED for anything but 'en', since there is nothing
 here for a language field to select between yet.
+
+PLAN-008 §6 (thin proxy): this endpoint's EXTERNAL shape never changes (Arena's
+already-tested client depends on it byte-for-byte) but its internal implementation
+now routes through the same RBI_CONTENT_SOURCE flag as web/blueprints/rbi_prep_bp.py.
+'local' (default): unchanged direct-DB behavior below -- Arena is completely
+unaffected by the RBI-to-Recall migration while the flag is off. 'recall': proxies
+to Recall's /internal/v1/questions + /score-attempt (registering as the SCRIBE_RBI
+caller), translating Recall's response shape back into this endpoint's documented
+shape -- which DECIDE-13 already made nearly identical, so the translation is thin.
 """
 import hmac
 import os
@@ -24,10 +33,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Blueprint, g, jsonify, request
 
+from blueprints import _recall_client
+
 internal_api_bp = Blueprint("internal_api", __name__, url_prefix="/internal/v1")
 
 _DEFAULT_MARKING_SCHEME = {"correct": 1, "wrong": -0.25, "unattempted": 0}
 _KNOWN_EXAM_IDS = {"rbi"}
+RBI_CONTENT_SOURCE = os.environ.get("RBI_CONTENT_SOURCE", "local")
 
 
 def _error(code: str, message: str, status: int, details: dict | None = None):
@@ -77,6 +89,31 @@ def get_exam_questions(exam_id):
 
     topic = request.args.get("topic")
     difficulty = request.args.get("difficulty")
+
+    if RBI_CONTENT_SOURCE == "recall":
+        try:
+            questions = _recall_client.fetch_rbi_questions(count=count, topic=topic)
+        except _recall_client.RecallUnavailable as exc:
+            return _error("INTERNAL_ERROR", str(exc), 500)
+        if len(questions) < count:
+            return _error(
+                "NOT_FOUND", "Not enough questions match the given filters.", 404,
+                {"code": "INSUFFICIENT_QUESTIONS", "available_count": len(questions)},
+            )
+        # Translate _recall_client's adapted shape back into this endpoint's own
+        # documented response shape (question_text/options, not question/option_a..d).
+        out = [
+            {
+                "question_id": q["id"],
+                "question_text": q["question"],
+                "options": {"A": q["option_a"], "B": q["option_b"],
+                            "C": q["option_c"], "D": q["option_d"]},
+                "subject": q["subject"], "topic": q["topic"],
+                "difficulty": q["difficulty"], "language": "en",
+            }
+            for q in questions
+        ]
+        return jsonify({"exam_id": exam_id, "count": len(out), "questions": out})
 
     conn = g.rbi_conn
     if conn is None:
@@ -140,6 +177,27 @@ def score_exam_attempt(exam_id):
     for key in ("correct", "wrong", "unattempted"):
         if key not in scheme:
             return _error("INVALID_PARAMS", f"marking_scheme missing '{key}'.", 400)
+
+    if RBI_CONTENT_SOURCE == "recall":
+        try:
+            results_by_id = _recall_client.score_rbi_attempt(
+                [{"question_id": a.get("question_id"), "selected_option": a.get("selected_option")}
+                 for a in answers]
+            )
+        except _recall_client.RecallUnavailable as exc:
+            return _error("INTERNAL_ERROR", str(exc), 500)
+        score = sum(r["marks_awarded"] for r in results_by_id.values())
+        correct_count = sum(1 for r in results_by_id.values() if r.get("is_correct") is True)
+        wrong_count = sum(1 for r in results_by_id.values() if r.get("is_correct") is False)
+        unattempted_count = sum(1 for a in answers if a.get("selected_option") is None)
+        return jsonify({
+            "score": round(score, 2),
+            "max_score": len(answers) * scheme["correct"],
+            "correct_count": correct_count,
+            "wrong_count": wrong_count,
+            "unattempted_count": unattempted_count,
+            "results": list(results_by_id.values()),
+        })
 
     conn = g.rbi_conn
     if conn is None:

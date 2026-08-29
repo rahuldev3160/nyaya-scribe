@@ -1,6 +1,7 @@
 """RBI Prep blueprint — /rbi/prep"""
 import json
 import logging
+import os
 import sqlite3
 import sys
 import uuid
@@ -12,10 +13,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from flask import Blueprint, g, redirect, render_template, request, session, url_for
 from auth import login_required
 from db import get_user_id, log_event, track_page_time
+from blueprints import _recall_client
 
 rbi_prep_bp = Blueprint("rbi_prep", __name__)
 
 RBI_DATE = "2026-06-14"
+
+# PLAN-008 §3: 'local' (default, today's unchanged behavior) | 'recall' (fetch/score via
+# Nyaya Recall's internal API instead of local rbi_questions). Must stay 'local' in
+# production until Rahul explicitly approves flipping it -- see .env.example.
+RBI_CONTENT_SOURCE = os.environ.get("RBI_CONTENT_SOURCE", "local")
 
 
 # ── Countdown helper ───────────────────────────────────────────────────────────
@@ -34,24 +41,43 @@ def _answered_ids(conn: sqlite3.Connection) -> set:
     return {r[0] for r in rows}
 
 
+def _topic_priority_map(conn: sqlite3.Connection, uid: str) -> dict:
+    """Local topic-priority (mastery/weights stay in Scribe per PLAN-008 table 1,
+    regardless of where question content itself is served from)."""
+    rows = conn.execute("""
+        SELECT tw.topic AS topic, COALESCE(m.flag_impact, tw.base_weight, 0.05) AS topic_priority
+        FROM rbi_topic_weights tw
+        LEFT JOIN rbi_topic_mastery m ON tw.topic = m.topic AND m.user_id = ?
+    """, (uid,)).fetchall()
+    return {r["topic"]: r["topic_priority"] for r in rows}
+
+
 def get_smart_questions(conn: sqlite3.Connection, n: int = 10) -> list:
     """Layer 1: highest flag_impact topics → unanswered questions first."""
     uid = get_user_id()
     answered = _answered_ids(conn)
-    rows = conn.execute("""
-        SELECT q.id, q.question, q.option_a, q.option_b, q.option_c, q.option_d,
-               q.correct_option, q.explanation, q.topic, q.subject, q.difficulty,
-               q.is_trap, q.priority_weight,
-               COALESCE(m.flag_impact, tw.base_weight, 0.05) AS topic_priority
-        FROM rbi_questions q
-        LEFT JOIN rbi_topic_mastery m ON q.topic = m.topic AND m.user_id = ?
-        LEFT JOIN rbi_topic_weights tw ON q.topic = tw.topic
-        WHERE q.tier = 1
-        ORDER BY topic_priority DESC, q.priority_weight DESC
-    """, (uid,)).fetchall()
 
-    unanswered = [dict(r) for r in rows if r["id"] not in answered]
-    seen_answered = [dict(r) for r in rows if r["id"] in answered]
+    if RBI_CONTENT_SOURCE == "recall":
+        priority = _topic_priority_map(conn, uid)
+        candidates = _recall_client.fetch_rbi_questions(count=200, tier=1)
+        candidates.sort(key=lambda r: priority.get(r["topic"], 0.05), reverse=True)
+        rows = candidates
+    else:
+        rows = conn.execute("""
+            SELECT q.id, q.question, q.option_a, q.option_b, q.option_c, q.option_d,
+                   q.correct_option, q.explanation, q.topic, q.subject, q.difficulty,
+                   q.is_trap, q.priority_weight,
+                   COALESCE(m.flag_impact, tw.base_weight, 0.05) AS topic_priority
+            FROM rbi_questions q
+            LEFT JOIN rbi_topic_mastery m ON q.topic = m.topic AND m.user_id = ?
+            LEFT JOIN rbi_topic_weights tw ON q.topic = tw.topic
+            WHERE q.tier = 1
+            ORDER BY topic_priority DESC, q.priority_weight DESC
+        """, (uid,)).fetchall()
+        rows = [dict(r) for r in rows]
+
+    unanswered = [r for r in rows if r["id"] not in answered]
+    seen_answered = [r for r in rows if r["id"] in answered]
     result = unanswered[:n]
     if len(result) < n:
         result += seen_answered[:n - len(result)]
@@ -60,6 +86,16 @@ def get_smart_questions(conn: sqlite3.Connection, n: int = 10) -> list:
 
 def get_filtered_questions(conn: sqlite3.Connection, filters: dict, n: int = 10) -> list:
     """Layer 3: user-directed filter override."""
+    if RBI_CONTENT_SOURCE == "recall":
+        # Documented gap: is_trap/is_recent filters have no equivalent in Recall's
+        # migrated schema (not carried over by the PLAN-008 migration) -- silently
+        # ignored here rather than erroring, since this path is infra-only while the
+        # flag defaults off; revisit if/when this path actually goes live.
+        return _recall_client.fetch_rbi_questions(
+            count=n, tier=1,
+            subject=filters.get("subject"), topic=filters.get("topic"),
+        )
+
     clauses = ["tier = 1"]
     params: list = []
     if filters.get("subject") and filters["subject"] != "all":
@@ -88,15 +124,18 @@ def get_filtered_questions(conn: sqlite3.Connection, filters: dict, n: int = 10)
 
 
 def save_attempt(conn: sqlite3.Connection, question_id: str, answer_given: str,
-                 is_correct: bool, session_id: str, topic: str, subject: str) -> None:
-    """Save attempt + update mastery."""
+                 is_correct: bool, session_id: str, topic: str, subject: str,
+                 source: str = "local") -> None:
+    """Save attempt + update mastery. `source` (m057) records whether the question
+    content/scoring came from the local rbi_questions table or Recall's internal API —
+    does not change ownership of this table, which stays Scribe's per PLAN-008 table 1."""
     uid = get_user_id()
     try:
         with conn:
             conn.execute(
-                "INSERT INTO rbi_attempts (user_id, question_id, answer_given, is_correct, session_id) "
-                "VALUES (?,?,?,?,?)",
-                (uid, question_id, answer_given, int(is_correct), session_id),
+                "INSERT INTO rbi_attempts (user_id, question_id, answer_given, is_correct, session_id, source) "
+                "VALUES (?,?,?,?,?,?)",
+                (uid, question_id, answer_given, int(is_correct), session_id, source),
             )
             _update_mastery(conn, topic, subject, is_correct)
         try:
@@ -232,11 +271,16 @@ def _load_buckets(conn: sqlite3.Connection) -> dict:
     """Build the buckets dict from rbi_questions (tier=2), keyed by topic."""
     _opt_labels = ["A) ", "B) ", "C) ", "D) "]
     _opt_cols = ["option_a", "option_b", "option_c", "option_d"]
-    rows = conn.execute(
-        "SELECT id, topic, question, "
-        "option_a, option_b, option_c, option_d, correct_option, explanation "
-        "FROM rbi_questions WHERE tier=2 ORDER BY created_at"
-    ).fetchall()
+
+    if RBI_CONTENT_SOURCE == "recall":
+        rows = _recall_client.fetch_rbi_questions(count=200, tier=2)
+        rows.sort(key=lambda r: r.get("topic") or "")
+    else:
+        rows = [dict(r) for r in conn.execute(
+            "SELECT id, topic, question, "
+            "option_a, option_b, option_c, option_d, correct_option, explanation "
+            "FROM rbi_questions WHERE tier=2 ORDER BY created_at"
+        ).fetchall()]
 
     buckets: dict = {}
     for row in rows:
@@ -245,7 +289,11 @@ def _load_buckets(conn: sqlite3.Connection) -> dict:
             meta = _BUCKET_META.get(topic, {"label": topic, "icon": "📝"})
             buckets[topic] = {"label": meta["label"], "icon": meta["icon"], "qs": []}
         opts = [_opt_labels[i] + (row[_opt_cols[i]] or "") for i in range(4)]
-        letter = (row["correct_option"] or "").strip().upper()
+        # In 'recall' mode correct_option is None until scored (Recall never returns
+        # an answer key at fetch time) -- correct/correct_option are placeholders here
+        # and MUST be resolved via _recall_client.score_rbi_attempt() at submit time,
+        # not trusted from this dict. See tier2_submit().
+        letter = (row.get("correct_option") or "").strip().upper()
         letter_idx = {"A": 0, "B": 1, "C": 2, "D": 3}.get(letter, 0)
         correct_full = opts[letter_idx] if letter_idx < len(opts) else opts[0]
         buckets[topic]["qs"].append({
@@ -254,7 +302,7 @@ def _load_buckets(conn: sqlite3.Connection) -> dict:
             "opts": opts,
             "correct": correct_full,
             "correct_option": letter,
-            "exp": row["explanation"] or "",
+            "exp": row.get("explanation") or "",
         })
 
     ordered: dict = {}
@@ -486,10 +534,28 @@ def tier2_submit():
         val = request.form.get(f"ans_{q['id']}", "")
         answers[q["id"]] = val
 
-    correct_count = sum(
-        1 for q in questions
-        if answers.get(q["id"], "").strip() == q["correct"].strip()
-    )
+    if RBI_CONTENT_SOURCE == "recall":
+        # correct_option in `questions` is a placeholder in this mode (see
+        # _load_buckets) -- map the chosen full-text answer back to a letter, then
+        # resolve correctness via Recall's stateless scoring call.
+        _opt_letters = ["A", "B", "C", "D"]
+        score_answers = []
+        for q in questions:
+            chosen = answers.get(q["id"], "").strip()
+            letter = next((_opt_letters[i] for i, opt in enumerate(q["opts"])
+                           if opt.strip() == chosen), None)
+            score_answers.append({"question_id": q["id"], "selected_option": letter})
+        try:
+            results_by_id = _recall_client.score_rbi_attempt(score_answers)
+            correct_count = sum(1 for r in results_by_id.values() if r.get("is_correct"))
+        except _recall_client.RecallUnavailable:
+            logging.exception("Recall scoring failed for tier2_submit")
+            return redirect(url_for("rbi_prep.prep", tab="tier2_quiz", bucket=bucket_key))
+    else:
+        correct_count = sum(
+            1 for q in questions
+            if answers.get(q["id"], "").strip() == q["correct"].strip()
+        )
 
     scores = session.get("rbi_tier2_scores", {})
     scores[bucket_key] = {"correct": correct_count, "total": len(questions)}
@@ -519,35 +585,82 @@ def drill_submit():
         session["rbi_drill_error"] = f"Please answer Q{', Q'.join(str(n) for n in unanswered)} before submitting."
         return redirect(url_for("rbi_prep.prep", tab="phase1_drill"))
 
-    results = []
-    for q in questions:
-        qid = str(q["id"])
-        chosen_full = raw_answers[qid]
-        _opt_map = {
-            q.get("option_a", "").strip(): "A",
-            q.get("option_b", "").strip(): "B",
-            q.get("option_c", "").strip(): "C",
-            q.get("option_d", "").strip(): "D",
-        }
-        letter = _opt_map.get(chosen_full.strip(), "")
-        if not letter:
-            continue
-        is_correct = letter == q.get("correct_option", "")
+    if RBI_CONTENT_SOURCE == "recall":
+        # correct_option isn't known client-side in this mode (Recall never returns
+        # an answer key at fetch time) -- resolve every question's selected letter
+        # first, then score them all in one batched call.
+        score_answers = []
+        qid_to_letter = {}
+        for q in questions:
+            qid = str(q["id"])
+            chosen_full = raw_answers[qid]
+            _opt_map = {
+                q.get("option_a", "").strip(): "A", q.get("option_b", "").strip(): "B",
+                q.get("option_c", "").strip(): "C", q.get("option_d", "").strip(): "D",
+            }
+            letter = _opt_map.get(chosen_full.strip(), "")
+            qid_to_letter[qid] = letter
+            if letter:
+                score_answers.append({"question_id": q["id"], "selected_option": letter})
+        try:
+            scored = _recall_client.score_rbi_attempt(score_answers) if score_answers else {}
+        except _recall_client.RecallUnavailable:
+            logging.exception("Recall scoring failed for drill_submit")
+            session["rbi_drill_error"] = "Could not reach Recall to score this drill. Try again."
+            return redirect(url_for("rbi_prep.prep", tab="phase1_drill"))
 
-        save_attempt(conn, qid, letter, is_correct, sid,
-                     q.get("topic", ""), q.get("subject", ""))
+        results = []
+        for q in questions:
+            qid = str(q["id"])
+            letter = qid_to_letter[qid]
+            if not letter:
+                continue
+            r = scored.get(q["id"], {})
+            is_correct = bool(r.get("is_correct"))
+            correct_option = r.get("correct_option", "") or ""
+            save_attempt(conn, qid, letter, is_correct, sid,
+                         q.get("topic", ""), q.get("subject", ""), source="recall")
+            correct_key = f"option_{correct_option.lower()}" if correct_option else ""
+            results.append({
+                "question": q["question"],
+                "answer_given": raw_answers[qid],
+                "correct_option": correct_option,
+                "correct_option_full": q.get(correct_key, "") if correct_key else "",
+                "options": [q.get("option_a", ""), q.get("option_b", ""),
+                            q.get("option_c", ""), q.get("option_d", "")],
+                "explanation": r.get("explanation", ""),
+                "is_correct": is_correct,
+            })
+    else:
+        results = []
+        for q in questions:
+            qid = str(q["id"])
+            chosen_full = raw_answers[qid]
+            _opt_map = {
+                q.get("option_a", "").strip(): "A",
+                q.get("option_b", "").strip(): "B",
+                q.get("option_c", "").strip(): "C",
+                q.get("option_d", "").strip(): "D",
+            }
+            letter = _opt_map.get(chosen_full.strip(), "")
+            if not letter:
+                continue
+            is_correct = letter == q.get("correct_option", "")
 
-        correct_key = f"option_{q['correct_option'].lower()}" if q.get("correct_option") else ""
-        results.append({
-            "question": q["question"],
-            "answer_given": chosen_full,
-            "correct_option": q.get("correct_option", ""),
-            "correct_option_full": q.get(correct_key, "") if correct_key else "",
-            "options": [q.get("option_a", ""), q.get("option_b", ""),
-                        q.get("option_c", ""), q.get("option_d", "")],
-            "explanation": q.get("explanation", ""),
-            "is_correct": is_correct,
-        })
+            save_attempt(conn, qid, letter, is_correct, sid,
+                         q.get("topic", ""), q.get("subject", ""))
+
+            correct_key = f"option_{q['correct_option'].lower()}" if q.get("correct_option") else ""
+            results.append({
+                "question": q["question"],
+                "answer_given": chosen_full,
+                "correct_option": q.get("correct_option", ""),
+                "correct_option_full": q.get(correct_key, "") if correct_key else "",
+                "options": [q.get("option_a", ""), q.get("option_b", ""),
+                            q.get("option_c", ""), q.get("option_d", "")],
+                "explanation": q.get("explanation", ""),
+                "is_correct": is_correct,
+            })
 
     session["rbi_drill_results"] = results
     session["rbi_drill_mode"] = session.get("rbi_drill_mode", "smart")
