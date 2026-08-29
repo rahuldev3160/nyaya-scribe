@@ -405,6 +405,10 @@ def create_app() -> Flask:
     from blueprints.internal_api_bp import internal_api_bp
     app.register_blueprint(internal_api_bp)
 
+    @app.route("/healthz")
+    def healthz():
+        return "ok", 200
+
     @app.route("/")
     def index():
         if getattr(g, "user_id", None):
