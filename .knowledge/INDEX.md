@@ -87,6 +87,7 @@ Last updated: 2026-07-06 (Session 47)
 | PLAN-015 | 2026-06-08 | S35: Mobile-first UI — bottom tab nav, responsive grids, sidebar DOM removal, full-screen login, CSS-MOB-001 fix | COMPLETE (commit ca37f51) |
 | [PLAN-016](plans/PLAN-016.md) | 2026-06-13 | S36: Engagement activation — post-setup routing, smart login, button redesign, first-action cards, nav cleanup | COMPLETE (commit e51b27a) |
 | [PLAN-017](plans/PLAN-017.md) | 2026-06-16 | S38: UPSC GS Mains expansion — upsc_gs.db, all 4 GS papers, Ethics keyword index, CA integration, cross-paper linking | PHASE 1 COMPLETE (S39) — Phase 2 PYQ ingestion in progress |
+| [PLAN-020](plans/PLAN-020.md) | 2026-08-29 | `law.db` schema draft for Nyaya Arena's law track (DECIDE-36) — review only, not created/applied | DRAFT |
 | [UI-REDESIGN-001](plans/UI-REDESIGN-001.md) | 2026-06-16 | S39–S41: Product redesign — noise removal, freemium foundation, AI scoring, hero strip, photo eval pending | Phase 0 ✅ · Phase 1 ✅ · Phase 2a ✅ · Phase 2b PENDING |
 | [PLAN-018](plans/PLAN-018.md) | 2026-06-21 | S43: UPSC Essay Paper module — adaptive architecture, PART A/B/C framework, annual CA→essay pipeline, PYQ post-exam ingestion | PHASE 4 COMPLETE (S46) — _score_essay() + essay_eval gate (m051, 15/month free) + score breakdown card |
 | [PLAN-019](plans/PLAN-019.md) | 2026-06-21 | S43: GS4 Ethics paper simulation — IDEA-U (theory) + STAKE (case study) frameworks, PYQ 2019–2025 solved, 2 practice papers, self-compare, full indexing layer | PHASE 3 COMPLETE (S45) — 75/75 answers seeded; Phase 4 = post-exam ingest Nov 2026 |
@@ -99,6 +100,7 @@ Last updated: 2026-07-06 (Session 47)
 |----|------|-------|------------|
 | [DIAG-001](diagnostics/DIAG-001.md) | 2026-06-04 | Railway SSH + data migration setup | RESOLVED |
 | [DIAG-002](diagnostics/DIAG-002.md) | 2026-06-05 | Production "Page not found" on login | RESOLVED → BUG-001 |
+| [DIAG-003](diagnostics/DIAG-003.md) | 2026-08-29 | Bilingual/Devanagari spike (RISK-02, Nyaya Arena law track) | PARTIAL — storage/AI/web rendering clear; PDF export font gap still open |
 
 ---
 
