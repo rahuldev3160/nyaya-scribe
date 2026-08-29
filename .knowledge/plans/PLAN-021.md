@@ -106,11 +106,16 @@ to click through, essentially never actually used."
 
 **Medium.** In priority order:
 
-1. **Generate `model_answers` for the 221 existing GS1–3 PYQs.** This is the single highest-
-   leverage fix — the content-generation pipeline and batch pattern already exist (same one used
-   for essay/ethics, DECIDE-27) and self-compare is structurally useless without it. This is a
-   paid API content-generation call and needs Rahul's go-ahead on cost/timing (not a schema
-   approval gate, just a spend decision) before it's actually run.
+1. **CORRECTION (2026-08-30, post-approval catch):** this line originally said "generate
+   `model_answers` for the 221 existing GS1-3 PYQs" — **wrong, do not do this as written.**
+   `.knowledge/bugs/BUG-035.md` (OPEN, CRITICAL, missed by this research pass) found that 128 of
+   those 221 rows (all of gs1/gs2/gs3) are scraped blog-comment junk, not real exam questions —
+   generating "model answers" to them would have spent real API money hallucinating answers to
+   noise like "Thank you sir 😊🙏". **Only gs4 (93 rows, confirmed clean) is safe to generate
+   model answers for right now.** gs1-3 need BUG-035's content problem fixed first (re-source
+   from a real UPSC PDF, or drop the contaminated rows) — that's a separate, larger effort, not
+   part of this "small nudge + retarget" pass. Still a paid API spend decision for Rahul, just
+   scoped to 93 rows instead of 221 until BUG-035 closes.
 2. **A small cross-repo continuity signal, not a merged database.** Recall (Prelims) and Scribe
    (Mains) have three deliberately disjoint identity spaces (Arena's DECIDE-02, this project's
    own AUDIT-008 DECIDE-32 still pending) — don't reopen that. The cheap, real fix: Recall's
