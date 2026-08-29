@@ -102,6 +102,7 @@ Last updated: 2026-07-06 (Session 47)
 | [DIAG-002](diagnostics/DIAG-002.md) | 2026-06-05 | Production "Page not found" on login | RESOLVED → BUG-001 |
 | [DIAG-003](diagnostics/DIAG-003.md) | 2026-08-29 | Bilingual/Devanagari spike (RISK-02, Nyaya Arena law track) | PARTIAL — storage/AI/web rendering clear; PDF export font gap still open |
 | [DIAG-004](diagnostics/DIAG-004.md) | 2026-08-29 | Production outage (Railway trial expiry + `/` healthcheck redirect bug) + portable Docker/backup hosting package | RESOLVED — production restored, verified live; Docker image untested (Docker not installed this session) |
+| [DIAG-005](diagnostics/DIAG-005.md) | 2026-08-30 | Root-level Dockerfile from DIAG-004 silently broke every deploy for ~2.5hrs (Railway auto-detected it over Nixpacks); 2 local-only DB edits never reached production | RESOLVED — Dockerfile moved to `docker/`, m064/m065 migrations added, verified live via `railway ssh` |
 
 ---
 
