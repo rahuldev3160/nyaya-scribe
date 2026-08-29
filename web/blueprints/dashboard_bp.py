@@ -1,4 +1,11 @@
-"""IES 2026 Dashboard blueprint — /dashboard and /ies/topics/<id>/state."""
+"""IES Dashboard blueprint — /dashboard and /ies/topics/<id>/state.
+
+Internal exam_id stays the literal 'ies_2026' string across all tables (topics,
+pyq_questions, descriptive_attempts, etc.) -- it's a stable slug, not a cycle
+tracker. Only user-facing labels (exam_name/exam_date rows, template text) get
+bumped for a new cycle. Don't rename the exam_id itself without a real reason;
+it would require migrating every table that references it.
+"""
 import json
 import sys
 from datetime import datetime
@@ -73,9 +80,9 @@ def _days_left() -> int:
             "SELECT exam_date FROM exam_configurations WHERE exam_id='ies_2026'"
         ).fetchone()
         conn.close()
-        exam_str = row[0] if row else "2026-06-19"
+        exam_str = row[0] if row and row[0] else "2027-06-18"
     except Exception:
-        exam_str = "2026-06-19"
+        exam_str = "2027-06-18"
     return (datetime.strptime(exam_str, "%Y-%m-%d").date() - datetime.today().date()).days
 
 
@@ -174,6 +181,18 @@ def _daily_attempts(conn, user_id: str) -> int:
     ).fetchone()[0]
 
 
+def _days_since_last_attempt(conn, user_id: str):
+    """None if never attempted, else days since the most recent attempt."""
+    row = conn.execute(
+        "SELECT MAX(created_at) FROM descriptive_attempts WHERE exam_id='ies_2026' AND user_id=?",
+        (user_id,)
+    ).fetchone()
+    if not row or not row[0]:
+        return None
+    last = datetime.strptime(row[0][:19], "%Y-%m-%d %H:%M:%S")
+    return (datetime.today() - last).days
+
+
 def _topic_color_indicator(topic_id: str, base_priority_score: float, topic_stats: dict) -> tuple:
     """Returns (_attempt_count, _avg_score, _color_indicator)."""
     st = topic_stats.get(topic_id)
@@ -207,6 +226,8 @@ def dashboard():
     rec_question = _get_recommended_question(conn, user_id, topic_stats)
     readiness_score = _compute_readiness_score(conn, user_id, topic_stats)
     daily_done = _daily_attempts(conn, user_id)
+    days_since_last = _days_since_last_attempt(conn, user_id)
+    inactivity_nudge = days_since_last is None or days_since_last >= 45
 
     # ── Metrics ────────────────────────────────────────────────────────────────
     d = _days_left()
@@ -345,6 +366,8 @@ def dashboard():
         active_page="dashboard",
         d=d,
         day_color=day_color,
+        inactivity_nudge=inactivity_nudge,
+        days_since_last=days_since_last,
         total_a=total_a,
         total_q=total_q,
         ans_pct=ans_pct,

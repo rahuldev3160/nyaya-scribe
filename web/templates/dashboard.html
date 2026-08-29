@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · IES 2026{% endblock %}
+{% block title %}Dashboard · IES 2027{% endblock %}
 
 {% block content %}
 {% if request.args.get('welcome') == '1' %}
@@ -15,10 +15,18 @@
 </div>
 <script>if(sessionStorage.getItem('setup_dismissed')==='1')document.getElementById('setup-banner').style.display='none';</script>
 {% endif %}
+{% if inactivity_nudge %}
+<div style="background:rgba(242,139,130,0.08);border:1px solid rgba(242,139,130,0.35);border-radius:8px;padding:10px 16px;margin-bottom:16px;">
+  <span style="color:#F28B82;font-size:0.88rem;">
+    ⚠️ {% if days_since_last is none %}You haven't attempted an IES question yet{% else %}It's been {{ days_since_last }} days since your last IES practice attempt{% endif %}
+    — {{ d }} days to the exam. This paper needs reps, not just content review.
+  </span>
+</div>
+{% endif %}
 <!-- ── Page title ─────────────────────────────────────────────────────────── -->
 <div style="margin-bottom:16px;">
-  <h2 style="margin-bottom:4px;">📚 IES 2026 Study Dashboard</h2>
-  <span style="color:#9AA0A6;font-size:0.85rem;">Exam 19–21 June 2026 · GE-01 to GE-04</span>
+  <h2 style="margin-bottom:4px;">📚 IES 2027 Study Dashboard</h2>
+  <span style="color:#9AA0A6;font-size:0.85rem;">Exam ~June 2027 (date provisional, official notification pending) · GE-01 to GE-04</span>
 </div>
 
 <!-- ── Hero strip ─────────────────────────────────────────────────────────── -->

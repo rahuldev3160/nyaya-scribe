@@ -13,6 +13,7 @@ data/upsc_gs.db
 data/upsc_eco_opt.db
 data/answers_batch.txt
 data/railway-backup-*/
+data/*.db.bak-*
 
 # SQLite WAL runtime files (generated at runtime, never committed)
 data/*.db-shm
