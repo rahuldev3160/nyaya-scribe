@@ -1,6 +1,18 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
 **Session:** S46 → S47 | 2026-07-05 | Branch: main
 
+## 2026-08-29 — RBI cutover infrastructure merged (flag OFF, no live behavior change)
+
+Devthorium/Recall became the canonical MCQ engine for RBI Grade B content (Nyaya Arena redesign — see Devthorium's `.knowledge/plans/PLAN-007/008/009.md`). This repo's RBI *content* (321 questions, 29 topic weights) was copied into Recall; `rbi_attempts`/`rbi_topic_mastery`/`rbi_key_data` all stay here, unchanged, under Scribe's own user identity — this app's live RBI feature is unaffected today.
+
+**Merged (commit `73ff8ce`):** `RBI_CONTENT_SOURCE=local|recall` flag (defaulted `local` — zero behavior change while off), `migrations/m057_rbi_attempts_source_column.py` (additive, applies automatically via the app's normal migration runner on next start/deploy — not run manually against the live DB), `web/blueprints/_recall_client.py` (new thin HTTP client to Recall's internal API), `internal_api_bp.py` now proxies to Recall when the flag is `recall` (identical external shape, Arena needs zero changes).
+
+**Not done, deliberately:** the flag has NOT been flipped to `recall` anywhere. That's a separate, later approval — needs local verification first per PLAN-008 §3's staged rollout, then an explicit decision from Rahul before touching live users.
+
+**Blocking:** `INTERNAL_API_KEY_SCRIBE_RBI` — generate one value, put it in both this repo's and Devthorium's `.env`. Nothing calls Recall until this exists.
+
+**Known gap, not a regression:** `get_filtered_questions`'s `is_trap`/`is_recent` filters have no equivalent in Recall's migrated schema yet — silently ignored in `recall` mode. Acceptable since the flag defaults off; revisit before ever flipping it.
+
 ## Active Work
 UI-REDESIGN-001 Phase 2b — Photo eval (handwritten → Claude Vision scoring) ⏳ deferred
 PLAN-017 Phase 2+ — GS Mains model answers (not yet generated; questions live on Railway now)
