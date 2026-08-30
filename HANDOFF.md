@@ -1,6 +1,20 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
 **Session:** S46 → S47 | 2026-07-05 | Branch: main
 
+## 2026-08-30 — Cross-project data-provenance audit (read-only)
+
+Audited as part of a 5-project data-sourcing audit (Recall/Scribe/Arena/law-model/content-pipeline)
+toward Rahul's "one vetted, indexed data source across all Nyaya products" goal. No code changed
+here. Full detail: `docs/audit/DATA_AUDIT_2026-08-30.md`. Cross-project synthesis + roadmap: memory
+`project_nyaya_universal_data_layer.md`.
+
+**Re-confirmed still open:** BUG-035 — 128/221 GS Mains PYQ rows (gs1-3) are scraped blog-comment
+junk; gs4 (93 rows) is clean and is the only paper with model answers generated. No product anywhere
+has a human-verification flag on AI-generated content — flagged as the real gap behind the
+provenance-taxonomy work (`source_type` column, PLAN-011/021), not the access layer.
+
+---
+
 ## 2026-08-29 — RBI cutover infrastructure merged (flag OFF, no live behavior change)
 
 Devthorium/Recall became the canonical MCQ engine for RBI Grade B content (Nyaya Arena redesign — see Devthorium's `.knowledge/plans/PLAN-007/008/009.md`). This repo's RBI *content* (321 questions, 29 topic weights) was copied into Recall; `rbi_attempts`/`rbi_topic_mastery`/`rbi_key_data` all stay here, unchanged, under Scribe's own user identity — this app's live RBI feature is unaffected today.
