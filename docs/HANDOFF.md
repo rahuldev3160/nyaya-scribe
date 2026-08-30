@@ -1,6 +1,47 @@
 # HANDOFF — Nyaya Scribe / Descriptive Exams
 
-Last updated: 2026-08-29 (Session 39)
+Last updated: 2026-08-30 (Session 40)
+
+---
+
+## S40 — 2026-08-30 — 2027 redesign build-out + a real production incident
+
+**Built and live (verified via `railway ssh` against the real DB, not just `/healthz`):**
+1. **RBI English Descriptive timed-writing simulator** (PLAN-021 Area 4) — new `rbi_english_sim`
+   mode: 90-min master countdown, 30/30/30 per-section sub-budgets, warn-not-hard-cut on overrun
+   (Rahul's explicit call, DECIDE-40), live WPM tracking, post-submit pacing report kept separate
+   from AI quality scoring. New table `rbi_english_sim_attempts` (m058), no ALTER. Found and fixed
+   a real bug before shipping: the RC section's answer was read under the wrong dict key, which
+   would've silently shown 0 words for any real submission.
+2. **GS4 model answers** — 81 of 93 GS4 PYQs got real generated model answers (12 excluded as
+   junk/jumbled after a full re-scan; gs1-3 remain fully blocked by BUG-035). See PLAN-021 Area 3.
+3. **Content provenance columns** (PLAN-021 Area 6, Scribe half) — additive `source_type TEXT`
+   across all 5 exam DBs, approved by Rahul and applied for real. Correctly leaves BUG-035's
+   junk content unlabeled rather than falsely marking it `official_pyq`.
+4. IES dashboard's stale "2026" labels/date fixed + an inactivity nudge added (near-zero real
+   practice reps was the actual finding, not a content gap).
+
+**Critical incident, resolved same session — full writeup `.knowledge/diagnostics/DIAG-005.md`:**
+The portable `Dockerfile` added in S39 was sitting at the repo root, and Railway silently used it
+instead of Nixpacks (overriding `railway.toml`'s explicit builder setting) — its `VOLUME`
+directive then failed Railway's Docker builder outright. **Every deploy failed for ~2.5 hours
+across this entire session's commits**; production kept serving a stale build the whole time
+while `/healthz` on the old build kept returning 200, masking it. Fixed by moving the Dockerfile
+to `docker/`. Also found: two DB edits (IES exam date, GS4 answers) had only been applied to the
+*local* dev copy of the DBs, which never reaches Railway's actual volume — converted into real
+migrations (`m064`, `m065`) so they'd deploy correctly. **Read DIAG-005's lessons before touching
+deploy config or assuming "pushed = live" again.**
+
+**Decisions logged:** DECIDE-39 (stay on Railway, portable package), DECIDE-40 (RBI timer:
+warn not hard-cut).
+
+### Exact next step
+Nothing blocking — Scribe is live and healthy on the latest commit. If continuing the 2027
+redesign: PLAN-021's remaining item is Area 3's "small cross-repo continuity signal" (a read-only
+card on Recall's dashboard showing Mains activity, via the existing internal-API pattern) — not
+started. Otherwise, monitor real usage on the new RBI English Sim and GS4 Mains content, since
+the headline finding across this whole redesign was near-zero usage of built features, not
+missing ones.
 
 ---
 
