@@ -1,5 +1,29 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S46 → S47 | 2026-07-05 | Branch: main
+**Session:** S47 → S48 | 2026-09-02 | Branch: main
+
+## 2026-09-02 (S48) — Personal-first pivot: planning only, nothing built yet
+
+Rahul brought a 14-page handwritten feature brainstorm (`~/Downloads/SCRIBE - NYAYA_...pdf`).
+Synthesized into 10 clusters (`PLAN-022`), ran 6 parallel research forks — market counterparts
+per cluster + a self-audit of existing features against real aspirant needs — and cut it down to
+one flagship mechanic (`PLAN-023`). Rahul then reframed the whole build: **optimize for his own
+prep first, not the 95 existing signups** (DECIDE-42), kept the native S Pen/Apple Pencil canvas
+in scope despite the research recommending against it (DECIDE-44 — he owns the exact hardware),
+and scoped it across his full active exam portfolio. Full architecture in `PLAN-024`, including a
+verified schema audit (no guessing) of all 6 attempt tables across 5 DBs.
+
+**No code was written this session.** Everything below is architecture, not implementation.
+
+**Read in order to resume:** `.knowledge/plans/PLAN-022.md` → `PLAN-023.md` → `PLAN-024.md`.
+Decisions logged as DECIDE-41 through DECIDE-48 in `MASTER_INDEX.md`.
+
+### Exact next step (S49 start here)
+Implement PLAN-024 Phase 1: five additive migrations (`model_revealed`/`revealed_at`/
+`input_mode` on `descriptive_attempts` ×3 DBs + `essay_attempts`; `ethics_attempts` already has
+the first two) + an attempt-history timeline UI per question. Do NOT start on BUG-035's DB
+cleanup or the canvas/vision-eval pipeline until Phase 1's migrations are confirmed working
+locally — see PLAN-024's build sequence for why the order matters (canvas needs Phase 1's
+`input_mode` column to exist first).
 
 ## 2026-08-30 — Cross-project data-provenance audit (read-only)
 
