@@ -1,6 +1,27 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
 **Session:** S49 → S50 | 2026-09-16 | Branch: `feature/attempt-flow-gs-eco` (not merged to main)
 
+## 2026-09-16 (S50, continued) — BUG-035 executed: 128 junk GS Mains rows deleted
+
+Rahul approved deletion explicitly. Re-verified all 128 gs1/gs2/gs3 rows (`source_type IS
+NULL`, untagged since PLAN-021) were still exactly as documented and still genuine junk before
+touching anything; checked all plausible dependent tables (model_answers, descriptive_attempts,
+question_rubrics, context_packages) — zero references, no orphan risk. Backed up all 128 rows
+(full columns) to the **new cross-project backup registry** at `~/.claude/backups/` (backup
+id #2) before deleting — see that tool's own docstring for query usage. Deleted; verified only
+gs4's 93 clean rows remain. Full detail: `.knowledge/bugs/BUG-035.md`.
+
+**New open item surfaced, not decided:** 12 separately-tagged-junk rows inside gs4 (YouTube
+links/nav headers, found in the 2026-08-30 audit) were confirmed still present and still junk,
+but were **not** deleted — outside the scope of what was actually approved. Needs its own
+explicit decision from Rahul before any action.
+
+**New reusable infra, cross-project (not specific to this repo):** `~/.claude/backups/` now
+holds a small stdlib-only SQLite-backed backup registry (`backup_tool.py`) any project can call
+before a destructive operation — `record` to back up + tag data with project/data_type/reason/
+context, `query`/`list`/`show` to find it again later. Use this for any future destructive
+change in any project, not just this one.
+
 ## 2026-09-16 (S50) — RISK-12 closed: attempt-submission flow for GS1-4 + Eco-Optional
 
 Extended PLAN-024 Phase 1's attempt-history pattern (S49) to the two surfaces it couldn't
