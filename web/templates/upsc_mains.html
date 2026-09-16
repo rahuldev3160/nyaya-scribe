@@ -119,6 +119,11 @@
     {{ q.question_text }}
   </p>
 
+  {# — Attempt link — #}
+  <a href="/upsc/mains/q/{{ qid }}" class="btn btn-sm btn-primary" style="margin-bottom:10px;display:inline-block;">
+    Attempt this question →
+  </a>
+
   {# — Key term chips — #}
   {% if q._key_terms %}
   <div style="margin-top:6px;">

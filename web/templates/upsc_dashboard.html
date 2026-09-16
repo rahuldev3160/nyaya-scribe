@@ -54,7 +54,7 @@
 <div>
   <!-- Primary action -->
   <div style="margin-bottom:1.25rem;">
-    <a href="/upsc/mains" class="btn btn-primary btn-block"
+    <a href="{% if first_topic_id %}/upsc/eco/{{ first_topic_id }}{% else %}/upsc{% endif %}" class="btn btn-primary btn-block"
        style="text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;">
       → Browse Model Answers
     </a>
@@ -66,7 +66,7 @@
     <div class="rec-card">
       <div class="rec-label">{{ rec_question.topic_label }} · {{ rec_question.year }} · {{ rec_question.marks }}m</div>
       <div class="rec-text">{{ rec_question.question_text[:150] }}…</div>
-      <a href="/upsc/quiz?topic={{ rec_question.topic_id }}" class="btn btn-primary btn-sm">Write Now →</a>
+      <a href="/upsc/eco/{{ rec_question.topic_id }}/q/{{ rec_question.question_id }}" class="btn btn-primary btn-sm">Write Now →</a>
     </div>
     {% endif %}
     <div class="stat-pills">
@@ -141,8 +141,8 @@
             {% if t._avg_score is not none %}· {{ "%.1f"|format(t._avg_score) }}{% endif %}
             <span style="color:{{'#F28B82' if t._color_indicator=='red' else '#81C995' if t._color_indicator=='green' else '#9AA0A6'}}">●</span>
           </span>
-          <a href="/upsc/mains?topic={{ t.topic_id }}" class="btn btn-sm">Study</a>
-          <a href="/upsc/mains?topic={{ t.topic_id }}" class="btn btn-sm btn-primary">Write</a>
+          <a href="/upsc/eco/{{ t.topic_id }}" class="btn btn-sm">Study</a>
+          <a href="/upsc/eco/{{ t.topic_id }}" class="btn btn-sm btn-primary">Write</a>
         </div>
 
       </div>

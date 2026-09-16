@@ -384,6 +384,9 @@ def create_app() -> Flask:
     from blueprints.upsc_dashboard_bp import upsc_dashboard_bp
     app.register_blueprint(upsc_dashboard_bp)
 
+    from blueprints.upsc_eco_bp import upsc_eco_bp
+    app.register_blueprint(upsc_eco_bp)
+
     from blueprints.essay_bp import essay_bp
     app.register_blueprint(essay_bp)
 

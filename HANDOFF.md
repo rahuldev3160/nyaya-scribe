@@ -1,5 +1,87 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S48 → S49 | 2026-09-16 | Branch: main
+**Session:** S49 → S50 | 2026-09-16 | Branch: `feature/attempt-flow-gs-eco` (not merged to main)
+
+## 2026-09-16 (S50, continued) — BUG-035 executed: 128 junk GS Mains rows deleted
+
+Rahul approved deletion explicitly. Re-verified all 128 gs1/gs2/gs3 rows (`source_type IS
+NULL`, untagged since PLAN-021) were still exactly as documented and still genuine junk before
+touching anything; checked all plausible dependent tables (model_answers, descriptive_attempts,
+question_rubrics, context_packages) — zero references, no orphan risk. Backed up all 128 rows
+(full columns) to the **new cross-project backup registry** at `~/.claude/backups/` (backup
+id #2) before deleting — see that tool's own docstring for query usage. Deleted; verified only
+gs4's 93 clean rows remain. Full detail: `.knowledge/bugs/BUG-035.md`.
+
+**Addendum (same session):** Rahul then approved clearing the 12 gs4 rows too (same junk
+pattern, from the 2026-08-30 audit, never part of the original BUG-035 decision text). Same
+process: verified via `sqlite3` CLI, checked dependents (0), backed up (registry id #3),
+deleted. `upsc_gs_mains` now holds exactly 81 rows — all real, all gs4, all `official_pyq`.
+gs1/gs2/gs3 are empty pending real re-sourcing (separate, not-yet-scoped task).
+
+**New reusable infra, cross-project (not specific to this repo):** `~/.claude/backups/` now
+holds a small stdlib-only SQLite-backed backup registry (`backup_tool.py`) any project can call
+before a destructive operation — `record` to back up + tag data with project/data_type/reason/
+context, `query`/`list`/`show` to find it again later. Use this for any future destructive
+change in any project, not just this one.
+
+## 2026-09-16 (S50) — RISK-12 closed: attempt-submission flow for GS1-4 + Eco-Optional
+
+Extended PLAN-024 Phase 1's attempt-history pattern (S49) to the two surfaces it couldn't
+reach: GS Mains and Eco-Optional. Both had zero attempt-submission route before this session
+— verified first, not assumed (per RISK-12).
+
+**Real surprise, changed the approach:** `descriptive_attempts` in `upsc_gs.db` and
+`upsc_eco_opt.db` already exist with the *exact* IES-shape schema, including
+`model_revealed`/`revealed_at`/`input_mode` from S49's own m067/m068 migrations — 0 rows in
+either table, completely dormant. **No new migration was needed at all.** Also found
+Eco-Optional already has a full 908-row `question_rubrics` table (rubric_points + key_terms,
+same shape IES uses) — so `_score_answer`-style scoring worked directly, no new rubric
+design required. GS Mains' own `question_rubrics` table exists but is empty for all 4
+papers (including gs4) — scoring degrades gracefully to "No rubric provided," same as IES
+already handles.
+
+**Built:**
+- `web/blueprints/upsc_bp.py` — added `/upsc/mains/q/<question_id>` (GET, detail + timeline)
+  and `/upsc/mains/q/<question_id>/submit` (POST) + `_score_gs_answer()` (copy of
+  `ies_quiz_bp._score_answer`'s forced-tool-use pattern, GS-flavored system prompt). Linked
+  from `upsc_mains.html`'s existing question cards ("Attempt this question →").
+- `web/blueprints/upsc_eco_bp.py` (new blueprint, registered in `app.py`) — `/upsc/eco/<topic_id>`
+  (question list per topic, was completely missing before — Eco-Optional only had a
+  topic-level dashboard) + `/upsc/eco/<topic_id>/q/<question_id>` (+`/submit`), same pattern.
+  New templates `upsc_eco_topic.html`, `upsc_eco_question.html`, `upsc_mains_question.html`.
+- Both use the existing `ai_scoring` feature gate (same one IES already shares) — did not add
+  a per-exam gate like Essay's `essay_eval`.
+- Neither has an explicit "reveal" button — matched IES/Essay's pattern (model answer always
+  shown), not Ethics's outlier explicit-reveal flow. `model_revealed`/`revealed_at` stay at
+  schema defaults (0/null); only `input_mode` (`'typed'`, matching IES/Essay's current live
+  behavior — photo-upload isn't wired into any submit route yet anywhere in this repo) is
+  meaningfully in play today.
+- **Bug found + fixed in passing (BUG-036):** `upsc_dashboard.html`'s Study/Write buttons and
+  `upsc_topic_state()`'s redirect pointed at `/upsc/mains` (GS Mains — wrong exam, wrong DB)
+  for Eco-Optional topics, a dead leftover from S46's exam_id fix. Now point at the new
+  `/upsc/eco/<topic_id>`. Without this fix the new Eco-Optional routes would have been
+  unreachable from the dashboard.
+- **BUG-035 handling:** gs1-3's PYQ bank is still scraper junk (unfixed, not this session's
+  job). Only `gs4_2025_q01` (gs4, real PYQ + real model answer) was used as the GS Mains test
+  fixture — gs1-3 rows were deliberately not used to validate the new route, so contamination
+  never silently passed as "tested."
+- Tests: `tests/conftest.py` (throwaway user/session + additive-only cleanup fixtures),
+  `tests/test_gs_mains_attempts.py`, `tests/test_eco_opt_attempts.py` — 11 tests, all against
+  real seeded rows (`gs4_2025_q01`, `upsc_p1_0001`) via Flask `test_client`. No test suite
+  existed before this session (0 → 11 passing). Run: `/opt/homebrew/bin/python3.11 -m pytest tests/ -v`.
+
+Logged as DECIDE-50 and RISK-12 (now RESOLVED) in `MASTER_INDEX.md`; BUG-036 in
+`.knowledge/INDEX.md`.
+
+**Not done, deliberately (out of scope per this session's brief):** BUG-035's actual cleanup,
+canvas/vision-eval (PLAN-024 step 2), any photo-upload wiring, any change to nyaya-core or
+Devthorium.
+
+### Exact next step (S51 start here)
+Branch `feature/attempt-flow-gs-eco` is uncommitted-to-main, not pushed — needs Rahul's PR
+review/approval before merging. After that: canvas + unified submit + vision eval (PLAN-024
+step 2) is still the next unblocked step in PLAN-024's own sequencing.
+
+---
 
 ## 2026-09-16 (S49) — PLAN-024 Phase 1 complete: migrations + attempt-history timeline UI
 
