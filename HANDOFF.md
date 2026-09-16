@@ -11,10 +11,11 @@ question_rubrics, context_packages) — zero references, no orphan risk. Backed 
 id #2) before deleting — see that tool's own docstring for query usage. Deleted; verified only
 gs4's 93 clean rows remain. Full detail: `.knowledge/bugs/BUG-035.md`.
 
-**New open item surfaced, not decided:** 12 separately-tagged-junk rows inside gs4 (YouTube
-links/nav headers, found in the 2026-08-30 audit) were confirmed still present and still junk,
-but were **not** deleted — outside the scope of what was actually approved. Needs its own
-explicit decision from Rahul before any action.
+**Addendum (same session):** Rahul then approved clearing the 12 gs4 rows too (same junk
+pattern, from the 2026-08-30 audit, never part of the original BUG-035 decision text). Same
+process: verified via `sqlite3` CLI, checked dependents (0), backed up (registry id #3),
+deleted. `upsc_gs_mains` now holds exactly 81 rows — all real, all gs4, all `official_pyq`.
+gs1/gs2/gs3 are empty pending real re-sourcing (separate, not-yet-scoped task).
 
 **New reusable infra, cross-project (not specific to this repo):** `~/.claude/backups/` now
 holds a small stdlib-only SQLite-backed backup registry (`backup_tool.py`) any project can call
