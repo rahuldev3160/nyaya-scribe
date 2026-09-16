@@ -1,5 +1,30 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S47 → S48 | 2026-09-02 | Branch: main
+**Session:** S48 → S49 | 2026-09-16 | Branch: main
+
+## 2026-09-16 (S49) — PLAN-024 Phase 1 migrations done, timeline UI needs a design decision
+
+Resumed PLAN-024 (paused since S48). Implemented the 5 additive migrations
+(`migrations/m066`-`m070`): `model_revealed`/`revealed_at`/`input_mode` on
+`descriptive_attempts` (ies/upsc_eco_opt/upsc_gs) and `essay_attempts` (upsc_gs);
+`input_mode` only on `ethics_attempts` (already had the other two from m046). Applied via
+`scripts/migrate.py`, verified via `PRAGMA table_info` on all 5 tables. Full detail:
+`.knowledge/plans/PLAN-024.md`'s Build sequence section.
+
+**Not done: the attempt-history timeline UI.** PLAN-024 never specified a route, page, or
+layout for it — only "per-question view of every past attempt, score, and whether the model
+answer had been seen." This needs Rahul's input (dedicated page vs. mounted on existing
+per-exam detail templates like `essay_detail.html`; one shared component vs. per-exam) before
+building — do not guess the shape and build it, ask first.
+
+**Explicitly not started, per PLAN-024's own sequencing:** BUG-035's DB cleanup (step 4) and
+the canvas/vision-eval pipeline (step 2, which itself depends on `input_mode` now existing) —
+both correctly wait until Phase 1's UI half is also done.
+
+### Exact next step (S50 start here)
+Get Rahul's decision on the timeline UI's shape (see above), then build it. Canvas/vision-eval
+(PLAN-024 step 2) is unblocked schema-wise now but still sequenced after the UI.
+
+---
 
 ## 2026-09-02 (S48) — Personal-first pivot: planning only, nothing built yet
 
