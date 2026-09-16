@@ -1,5 +1,101 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S50 → S51 | 2026-09-17 | Branch: `feature/ingest-gs2-pyqs` (not merged to main)
+**Session:** S51 → S52 | 2026-09-17 | Branch: `feature/repair-eco-optional-gaps` (not merged to main, branched off `main`)
+
+## 2026-09-17 (S52) — Eco-Optional PYQ gap repair: 135 real sub-parts recovered, 2021-2025
+
+A same-day read-only audit found `upsc_eco_opt.db`'s `pyq_questions` was ~48% incomplete for
+every checkable year (2021-2025) against the real 28-lettered-sub-part exam structure (Q1/Q5
+compulsory, 5 sub-parts a-e each @ 10m; Q2/Q3/Q4/Q6/Q7/Q8, 3 sub-parts a/b/c each). This
+session filled the gap from real source material only — **no fabricated question was
+inserted.**
+
+**Method (per Rahul's verify-before-building rule):** OCR'd all 10 official scanned booklets
+at `~/Desktop/UPSC/Mains/Optional/Economics/PYQs_paper{1,2}/{2021..2025}.pdf` via
+`pdftoppm -r 400` → `tesseract --psm 6` (both already on the machine; OCR quality on the
+English half of every bilingual paper was excellent — only the Hindi column, never used, OCR'd
+poorly). For every one of the 10 paper-years, independently transcribed the full Q1-Q8 (all
+lettered sub-parts) from the OCR text, then cross-matched **by question content, not just
+count** against the DB's existing rows to derive the exact missing list myself — did not
+blindly trust the audit's summary numbers. All 10 derivations matched the audit's per-year
+totals; the itemized missing lists for 2024 (both papers) matched the audit's own provided
+list exactly.
+
+**Exact before → after counts** (all rows verified present in DB after insert):
+
+| Paper | Year | Before | Missing (recovered) | After |
+|---|---|---|---|---|
+| P1 | 2021 | 24 | 4 | 28 |
+| P1 | 2022 | 6 | 22 | 28 |
+| P1 | 2023 | 12 | 16 | 28 |
+| P1 | 2024 | 16 | 12 | 28 |
+| P1 | 2025 | 6 | 23 | 29* |
+| P2 | 2021 | 24 | 4 | 28 |
+| P2 | 2022 | 15 | 13 | 28 |
+| P2 | 2023 | 22 | 6 | 28 |
+| P2 | 2024 | 17 | 11 | 28 |
+| P2 | 2025 | 4 | 24 | 28 |
+
+*P1 2025 lands at 29, not 28 — a pre-existing row-granularity quirk (Q4(b)'s two numbered
+sub-items were already split across 2 existing rows before this session; not touched, not
+duplicated). All 28 distinct lettered sub-parts are now covered across those 29 rows.
+
+**Total: 135 real recovered sub-parts inserted** (audit's original estimate was ~134 —
+the 1 extra is that same P1-2025 row-splitting artifact, already flagged as a separate,
+out-of-scope systemic issue). **0 unrecoverable** — OCR quality on every English question was
+clean enough to transcribe with confidence; nothing was skipped for illegibility.
+
+**Real surprise (worth flagging):** P2 2022's Q7(a) ("Critically examine the various poverty
+alleviation programmes in India since 1970's") had **no clean year=2022 row** — but its exact
+text was already sitting in the DB, silently concatenated onto the front of an existing
+year=2021 row (`upsc_p2_0137`), a leftover parsing artifact from the original ecoholics
+ingestion (visible as a stray `(2022)` marker mid-string in that row's text). Left `0137`
+untouched (out of scope, pre-existing, not a 2021-2025 *insert* target) and added a clean
+new year=2022 row for the same real text.
+
+**New rows:** `upsc_p1_0503`–`upsc_p1_0579` (77 rows) and `upsc_p2_0438`–`upsc_p2_0495`
+(58 rows), continuing the existing sequential id convention (same approach as
+`scripts/upsc/03_ingest_pyq_ecoholics.py`'s `ingest_paper()`). Schema fields: `marks`,
+`answer_length`, `key_concepts`, `subtopic_id` left NULL (matches the existing
+majority-NULL convention — fixing that systemic gap is explicitly out of scope this
+session). `topic_id` assigned to the best-fit existing **top-level** topic per paper (never
+invented; cross-checked against `topics WHERE topic_level='topic'`), following the same
+subject-matter judgment the original ecoholics topic-PDF split used. `question_hash` =
+sha256 of whitespace-normalized lowercase text, verified zero collisions against the full
+908+135=1043-row table.
+
+**Backup:** pre-repair snapshot of all 146 existing 2021-2025 rows (both papers) recorded via
+`~/.claude/backups/backup_tool.py` — **backup id #7**,
+`~/.claude/backups/data/Descriptive-exams/20260916_223824__eco_optional_2021_2025_pre_repair.json`.
+Diffed all 146 rows post-insert against this backup: **0 changed, 0 missing** — confirmed
+purely additive.
+
+**Tests:** `tests/test_eco_optional_repair_2021_2025.py` (7 new) — exact per-year totals,
+135-row count split correctly 77/58 by paper, sample new rows queryable by exact text, all
+new `topic_id`s are valid top-level topics, zero duplicate `question_hash` table-wide, a
+newly-inserted row actually renders through the live `/upsc/eco/<topic_id>` and
+`/upsc/eco/<topic_id>/q/<question_id>` routes (regression guard for a BUG-036-style silent
+unreachability), and a scope guard confirming `upsc_eco_opt.db`'s `pyq_questions` holds only
+`upsc_eco_opt` rows (gs1-4 untouched, different DB entirely). Full suite:
+**26/26 passing** (19 pre-existing + 7 new), up from 19/19 before this session.
+
+**Explicitly NOT fixed this session (flagged, out of scope per brief):**
+- 93% of all 1043 `pyq_questions` rows still have NULL `marks` (systemic, pre-existing,
+  affects gs/ies/rbi too — separate task).
+- 55 rows in `upsc_p2` still have `year=0` (pre-existing, separate task).
+- Row-granularity inconsistency (some multi-part answers split across 2 DB rows for one
+  printed letter, e.g. P1 2025 Q4(b)) — not normalized, not touched on existing rows.
+- `upsc_p2_0137`'s garbled 2021/2022 text concatenation — pre-existing, not touched (see
+  surprise above).
+- Nothing pushed to Railway, `.env`/git config untouched, no changes to gs1-4 or
+  nyaya-core/Devthorium.
+
+### Exact next step (S52/S53 start here)
+This branch (`feature/repair-eco-optional-gaps`) needs Rahul's review/approval before
+merging to main (same pending-PR pattern as `feature/attempt-flow-gs-eco` and
+`feature/ingest-gs2-pyqs`, both still separately unmerged from S50/S51 — this branch does
+not touch either of those areas). After that: the NULL-marks and year=0 systemic issues
+flagged above are natural next targets if Rahul wants them fixed; otherwise resume wherever
+S51 left off (gs1/gs3 re-sourcing or canvas/vision-eval, PLAN-024 step 2).
 
 ## 2026-09-17 (S51) — GS2 PYQ re-ingestion: 200 real questions, 2016-2025 (BUG-035 gs2 re-sourcing)
 
