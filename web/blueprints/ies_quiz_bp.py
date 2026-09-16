@@ -238,6 +238,29 @@ def quiz():
     _, quota_reason = can_use_feature(g.user_id, "ai_scoring") if g.user_id else (False, "not_enabled")
     ai_usage = get_monthly_usage(g.user_id, "ai_scoring") if g.user_id else 0
 
+    history_rows = conn.execute(
+        """SELECT weighted_score, created_at, model_revealed, revealed_at, input_mode
+           FROM descriptive_attempts
+           WHERE user_id=? AND question_id=?
+           ORDER BY created_at DESC""",
+        (g.user_id, qid),
+    ).fetchall()
+    attempts = [
+        {
+            # weighted_score is 0-10 (see ies_quiz.html's "/10" display) -- rescaled to a
+            # 0-100 percentage for score_value so the shared partial's colour thresholds
+            # (calibrated against essay_attempts' 0-100 ai_score_overall) stay valid across
+            # every caller. score_label keeps the native /10 format for accurate display.
+            "score_value": r["weighted_score"] * 10 if r["weighted_score"] is not None else None,
+            "score_label": f"{r['weighted_score']:.1f}/10" if r["weighted_score"] is not None else "Not scored",
+            "timestamp": r["created_at"],
+            "model_revealed": bool(r["model_revealed"]),
+            "revealed_at": r["revealed_at"],
+            "input_mode": r["input_mode"] or "typed",
+        }
+        for r in history_rows
+    ]
+
     return render_template(
         "ies_quiz.html",
         active_page="quiz",
@@ -257,6 +280,7 @@ def quiz():
         rubric_pts=rubric_pts,
         total_qs=len(all_qs),
         attempt=attempt,
+        attempts=attempts,
         quota_reason=quota_reason,
         ai_usage=ai_usage,
     )

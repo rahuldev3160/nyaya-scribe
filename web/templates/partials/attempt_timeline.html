@@ -1,0 +1,33 @@
+{#
+  Shared attempt-history timeline (PLAN-024 Phase 1). One include, reused across every
+  exam's question-detail page — Essay, Ethics, IES today; GS1-4/Eco-Optional once they have
+  a live attempt-submission flow to hang it off (see HANDOFF.md, S49).
+
+  Caller passes `attempts`: a list of dicts, newest first, each shaped:
+    { score_value: float|None, score_label: str, timestamp: str,
+      model_revealed: bool, revealed_at: str|None, input_mode: str }
+  score_value is None for ethics_attempts (self-rated, no AI score) — the numeric badge is
+  simply omitted in that case, score_label still shows the self-rating.
+#}
+{% if attempts %}
+<div class="gem-card" style="margin-bottom:1.25rem;">
+  <div class="score-label" style="margin-bottom:12px;">Attempt History ({{ attempts|length }})</div>
+  <div style="max-height:280px;overflow-y:auto;scrollbar-width:thin;">
+    {% for a in attempts %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;{% if not loop.last %}border-bottom:1px solid #3A3A3C;{% endif %}">
+      <div>
+        <div style="font-size:0.85rem;color:#E8EAED;font-weight:600;">{{ a.score_label }}</div>
+        <div class="metric-label" style="margin-top:2px;">
+          {{ a.timestamp }} &middot; {{ a.input_mode|capitalize }}{% if a.model_revealed %} &middot; Model answer seen{% endif %}
+        </div>
+      </div>
+      {% if a.score_value is not none %}
+      <div style="font-size:1.1rem;font-weight:800;color:{% if a.score_value >= 80 %}#81C995{% elif a.score_value >= 60 %}#FDD663{% else %}#F28B82{% endif %};">
+        {{ a.score_value|round|int }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

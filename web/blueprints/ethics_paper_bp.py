@@ -171,6 +171,7 @@ def ethics_question(paper_id, question_id):
             question=None,
             model_answer=None,
             prev_attempt=None,
+            attempts=[],
             paper_id=paper_id,
             submitted=False,
             error="Question not found.",
@@ -240,13 +241,24 @@ def ethics_question(paper_id, question_id):
         model_answer["_thinkers_cited"] = _jl(model_answer.get("thinkers_cited"))
         model_answer["_frameworks_used"] = _jl(model_answer.get("frameworks_used"))
 
-    prev_attempt_row = conn.execute(
+    history_rows = conn.execute(
         """SELECT * FROM ethics_attempts
            WHERE user_id=? AND question_id=?
-           ORDER BY submitted_at DESC LIMIT 1""",
+           ORDER BY submitted_at DESC""",
         (g.user_id, question_id),
-    ).fetchone()
-    prev_attempt = dict(prev_attempt_row) if prev_attempt_row else None
+    ).fetchall()
+    attempts = [
+        {
+            "score_value": None,
+            "score_label": f"Self-rated: {r['self_rating']}" if r["self_rating"] else "Not self-rated",
+            "timestamp": r["submitted_at"],
+            "model_revealed": bool(r["model_revealed"]),
+            "revealed_at": r["revealed_at"],
+            "input_mode": r["input_mode"] or "typed",
+        }
+        for r in history_rows
+    ]
+    prev_attempt = dict(history_rows[0]) if history_rows else None
 
     submitted = request.args.get("submitted") == "1"
 
@@ -256,6 +268,7 @@ def ethics_question(paper_id, question_id):
         question=question,
         model_answer=model_answer,
         prev_attempt=prev_attempt,
+        attempts=attempts,
         paper_id=paper_id,
         submitted=submitted,
         error=None,

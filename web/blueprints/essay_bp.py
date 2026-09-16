@@ -318,6 +318,7 @@ def essay_detail(essay_id: str):
             essay=None,
             answer=None,
             dimension_entries=[],
+            attempts=[],
             error="Essay database not found.",
         )
 
@@ -337,6 +338,7 @@ def essay_detail(essay_id: str):
             essay=None,
             answer=None,
             dimension_entries=[],
+            attempts=[],
             error="Essay question not found.",
         )
 
@@ -379,6 +381,25 @@ def essay_detail(essay_id: str):
             score_data = _jd(attempt_row["ai_score_json"])
             score_data["word_count"] = attempt_row["word_count"]
 
+    history_rows = g.upsc_gs_conn.execute(
+        """SELECT ai_score_overall, submitted_at, model_revealed, revealed_at, input_mode
+           FROM essay_attempts
+           WHERE essay_id=? AND user_id=?
+           ORDER BY submitted_at DESC""",
+        (essay_id, g.user_id),
+    ).fetchall()
+    attempts = [
+        {
+            "score_value": r["ai_score_overall"],
+            "score_label": f"{r['ai_score_overall']:.0f}/100" if r["ai_score_overall"] is not None else "Not scored",
+            "timestamp": r["submitted_at"],
+            "model_revealed": bool(r["model_revealed"]),
+            "revealed_at": r["revealed_at"],
+            "input_mode": r["input_mode"] or "typed",
+        }
+        for r in history_rows
+    ]
+
     return render_template(
         "essay_detail.html",
         active_page="upsc_essay",
@@ -387,6 +408,7 @@ def essay_detail(essay_id: str):
         dimension_entries=dimension_entries,
         submitted=submitted,
         score_data=score_data,
+        attempts=attempts,
         error=None,
     )
 
