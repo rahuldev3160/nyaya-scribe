@@ -1,28 +1,42 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
 **Session:** S48 → S49 | 2026-09-16 | Branch: main
 
-## 2026-09-16 (S49) — PLAN-024 Phase 1 migrations done, timeline UI needs a design decision
+## 2026-09-16 (S49) — PLAN-024 Phase 1 complete: migrations + attempt-history timeline UI
 
-Resumed PLAN-024 (paused since S48). Implemented the 5 additive migrations
-(`migrations/m066`-`m070`): `model_revealed`/`revealed_at`/`input_mode` on
-`descriptive_attempts` (ies/upsc_eco_opt/upsc_gs) and `essay_attempts` (upsc_gs);
-`input_mode` only on `ethics_attempts` (already had the other two from m046). Applied via
-`scripts/migrate.py`, verified via `PRAGMA table_info` on all 5 tables. Full detail:
-`.knowledge/plans/PLAN-024.md`'s Build sequence section.
+Resumed PLAN-024 (paused since S48). **Migrations** (`migrations/m066`-`m070`):
+`model_revealed`/`revealed_at`/`input_mode` on `descriptive_attempts` (ies/upsc_eco_opt/
+upsc_gs) and `essay_attempts` (upsc_gs); `input_mode` only on `ethics_attempts` (already had
+the other two from m046). Applied via `scripts/migrate.py`, verified via `PRAGMA table_info`.
 
-**Not done: the attempt-history timeline UI.** PLAN-024 never specified a route, page, or
-layout for it — only "per-question view of every past attempt, score, and whether the model
-answer had been seen." This needs Rahul's input (dedicated page vs. mounted on existing
-per-exam detail templates like `essay_detail.html`; one shared component vs. per-exam) before
-building — do not guess the shape and build it, ask first.
+**Timeline UI** — Rahul's decision: mounted on existing question-detail pages, one shared
+component. Built `web/templates/partials/attempt_timeline.html` (this repo's first
+cross-blueprint reusable template) and mounted it on `essay_detail.html`,
+`ethics_question.html`, `ies_quiz.html`. Each blueprint fetches full attempt history
+(previously only the latest attempt was ever queried) and normalizes per-table score
+differences (essay 0-100, IES 0-10 rescaled, ethics self-rated/no AI score) before handing a
+consistent shape to the shared partial. Verified end-to-end via Flask `test_client` with
+seeded attempt rows (200 responses, timeline block present and correctly populated, colour
+thresholds correct post-rescale) — no automated test suite exists in this repo to run instead.
 
-**Explicitly not started, per PLAN-024's own sequencing:** BUG-035's DB cleanup (step 4) and
-the canvas/vision-eval pipeline (step 2, which itself depends on `input_mode` now existing) —
-both correctly wait until Phase 1's UI half is also done.
+**Real gap surfaced, not fixed here:** GS1-4 and Eco-Optional have no live
+attempt-submission route at all (verified by reading the actual blueprints, not assumed) —
+GS Mains' `mains()` route only reads `pyq_questions`/`model_answers`, never writes/reads
+`descriptive_attempts`; Eco-Optional has no per-question detail route, only a topic
+dashboard. So neither could get a timeline mounted today. This is a separate, larger gap
+(building the submission flow itself) than anything PLAN-024 Phase 1 scoped — flagged for a
+future session, not silently dropped.
+
+Full detail: `.knowledge/plans/PLAN-024.md`'s Build sequence section.
+
+**PLAN-024 Phase 1 is now fully done.** Canvas/vision-eval (step 2) is unblocked
+schema-wise (`input_mode` exists everywhere it needs to) and is next per PLAN-024's own
+sequencing, ahead of BUG-035's cleanup (step 4) and topper-grounded generation (step 3,
+still gated on sourcing).
 
 ### Exact next step (S50 start here)
-Get Rahul's decision on the timeline UI's shape (see above), then build it. Canvas/vision-eval
-(PLAN-024 step 2) is unblocked schema-wise now but still sequenced after the UI.
+Canvas + unified submit + vision eval (PLAN-024 step 2) — the next unblocked step in
+PLAN-024's build sequence. Separately, decide whether to build GS1-4/Eco-Optional's missing
+attempt-submission flow (see gap above) before or after canvas.
 
 ---
 

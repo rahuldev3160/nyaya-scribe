@@ -80,15 +80,14 @@ assumed here.
 1. **Schema** — 5 additive migrations (model_revealed/revealed_at/input_mode, matching Ethics's
    existing pattern) + attempt-history timeline UI (per-question view of every past attempt,
    score, and whether the model answer had been seen).
-   **Migrations DONE 2026-09-16** (`migrations/m066`-`m070`): `descriptive_attempts` on
+   **Phase 1 DONE 2026-09-16.** Migrations (`migrations/m066`-`m070`): `descriptive_attempts` on
    ies/upsc_eco_opt/upsc_gs, `essay_attempts` on upsc_gs, and `input_mode` added to
    `ethics_attempts` (which already had `model_revealed`/`revealed_at` from m046). Verified via
    `scripts/migrate.py` + `PRAGMA table_info` on all 5 tables. The "5 migrations" count wasn't
    explicit anywhere before this — it resolves to 4 full 3-column migrations + 1 partial
-   (ethics_attempts). **Attempt-history timeline UI not yet built** — no route/layout/component
-   spec exists anywhere in this plan; needs a decision before building (dedicated page vs. mounted
-   on existing per-exam detail templates; one shared component vs. per-exam, matching the "one
-   shared mechanic" principle used for canvas below).
+   (ethics_attempts). Timeline UI: Rahul decided mounted-on-existing-pages, one shared component
+   — `web/templates/partials/attempt_timeline.html`, mounted on Essay/Ethics/IES (the 3 surfaces
+   with a live attempt flow; GS1-4/Eco-Optional have none yet, separate gap, see HANDOFF.md).
 2. **Canvas + unified submit + vision eval** — delivers native S Pen/Apple Pencil input and
    photo-upload together, since they share one pipeline.
 3. **Topper-grounded generation** — gated on sourcing (see below).
