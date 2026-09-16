@@ -1,5 +1,73 @@
 # Handoff — Nyaya Scribe (Descriptive Exams)
-**Session:** S49 → S50 | 2026-09-16 | Branch: `feature/attempt-flow-gs-eco` (not merged to main)
+**Session:** S50 → S51 | 2026-09-17 | Branch: `feature/ingest-gs2-pyqs` (not merged to main)
+
+## 2026-09-17 (S51) — GS2 PYQ re-ingestion: 200 real questions, 2016-2025 (BUG-035 gs2 re-sourcing)
+
+BUG-035 (S50) left gs1/gs2/gs3 empty after deleting 140 scraper-junk rows. A same-day discovery
+pass found a real, already-transcribed compilation for gs2 specifically:
+`~/Downloads/upsc-gs2-pyq-compilation.docx` — this session ingested it. gs1/gs3 remain empty
+(no source found yet, still tracked separately, not touched this session).
+
+**Source verification (done before writing any parser, no python-docx available anywhere
+locally — read via stdlib `zipfile` + `xml.etree`):** the docx is 100% table-based, 10 Word
+tables (one per year, 2025→2016 in document order), each with a header row + 20 question rows
+(Q. No. / question text / marks / word limit). Spot-checked word-for-word against the real
+scanned UPSC papers at `~/Desktop/UPSC/Mains/GS2/PYQs/UPSC_GS2_*.pdf`: **2016 all 20/20
+questions, 2025 Q1-14, 2020 Q1-4 — all matched exactly**, including 2016's outlier marking
+scheme (12.5 marks × 20, 200-word limit, vs. 2017-2025's 10/15-mark × 20, 150/250-word
+pattern) — confirms the docx is a faithful, complete transcription, no fabrication risk.
+
+**Ingested:** `scripts/ingest_gs2_pyqs_docx.py` (new, additive-only, refuses to run if gs2
+already has rows) — 200 rows, exactly 20 per year 2016-2025, all `source_type='official_pyq'`,
+`exam_id='upsc_gs_mains'`, `paper_id='gs2'`, `question_id` following gs4's existing
+`gs2_<year>_q<NN>` convention. marks/answer_length taken verbatim from the source cell, never
+guessed (2016's `12.5`/`'200 words'` preserved exactly, not normalized to the later years'
+pattern).
+
+**Topic assignment — real surprise, judgment call flagged for Rahul:** GS2's `topics` table
+was already fully seeded (7 top-level topics + subtopics, pre-existing). Started from the
+shared `scripts/seed_upsc_gs_pyqs.py`'s `KEYWORD_TOPIC_MAP` (same one already used for gs4's
+81 rows) — but it alone left 96/200 (48%) of real GS2 questions unmatched, all dumped into a
+single fallback bucket (`gs2_constitution`), because UPSC's actual phrasing often doesn't hit
+the shared map's keywords verbatim (e.g. "Comptroller and Auditor General" without "(CAG)",
+"Non-Governmental Organizations" not containing the substring "ngo", "Article 356" not
+matching "art 356"). Added a GS2-specific supplementary keyword layer (`GS2_SUPPLEMENT` /
+`GS2_SUPPLEMENT_TOKENS` in the new script, applied only when the shared map returns nothing,
+manually derived by reading all 96 originally-unmatched questions) that cut the true fallback
+rate to 3/200 (1.5%) — and those 3 are themselves a reasonable constitution-topic fit
+(Financial Emergency/Art 360, Right of Movement/Art 19, one genuinely generic
+governance-discourse question). Final distribution: constitution 34, governance 41, ir 40,
+social_justice 33, parliament_exec 27, judiciary 12, federalism 13 — all 7 are pre-existing
+top-level `topics` rows, no new topic_id invented.
+
+**Bug found and fixed during ingestion (not yet filed as a numbered BUG — flagging here):**
+the *shared* `KEYWORD_TOPIC_MAP` itself (not just this session's supplement) targets a
+subtopic id, `gs2_fed_panchayati` (`topic_level='subtopic'`), for panchayat/ULB keywords. But
+`upsc_bp.py`'s `_get_topics()` only lists `topic_level='topic'` rows in the `/upsc/mains`
+browse dropdown — so any question left tagged with a subtopic id would be real data but
+unreachable from the normal UI flow. This was never caught before because gs2 had zero real
+rows prior to this session (gs1-3 were scraper junk since inception). Added a normalization
+step in the new script (`build_rows()`) that resolves any subtopic-level assignment up to its
+parent top-level topic_id, regardless of which map produced it — 4 of the 200 rows needed
+this. Worth fixing in the shared script too if gs1/gs3 are ever re-sourced with real data.
+
+**Tests:** `tests/test_gs2_pyq_ingestion.py` (8 new tests) — exact per-year counts, no
+fabricated marks/word-limit, 2016's outlier marking scheme preserved, all topic_ids
+dropdown-reachable (regression test for the bug above), sample-row text matches the
+hand-verified source exactly, gs1/gs3/gs4 untouched, and the existing `/upsc/mains?paper=gs2`
++ `/upsc/mains/q/<id>` routes actually surface and render the new rows — no code changes were
+needed in `upsc_bp.py` itself. Full suite: **19/19 passing** (11 pre-existing + 8 new).
+
+**Not done, deliberately (out of scope per this session's brief):** gs1/gs3 re-sourcing (no
+real source found yet — separate task), gs4 untouched, no model answers/rubrics generated for
+the new gs2 rows (separate task, same backlog item BUG-035 already noted for gs4), nothing
+pushed to Railway or committed to main — local-only, on `feature/ingest-gs2-pyqs`.
+
+### Exact next step (S52 start here)
+Either: (a) merge `feature/ingest-gs2-pyqs` after Rahul's review, or (b) find/verify a real
+source for gs1/gs3 the same way this session did for gs2, or (c) generate model answers for
+gs2's 200 real PYQs (same pipeline already used for gs4). `feature/attempt-flow-gs-eco`
+(S50) is still separately unmerged and unrelated to this branch.
 
 ## 2026-09-16 (S50, continued) — BUG-035 executed: 128 junk GS Mains rows deleted
 
