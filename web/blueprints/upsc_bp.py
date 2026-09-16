@@ -190,7 +190,17 @@ def mains():
 
     topics = _get_topics(g.upsc_gs_conn, paper)
     topic_opts = {t["topic_id"]: t["topic_name"] for t in topics}
-    default_topic = topics[0]["topic_id"] if topics else None
+    topics_with_questions = {
+        r["topic_id"]
+        for r in g.upsc_gs_conn.execute(
+            "SELECT DISTINCT topic_id FROM pyq_questions WHERE exam_id=? AND paper_id=?",
+            (_EXAM_ID, paper),
+        ).fetchall()
+    }
+    default_topic = next(
+        (t["topic_id"] for t in topics if t["topic_id"] in topics_with_questions),
+        topics[0]["topic_id"] if topics else None,
+    )
     topic_id = request.args.get("topic", default_topic)
 
     # If topic_id given but not in current paper, auto-detect the correct paper
