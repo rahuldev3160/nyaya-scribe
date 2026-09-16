@@ -232,6 +232,7 @@ def upsc_dashboard_page():
     topics_by_paper = {}
     for t in all_topics:
         topics_by_paper.setdefault(t["paper_id"], []).append(t)
+    first_topic_id = all_topics[0]["topic_id"] if all_topics else None
     state_counts = {}
     for t in all_topics:
         s = t["state"] or "UNVISITED"
@@ -326,6 +327,7 @@ def upsc_dashboard_page():
         rec_question=rec_question,
         readiness_score=readiness_score,
         daily_done=daily_done,
+        first_topic_id=first_topic_id,
     )
 
 
@@ -337,10 +339,8 @@ def upsc_topic_state(topic_id):
     if new_state in VALID and g.upsc_conn:
         _set_state(g.upsc_conn, g.user_id, topic_id, new_state)
     if new_state == "IN_STUDY":
-        paper_row = g.upsc_conn.execute(
-            "SELECT paper_id FROM topics WHERE topic_id=? AND exam_id=? AND topic_level='topic'",
-            (topic_id, UPSC_EXAM_ID),
-        ).fetchone() if g.upsc_conn else None
-        paper_param = f"&paper={paper_row['paper_id']}" if paper_row else ""
-        return redirect(url_for("upsc.mains") + f"?topic={topic_id}{paper_param}")
+        # Previously redirected into upsc.mains (GS Mains, a different exam/DB entirely —
+        # a leftover from before the S46 GS-Mains-vs-Eco-Optional exam_id bug was fixed).
+        # Eco-Optional now has its own per-topic question list; route there instead.
+        return redirect(url_for("upsc_eco.eco_topic", topic_id=topic_id))
     return redirect(url_for("upsc_dashboard.upsc_dashboard_page") + "#upsc-papers")

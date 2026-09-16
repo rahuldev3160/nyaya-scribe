@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Eco Optional Question · Nyaya Scribe{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:12px;">
+  <a href="/upsc/eco/{{ topic_id }}" style="font-size:0.82rem;color:#9AA0A6;text-decoration:none;">← Topic</a>
+</div>
+
+{% if error %}
+<div class="info-box">
+  <span style="color:#F28B82;">{{ error }}</span>
+</div>
+{% else %}
+
+<div class="gem-card-accent" style="margin-bottom:16px;">
+  <div style="margin-bottom:10px;">
+    {% if question.year %}<span class="chip">{{ question.year }}</span>{% endif %}
+    <span class="chip chip-purple" style="margin-left:6px;">
+      {{ question.marks }}{% if question.marks %} marks{% else %}marks unknown{% endif %}
+    </span>
+    <span class="chip" style="margin-left:6px;">{{ (question.paper_id or '')|upper }}</span>
+  </div>
+  <div style="font-size:1.05rem;line-height:1.65;color:#E8EAED;">{{ question.question_text }}</div>
+  <div style="margin-top:12px;">
+    <span style="font-size:0.72rem;color:#9AA0A6;margin-right:8px;">Word guide:</span>
+    <span class="chip">Intro ~{{ wc[0] }}w</span>
+    <span class="chip chip-purple" style="margin-left:4px;">Body ~{{ wc[1] }}w</span>
+    <span class="chip chip-green" style="margin-left:4px;">Conclusion ~{{ wc[2] }}w</span>
+  </div>
+</div>
+
+{% include "partials/attempt_timeline.html" %}
+
+{% if rubric_pts %}
+<details style="margin-bottom:16px;">
+  <summary style="cursor:pointer;color:#8AB4F8;font-size:0.88rem;padding:8px 0;">
+    Scoring hints (rubric — {{ rubric_pts|length }} points)
+  </summary>
+  <div style="padding:8px 0;">
+    {% for rp in rubric_pts %}
+    <div style="padding:3px 0;font-size:0.85rem;">
+      {% if rp is mapping %}{{ rp.point or rp.text or rp }}{% else %}{{ rp }}{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}
+
+{% if attempt %}
+<div style="background:#81C99515;border:1px solid #81C99544;border-radius:8px;padding:10px 16px;margin-bottom:16px;">
+  <span style="color:#81C995;font-weight:700;">Answer submitted</span>
+  <span style="color:#9AA0A6;font-size:0.85rem;margin-left:8px;">Compare below</span>
+</div>
+
+<div class="dash-2col" style="gap:16px;margin-bottom:16px;">
+  <div class="gem-card" style="padding:16px;">
+    <div class="section-header" style="color:#FDD663;margin-bottom:12px;">Your Answer</div>
+    {% if attempt.user_answer_intro %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Introduction</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;white-space:pre-wrap;">{{ attempt.user_answer_intro }}</div>
+    {% endif %}
+    {% if attempt.user_answer_body %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Body</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;white-space:pre-wrap;">{{ attempt.user_answer_body }}</div>
+    {% endif %}
+    {% if attempt.user_answer_conclusion %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Conclusion</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;white-space:pre-wrap;">{{ attempt.user_answer_conclusion }}</div>
+    {% endif %}
+  </div>
+
+  <div class="gem-card" style="padding:16px;border-color:rgba(138,180,248,0.3);">
+    <div class="section-header" style="color:#8AB4F8;margin-bottom:12px;">Model Answer</div>
+    {% if model_answer %}
+    {% if model_answer.intro_text %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Introduction</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;">{{ model_answer.intro_text }}</div>
+    {% endif %}
+    {% if model_answer.body_text %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Body</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;margin-bottom:12px;">{{ model_answer.body_text }}</div>
+    {% endif %}
+    {% if model_answer.conclusion_text %}
+    <div style="font-size:0.75rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Conclusion</div>
+    <div style="font-size:0.88rem;line-height:1.6;color:#E8EAED;">{{ model_answer.conclusion_text }}</div>
+    {% endif %}
+    {% else %}
+    <p style="color:#9AA0A6;font-size:0.85rem;">Model answer not yet generated for this question.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if attempt._scores %}
+<div class="ai-score-block" style="margin-top:16px;padding:14px;background:#1e2127;border-radius:8px;border-left:3px solid #8AB4F8;">
+  <div style="font-size:0.8rem;color:#9AA0A6;margin-bottom:8px;">AI Evaluation · {{ attempt._scores.weighted_score }}/10</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+    {% set dim_labels = {"content_accuracy":"Content","structure":"Structure","analytical_depth":"Depth","evidence":"Evidence","language":"Language"} %}
+    {% for key, label in dim_labels.items() %}
+    {% set score = attempt._scores.dimensions[key] %}
+    <div style="flex:1;min-width:90px;text-align:center;padding:6px 8px;background:#2a2d35;border-radius:6px;">
+      <div style="font-size:1rem;font-weight:700;color:{{'#81C995' if score>=7 else '#FDD663' if score>=5 else '#F28B82'}}">{{ score }}</div>
+      <div style="font-size:0.65rem;color:#9AA0A6">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if attempt._scores.feedback %}
+  <div style="font-size:0.78rem;color:#BDC1C6;font-style:italic;">{{ attempt._scores.feedback }}</div>
+  {% endif %}
+</div>
+{% elif attempt %}
+<div style="font-size:0.75rem;color:#9AA0A6;margin-top:10px;">
+  {% if quota_reason == 'quota_exhausted' %}
+  AI evaluation quota used (15/month). <a href="/upgrade" style="color:#8AB4F8;">Upgrade</a> for unlimited.
+  {% elif quota_reason == 'not_enabled' %}
+  AI evaluation not available on your plan.
+  {% else %}
+  AI evaluation unavailable — answer may be too short or API key missing.
+  {% endif %}
+</div>
+{% endif %}
+
+<div style="margin-top:12px;">
+  <a class="btn btn-primary" style="display:inline-block;text-align:center;padding:10px 16px;"
+     href="/upsc/eco/{{ topic_id }}/q/{{ question.question_id }}">↩ Attempt again</a>
+</div>
+
+{% else %}
+
+<form method="POST" action="/upsc/eco/{{ topic_id }}/q/{{ question.question_id }}/submit" id="eco-form">
+  <div class="gem-card" style="margin-bottom:16px;">
+    <div class="section-header" style="color:#8AB4F8;margin-bottom:8px;">Introduction</div>
+    <textarea name="intro" placeholder="~{{ wc[0] }} words" style="height:100px;resize:vertical;"></textarea>
+
+    <div class="section-header" style="color:#C084FC;margin-top:16px;margin-bottom:8px;">Body</div>
+    <textarea name="body" placeholder="~{{ wc[1] }} words" style="height:260px;resize:vertical;"></textarea>
+
+    <div class="section-header" style="color:#81C995;margin-top:16px;margin-bottom:8px;">Conclusion</div>
+    <textarea name="conclusion" placeholder="~{{ wc[2] }} words" style="height:90px;resize:vertical;"></textarea>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;font-size:1rem;font-weight:700;">
+        Submit &amp; Compare →
+      </button>
+    </div>
+  </div>
+</form>
+
+{% endif %}
+{% endif %}
+{% endblock %}
