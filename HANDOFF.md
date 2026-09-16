@@ -26,7 +26,8 @@ dashboard. So neither could get a timeline mounted today. This is a separate, la
 (building the submission flow itself) than anything PLAN-024 Phase 1 scoped — flagged for a
 future session, not silently dropped.
 
-Full detail: `.knowledge/plans/PLAN-024.md`'s Build sequence section.
+Full detail: `.knowledge/plans/PLAN-024.md`'s Build sequence section. Logged as DECIDE-49
+(timeline UI shape) and RISK-12 (GS1-4/Eco-Optional gap) in `MASTER_INDEX.md`.
 
 **PLAN-024 Phase 1 is now fully done.** Canvas/vision-eval (step 2) is unblocked
 schema-wise (`input_mode` exists everywhere it needs to) and is next per PLAN-024's own
